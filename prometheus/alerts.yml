@@ -1,0 +1,76 @@
+# AI Router Alerting Rules
+groups:
+  - name: ai_router_alerts
+    interval: 30s
+    rules:
+      - alert: HighErrorRate
+        expr: rate(ai_router_request_failed[5m]) / rate(ai_router_request_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate on AI Router"
+          description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes"
+
+      - alert: ProviderDown
+        expr: ai_router_provider_health == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Provider {{ $labels.provider }} is down"
+          description: "Provider {{ $labels.provider }} has been unhealthy for more than 1 minute"
+
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, sum(rate(ai_router_provider_latency_seconds_bucket[5m])) by (le)) > 5.0
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency detected"
+          description: "P95 latency is {{ $value }}s over the last 5 minutes"
+
+      - alert: CircuitBreakerOpen
+        expr: ai_router_circuit_breaker_state == 2
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Circuit breaker open for {{ $labels.provider }}"
+          description: "Provider {{ $labels.provider }} circuit breaker is OPEN, requests are being blocked"
+
+      - alert: HighCostSpend
+        expr: rate(ai_router_cost_usd_total[1h]) > 10.0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High cost spend rate"
+          description: "Cost rate is ${{ $value }}/hour"
+
+      - alert: RateLimitThreshold
+        expr: rate(ai_router_rate_limit_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High rate limiting"
+          description: "Rate limiting {{ $value }} requests/second"
+
+      - alert: FallbackStorm
+        expr: rate(ai_router_fallback_total[5m]) > 20
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High fallback rate"
+          description: "Fallback rate is {{ $value }} events/second"
+
+      - alert: NoHealthyProviders
+        expr: sum(ai_router_provider_health) == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "No healthy providers available"
+          description: "All providers are unhealthy"

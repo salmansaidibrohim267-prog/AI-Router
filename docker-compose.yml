@@ -1,0 +1,205 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-restart: &restart-policy
+  restart: unless-stopped
+
+x-resources-ai: &resources-ai
+  resources:
+    limits:
+      cpus: "1.0"
+      memory: 512M
+    reservations:
+      cpus: "0.5"
+      memory: 256M
+
+x-healthcheck-ai: &healthcheck-ai
+  test: ["CMD", "python", "-c", "import http.client; http.client.HTTPConnection('localhost', 8000).request('GET', '/health')"]
+  interval: 30s
+  timeout: 5s
+  retries: 3
+  start_period: 15s
+
+services:
+  ai-router:
+    build:
+      context: .
+      args:
+        VERSION: "2.0.0"
+        BUILD_DATE: "${BUILD_DATE:-}"
+        GIT_COMMIT: "${GIT_COMMIT:-}"
+    image: ai-router:latest
+    container_name: ai-router
+    profiles: ["dev", "monitoring", "production", "minimal"]
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - CONFIG_DIR=/app/config
+    volumes:
+      - ./config:/app/config:ro
+      - ./logs:/app/logs
+    <<: [*restart-policy, *resources-ai, *healthcheck-ai, *default-logging]
+    stop_grace_period: 30s
+    ulimits:
+      nofile:
+        soft: 1024
+        hard: 2048
+    networks:
+      - ai-router-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ai-router.rule=Host(`ai-router.example.com`) || Host(`api.example.com`)"
+      - "traefik.http.routers.ai-router.entrypoints=websecure"
+      - "traefik.http.routers.ai-router.tls=true"
+      - "traefik.http.routers.ai-router.tls.certresolver=letsencrypt"
+      - "traefik.http.services.ai-router.loadbalancer.server.port=8000"
+      - "traefik.http.middlewares.ai-router-compress.compress=true"
+      - "traefik.http.middlewares.ai-router-secure.headers.customFrameOptionsValue=SAMEORIGIN"
+      - "traefik.http.middlewares.ai-router-secure.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.ai-router-secure.headers.xssProtection=1; mode=block"
+      - "traefik.http.middlewares.ai-router-ratelimit.rateLimit.average=100"
+      - "traefik.http.middlewares.ai-router-ratelimit.rateLimit.burst=50"
+      - "traefik.http.routers.ai-router.middlewares=ai-router-compress,ai-router-secure,ai-router-ratelimit"
+      - "traefik.docker.network=ai-router-net"
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: prometheus
+    profiles: ["monitoring", "production"]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+    <<: [*restart-policy, *default-logging]
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    stop_grace_period: 60s
+    healthcheck:
+      test: ["CMD", "wget", "-q", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - ai-router-net
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: grafana
+    profiles: ["monitoring", "production"]
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/ai-router-overview.json
+    <<: [*restart-policy, *default-logging]
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    depends_on:
+      prometheus:
+        condition: service_started
+      loki:
+        condition: service_started
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "wget", "-q", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - ai-router-net
+
+  loki:
+    image: grafana/loki:3.1.0
+    container_name: loki
+    profiles: ["monitoring", "production"]
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki_data:/loki
+    command:
+      - "-config.file=/etc/loki/loki-config.yml"
+    <<: [*restart-policy, *default-logging]
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    stop_grace_period: 60s
+    healthcheck:
+      test: ["CMD", "wget", "-q", "http://localhost:3100/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - ai-router-net
+
+  promtail:
+    image: grafana/promtail:3.1.0
+    container_name: promtail
+    profiles: ["monitoring", "production"]
+    volumes:
+      - ./promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      - ./logs:/var/log:ro
+    command:
+      - "-config.file=/etc/promtail/promtail-config.yml"
+    <<: [*restart-policy, *default-logging]
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    depends_on:
+      loki:
+        condition: service_started
+    stop_grace_period: 30s
+    networks:
+      - ai-router-net
+
+  ollama:
+    image: ollama/ollama:0.3.12
+    container_name: ollama
+    profiles: ["dev", "production"]
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    <<: [*restart-policy, *default-logging]
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 8G
+    stop_grace_period: 120s
+    networks:
+      - ai-router-net
+
+volumes:
+  ollama_data:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+
+networks:
+  ai-router-net:
+    driver: bridge

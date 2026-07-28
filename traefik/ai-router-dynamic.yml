@@ -1,0 +1,52 @@
+# Traefik dynamic configuration for ai-router
+# Place this file in Traefik's dynamic config directory
+# or mount it at /etc/traefik/dynamic/ai-router.yml inside the traefik container.
+---
+http:
+  routers:
+    ai-router:
+      rule: "Host(`ai-router.example.com`) || Host(`api.example.com`)"
+      entryPoints:
+        - websecure
+      service: ai-router
+      tls:
+        certResolver: letsencrypt
+      middlewares:
+        - ai-router-compress
+        - ai-router-secure
+        - ai-router-ratelimit
+
+  services:
+    ai-router:
+      loadBalancer:
+        servers:
+          - url: "http://ai-router:8000"
+        healthCheck:
+          path: /health
+          interval: 30s
+          timeout: 3s
+
+  middlewares:
+    ai-router-compress:
+      compress:
+        excludedContentTypes:
+          - text/event-stream
+
+    ai-router-secure:
+      headers:
+        customFrameOptionsValue: SAMEORIGIN
+        contentTypeNosniff: true
+        browserXssFilter: true
+        referrerPolicy: strict-origin-when-cross-origin
+        permissionsPolicy: "camera=(), microphone=(), geolocation=()"
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+
+    ai-router-ratelimit:
+      rateLimit:
+        average: 100
+        burst: 50
+        period: 1m
+        sourceCriterion:
+          ipStrategy:
+            depth: 1

@@ -1,0 +1,5 @@
+plugins:
+  example:
+    enabled: false
+  logging:
+    enabled: true

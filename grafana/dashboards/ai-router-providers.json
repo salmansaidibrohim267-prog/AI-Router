@@ -1,0 +1,190 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__requires": [
+    { "type": "grafana", "id": "grafana", "name": "Grafana", "version": "10.0.0" },
+    { "type": "datasource", "id": "prometheus", "name": "Prometheus", "version": "1.0.0" },
+    { "type": "panel", "id": "stat", "name": "Stat", "version": "" },
+    { "type": "panel", "id": "timeseries", "name": "Time series", "version": "" },
+    { "type": "panel", "id": "table", "name": "Table", "version": "" }
+  ],
+  "title": "AI Router - Provider Details",
+  "description": "Per-provider performance and cost monitoring",
+  "tags": ["ai-router", "providers", "llm-gateway"],
+  "timezone": "browser",
+  "editable": true,
+  "refresh": "30s",
+  "panels": [
+    {
+      "title": "Requests by Provider",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(ai_router_provider_requests_total[5m])) by (provider)",
+          "legendFormat": "{{provider}}",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+        }
+      ],
+      "description": "Total request rate per provider"
+    },
+    {
+      "title": "Provider Failures",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(ai_router_provider_failure_total[5m])) by (provider, error_type)",
+          "legendFormat": "{{provider}}: {{error_type}}",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+        }
+      ],
+      "description": "Failure rate by provider and error type"
+    },
+    {
+      "title": "Provider Latency Histogram",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(ai_router_provider_latency_seconds_bucket[5m])) by (le, provider))",
+          "legendFormat": "p50: {{provider}}",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(ai_router_provider_latency_seconds_bucket[5m])) by (le, provider))",
+          "legendFormat": "p95: {{provider}}",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(ai_router_provider_latency_seconds_bucket[5m])) by (le, provider))",
+          "legendFormat": "p99: {{provider}}",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+        }
+      ],
+      "unit": "s",
+      "description": "Latency percentiles per provider"
+    },
+    {
+      "title": "Provider Cost Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum(rate(ai_router_cost_usd_total[5m])) by (provider)",
+          "legendFormat": "{{provider}}",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+        }
+      ],
+      "unit": "currencyusd",
+      "description": "Cost accumulation rate by provider"
+    },
+    {
+      "title": "Token Rate by Provider",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "targets": [
+        {
+          "expr": "sum(rate(ai_router_tokens_total[5m])) by (provider, type)",
+          "legendFormat": "{{provider}}: {{type}}",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+        }
+      ],
+      "description": "Token consumption rate by provider and type"
+    },
+    {
+      "title": "Circuit Breakers",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "targets": [
+        {
+          "expr": "ai_router_circuit_breaker_state",
+          "legendFormat": "{{provider}}",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+        }
+      ],
+      "description": "Circuit breaker state (0=closed, 1=half-open, 2=open)"
+    },
+    {
+      "title": "Provider Health Timeline",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+      "targets": [
+        {
+          "expr": "ai_router_provider_health",
+          "legendFormat": "{{provider}}",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+        }
+      ],
+      "description": "Provider health status over time (1=healthy, 0=unhealthy)"
+    },
+    {
+      "title": "Provider Latency (Raw Gauge)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 },
+      "targets": [
+        {
+          "expr": "ai_router_provider_latency_ms",
+          "legendFormat": "{{provider}}",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+        }
+      ],
+      "unit": "ms",
+      "description": "Raw provider latency gauge from health checks"
+    },
+    {
+      "title": "Fallback Events",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 },
+      "targets": [
+        {
+          "expr": "sum(rate(ai_router_fallback_total[5m])) by (provider, from_provider)",
+          "legendFormat": "{{provider}} <- {{from_provider}}",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+        }
+      ],
+      "description": "Fallback events by provider pair"
+    },
+    {
+      "title": "Provider Stats Overview",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 40 },
+      "targets": [
+        {
+          "expr": "sum(rate(ai_router_provider_requests_total[5m])) by (provider)",
+          "legendFormat": "req/s: {{provider}}",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+        },
+        {
+          "expr": "sum(rate(ai_router_provider_failure_total[5m])) by (provider)",
+          "legendFormat": "err/s: {{provider}}",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+        },
+        {
+          "expr": "sum(rate(ai_router_cost_usd_total[5m])) by (provider)",
+          "legendFormat": "$/s: {{provider}}",
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" }
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        }
+      ],
+      "description": "Aggregated provider statistics"
+    }
+  ],
+  "schemaVersion": 38,
+  "version": 1,
+  "links": [],
+  "time": { "from": "now-6h", "to": "now" }
+}

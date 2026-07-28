@@ -1,0 +1,69 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+*.whl
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose*.yml
+.dockerignore
+Dockerfile
+
+# Tests
+tests/
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Logs
+logs/
+*.log
+
+# Config
+.env
+.env.local
+.env.production
+
+# Docs
+README.md
+AUDIT_REPORT.md
+CHANGELOG.md
+
+# CI
+.github/
+
+# Grafana
+grafana/
+
+# Monitoring
+prometheus/
+promtail/
+loki/
+
+# Traefik
+traefik/
+
+# Benchmark results
+benchmark_results.json

@@ -1,0 +1,392 @@
+# Model Capability Registry
+# Each entry defines a model's provider, name, context window, and capabilities.
+# Used by the router to automatically select compatible models.
+
+models:
+  # ===== OpenAI =====
+  - provider: openai
+    model: gpt-4o
+    context_window: 128000
+    supports_streaming: true
+    supports_tools: true
+    supports_vision: true
+    supports_json_mode: true
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: true
+  - provider: openai
+    model: gpt-4o-mini
+    context_window: 128000
+    supports_streaming: true
+    supports_tools: true
+    supports_vision: true
+    supports_json_mode: true
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: true
+  - provider: openai
+    model: gpt-3.5-turbo
+    context_window: 16385
+    supports_streaming: true
+    supports_tools: true
+    supports_vision: false
+    supports_json_mode: true
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: true
+  - provider: openai
+    model: text-embedding-3-small
+    context_window: 8191
+    supports_streaming: false
+    supports_tools: false
+    supports_vision: false
+    supports_json_mode: false
+    supports_embeddings: true
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: false
+  - provider: openai
+    model: text-embedding-3-large
+    context_window: 8191
+    supports_streaming: false
+    supports_tools: false
+    supports_vision: false
+    supports_json_mode: false
+    supports_embeddings: true
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: false
+
+  # ===== Anthropic =====
+  - provider: anthropic
+    model: claude-3-5-sonnet-20241022
+    context_window: 200000
+    supports_streaming: true
+    supports_tools: true
+    supports_vision: true
+    supports_json_mode: true
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: true
+  - provider: anthropic
+    model: claude-3-5-haiku-20241022
+    context_window: 200000
+    supports_streaming: true
+    supports_tools: true
+    supports_vision: true
+    supports_json_mode: true
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: true
+
+  # ===== Google Gemini =====
+  - provider: google
+    model: gemini-1.5-pro
+    context_window: 1048576
+    supports_streaming: true
+    supports_tools: true
+    supports_vision: true
+    supports_json_mode: true
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: true
+  - provider: google
+    model: gemini-1.5-flash
+    context_window: 1048576
+    supports_streaming: true
+    supports_tools: true
+    supports_vision: true
+    supports_json_mode: true
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: true
+
+  # ===== Mistral =====
+  - provider: mistral
+    model: mistral-large-latest
+    context_window: 128000
+    supports_streaming: true
+    supports_tools: true
+    supports_vision: true
+    supports_json_mode: true
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: true
+  - provider: mistral
+    model: mistral-small-latest
+    context_window: 32768
+    supports_streaming: true
+    supports_tools: true
+    supports_vision: false
+    supports_json_mode: true
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: true
+  - provider: mistral
+    model: codestral-latest
+    context_window: 256000
+    supports_streaming: true
+    supports_tools: true
+    supports_vision: false
+    supports_json_mode: true
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: true
+  - provider: mistral
+    model: mistral-embed
+    context_window: 8192
+    supports_streaming: false
+    supports_tools: false
+    supports_vision: false
+    supports_json_mode: false
+    supports_embeddings: true
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: false
+
+  # ===== Groq =====
+  - provider: groq
+    model: llama-3.1-70b-versatile
+    context_window: 131072
+    supports_streaming: true
+    supports_tools: true
+    supports_vision: false
+    supports_json_mode: true
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: true
+  - provider: groq
+    model: llama-3.1-8b-instant
+    context_window: 131072
+    supports_streaming: true
+    supports_tools: true
+    supports_vision: false
+    supports_json_mode: true
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: true
+  - provider: groq
+    model: mixtral-8x7b-32768
+    context_window: 32768
+    supports_streaming: true
+    supports_tools: false
+    supports_vision: false
+    supports_json_mode: false
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: false
+  - provider: groq
+    model: gemma2-9b-it
+    context_window: 8192
+    supports_streaming: true
+    supports_tools: false
+    supports_vision: false
+    supports_json_mode: false
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: false
+
+  # ===== Ollama =====
+  - provider: ollama
+    model: qwen2.5-coder:7b
+    context_window: 32768
+    supports_streaming: true
+    supports_tools: true
+    supports_vision: false
+    supports_json_mode: true
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: true
+  - provider: ollama
+    model: llama3.2:latest
+    context_window: 131072
+    supports_streaming: true
+    supports_tools: true
+    supports_vision: false
+    supports_json_mode: true
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: true
+  - provider: ollama
+    model: qwen2.5:3b
+    context_window: 32768
+    supports_streaming: true
+    supports_tools: false
+    supports_vision: false
+    supports_json_mode: false
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: false
+  - provider: ollama
+    model: llama3.1:8b
+    context_window: 131072
+    supports_streaming: true
+    supports_tools: true
+    supports_vision: false
+    supports_json_mode: true
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: true
+  - provider: ollama
+    model: mistral:7b
+    context_window: 32768
+    supports_streaming: true
+    supports_tools: false
+    supports_vision: false
+    supports_json_mode: false
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: false
+  - provider: ollama
+    model: codellama:7b
+    context_window: 16384
+    supports_streaming: true
+    supports_tools: false
+    supports_vision: false
+    supports_json_mode: false
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: false
+
+  # ===== OpenRouter =====
+  - provider: openrouter
+    model: openai/gpt-oss-20b:free
+    context_window: 8192
+    supports_streaming: true
+    supports_tools: false
+    supports_vision: false
+    supports_json_mode: false
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: false
+  - provider: openrouter
+    model: nvidia/nemotron-3-super-120b-a12b:free
+    context_window: 128000
+    supports_streaming: true
+    supports_tools: false
+    supports_vision: false
+    supports_json_mode: false
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: false
+  - provider: openrouter
+    model: google/gemma-4-31b-it:free
+    context_window: 8192
+    supports_streaming: true
+    supports_tools: false
+    supports_vision: false
+    supports_json_mode: false
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: false
+  - provider: openrouter
+    model: cohere/north-mini-code:free
+    context_window: 8192
+    supports_streaming: true
+    supports_tools: false
+    supports_vision: false
+    supports_json_mode: false
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: false
+  - provider: openrouter
+    model: anthropic/claude-3.5-sonnet
+    context_window: 200000
+    supports_streaming: true
+    supports_tools: true
+    supports_vision: true
+    supports_json_mode: true
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: true
+  - provider: openrouter
+    model: google/gemini-pro
+    context_window: 32768
+    supports_streaming: true
+    supports_tools: true
+    supports_vision: true
+    supports_json_mode: true
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: true
+
+  # ===== Meta / Llama =====
+  - provider: meta
+    model: llama-3.1-8b
+    context_window: 131072
+    supports_streaming: true
+    supports_tools: true
+    supports_vision: false
+    supports_json_mode: true
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: true
+  - provider: meta
+    model: llama-3.2-90b
+    context_window: 131072
+    supports_streaming: true
+    supports_tools: true
+    supports_vision: true
+    supports_json_mode: true
+    supports_embeddings: false
+    supports_reasoning: false
+    supports_thinking: false
+    supports_image_generation: false
+    supports_function_calling: true

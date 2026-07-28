@@ -1,0 +1,16 @@
+name: logging
+version: 1.0.0
+description: Structured logging plugin for request/response tracking
+author: AI Router
+tags:
+  - logging
+  - monitoring
+events:
+  - request.started
+  - request.finished
+  - provider.selected
+  - provider.failed
+hooks:
+  - before_request
+  - after_response
+  - on_error

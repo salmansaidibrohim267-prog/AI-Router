@@ -1,0 +1,31 @@
+chat:
+  primary:
+    provider: ollama
+    model: qwen2.5-coder:7b
+  fallback:
+    - provider: ollama
+      model: llama3.2:latest
+
+coding:
+  primary:
+    provider: ollama
+    model: qwen2.5-coder:7b
+  fallback:
+    - provider: ollama
+      model: llama3.2:latest
+
+architecture:
+  primary:
+    provider: ollama
+    model: qwen2.5-coder:7b
+  fallback:
+    - provider: ollama
+      model: llama3.2:latest
+
+analysis:
+  primary:
+    provider: ollama
+    model: qwen2.5-coder:7b
+  fallback:
+    - provider: ollama
+      model: llama3.2:latest

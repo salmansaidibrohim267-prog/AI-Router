@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "ai-router"
+version = "2.0.0"
+description = "Production-ready AI Gateway with intelligent routing, health checks, and fallback"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+asyncio_mode = "auto"
+markers = ["asyncio: async tests"]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["app/main.py", "app/scoring.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "def __repr__",
+]

@@ -1,0 +1,97 @@
+# Provider configurations for AI Router
+# Each provider defines connection details and available models
+
+providers:
+  - name: openrouter
+    display_name: "OpenRouter"
+    api_key_env: "OPENROUTER_API_KEY"
+    base_url: "https://openrouter.ai/api/v1"
+    timeout: 60.0
+    max_retries: 3
+    enabled: true
+    priority: 10
+    models:
+      - "openai/gpt-oss-20b:free"
+      - "nvidia/nemotron-3-super-120b-a12b:free"
+      - "google/gemma-4-31b-it:free"
+      - "cohere/north-mini-code:free"
+      - "anthropic/claude-3.5-sonnet"
+      - "google/gemini-pro"
+
+  - name: ollama
+    display_name: "Ollama (Local)"
+    api_key_env: null
+    base_url: "http://localhost:11434"
+    timeout: 120.0
+    max_retries: 3
+    enabled: true
+    priority: 20
+    models:
+      - "qwen2.5:3b"
+      - "llama3.1:8b"
+      - "mistral:7b"
+      - "codellama:7b"
+
+  - name: openai
+    display_name: "OpenAI"
+    api_key_env: "OPENAI_API_KEY"
+    base_url: "https://api.openai.com/v1"
+    timeout: 60.0
+    max_retries: 3
+    enabled: false
+    priority: 30
+    models:
+      - "gpt-4o"
+      - "gpt-4o-mini"
+      - "gpt-3.5-turbo"
+
+  - name: anthropic
+    display_name: "Anthropic"
+    api_key_env: "ANTHROPIC_API_KEY"
+    base_url: "https://api.anthropic.com/v1"
+    timeout: 60.0
+    max_retries: 3
+    enabled: false
+    priority: 40
+    models:
+      - "claude-3-5-sonnet-20241022"
+      - "claude-3-5-haiku-20241022"
+
+  - name: google
+    display_name: "Google Gemini"
+    api_key_env: "GOOGLE_API_KEY"
+    base_url: "https://generativelanguage.googleapis.com/v1beta"
+    timeout: 60.0
+    max_retries: 3
+    enabled: false
+    priority: 50
+    models:
+      - "gemini-1.5-pro"
+      - "gemini-1.5-flash"
+
+  - name: mistral
+    display_name: "Mistral AI"
+    api_key_env: "MISTRAL_API_KEY"
+    base_url: "https://api.mistral.ai/v1"
+    timeout: 60.0
+    max_retries: 3
+    enabled: false
+    priority: 60
+    models:
+      - "mistral-large-latest"
+      - "mistral-small-latest"
+      - "codestral-latest"
+
+  - name: groq
+    display_name: "Groq"
+    api_key_env: "GROQ_API_KEY"
+    base_url: "https://api.groq.com/openai/v1"
+    timeout: 30.0
+    max_retries: 3
+    enabled: false
+    priority: 70
+    models:
+      - "llama-3.1-70b-versatile"
+      - "llama-3.1-8b-instant"
+      - "mixtral-8x7b-32768"
+      - "gemma2-9b-it"

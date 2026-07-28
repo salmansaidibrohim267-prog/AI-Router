@@ -1,0 +1,49 @@
+---
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: ai-router
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: ai-router
+          service: ai-router
+          __path__: /var/log/router.jsonl
+    pipeline_stages:
+      - json:
+          expressions:
+            timestamp: timestamp
+            level: level
+            event: event
+            provider: provider
+            model: model
+            task: task
+            latency_ms: latency_ms
+            success: success
+            error: error
+            request_id: request_id
+            prompt_tokens: prompt_tokens
+            completion_tokens: completion_tokens
+            total_tokens: total_tokens
+            status_code: status_code
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
+      - labels:
+          level:
+          event:
+          provider:
+          model:
+          task:
+          success:
+      - drop:
+          expression: ".*(health_check|config_reload).*"
+          drop_counter: false

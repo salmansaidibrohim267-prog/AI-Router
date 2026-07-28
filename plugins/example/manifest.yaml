@@ -1,0 +1,14 @@
+name: example
+version: 1.0.0
+description: Example plugin for testing the plugin system
+author: AI Router
+tags:
+  - example
+  - test
+  - demo
+events:
+  - request.started
+  - request.finished
+hooks:
+  - before_request
+  - after_response
