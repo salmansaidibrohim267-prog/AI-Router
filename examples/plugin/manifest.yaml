@@ -1,0 +1,15 @@
+name: request-logger
+version: 1.0.0
+description: Logs every request entering and leaving the router
+author: Your Name
+tags:
+  - example
+  - logging
+events:
+  - request.started
+  - request.finished
+hooks:
+  - before_request
+  - before_provider
+  - after_response
+  - on_error

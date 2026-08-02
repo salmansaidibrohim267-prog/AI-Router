@@ -42,7 +42,7 @@ Environment configuration (`MIG_*`):
 | Variable | Default |
 | --- | --- |
 | `MIG_DRIVER` | `memory` (`memory` or `sqlite`) |
-| `MIG_DATABASE_PATH` | `:memory:` (sqlite) |
+| `MIG_DATABASE_PATH` | empty (uses in-memory store) |
 | `MIG_SCHEMA_TABLE` | `schema_versions` |
 | `MIG_MIGRATIONS_DIR` | `config/migrations` |
 | `MIG_AUTO_MIGRATE` | `false` |

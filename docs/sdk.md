@@ -12,16 +12,23 @@ pip install -e .          # editable install from the repo
 ## Routing
 
 ```python
-from app.router import Router
-from app.providers import get_provider
+from app.router import AIRouter
+from app.models import ChatRequest
 
-router = Router()
-response = await router.route(
+router = AIRouter()
+await router.initialize()
+
+response = await router.chat(ChatRequest(
     model="gpt-4o-mini",
     messages=[{"role": "user", "content": "Hello"}],
-)
-print(response.provider, response.content)
+))
+print(response.model, response.choices[0].message.content)
+
+await router.close()
 ```
+
+The module also exposes a ready-to-use singleton: `from app.router import
+router`. Embeddings are available via `router.embeddings(...)`.
 
 ## Costs
 

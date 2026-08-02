@@ -13,12 +13,16 @@ Metrics, logs, traces, SLOs and alerting for AI Router.
 
 ## Metrics
 
-Application metrics follow `ai_router_*` naming:
+Application metrics follow `ai_router_*` naming (defined in `app/metrics.py`):
 
-- `ai_router_requests_total` — request volume
-- `ai_router_errors_total` — provider/error volume
-- `ai_router_latency_seconds_bucket` — latency histogram
-- `ai_router_success_total` — successful requests
+- `ai_router_request_total` — request volume (labels: provider, model, task)
+- `ai_router_request_success` / `ai_router_request_failed` — outcomes
+- `ai_router_provider_latency_seconds` — per-provider latency histogram
+- `ai_router_provider_requests_total` / `ai_router_provider_failure_total`
+- `ai_router_cache_hit` / `ai_router_cache_miss`, `ai_router_tokens_total`,
+  `ai_router_cost_usd_total`, `ai_router_circuit_breaker_state`,
+  `ai_router_provider_health`, `ai_router_uptime_seconds`,
+  `ai_router_active_requests`, `ai_router_distribution_weight`
 
 The default Grafana dashboard renders request rate, error rate, p95 latency,
 success ratio, memory and CPU (PromQL in `DashboardGenerator._default_panels`).

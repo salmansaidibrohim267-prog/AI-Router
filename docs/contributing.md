@@ -24,7 +24,7 @@ PYTHONPATH=. pytest tests/ -q
 - **Subsystem boundaries**: each `app/<subsystem>/` package has its own
   exceptions module deriving from a package base exception.
 - **Coverage floor**: 95% per subsystem (CI enforces it). The full suite must
-  stay green (`4442 passed, 21 skipped` at time of writing).
+  stay green (`4475 passed, 21 skipped` at time of writing).
 
 ## Code style
 

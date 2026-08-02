@@ -318,8 +318,10 @@ class TestDashboardGenerator:
     def test_default_panels_promql(self):
         generator = DashboardGenerator()
         panels = generator._default_panels("ai-router")
-        assert "sum(rate(ai_router_requests_total[5m]))" in panels[0]["targets"][0]["expr"]
+        assert "sum(rate(ai_router_request_total[5m]))" in panels[0]["targets"][0]["expr"]
+        assert "sum(rate(ai_router_request_failed[5m]))" in panels[1]["targets"][0]["expr"]
         assert "histogram_quantile" in panels[2]["targets"][0]["expr"]
+        assert "ai_router_provider_latency_seconds_bucket" in panels[2]["targets"][0]["expr"]
 
     def test_to_json(self):
         generator = DashboardGenerator()

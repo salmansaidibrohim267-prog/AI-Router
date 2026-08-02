@@ -20,6 +20,21 @@ class TestAPIHealth:
         resp = client.get("/health")
         assert resp.status_code == 200
 
+    def test_ready(self, client):
+        resp = client.get("/ready")
+        assert resp.status_code in (200, 503)
+        if resp.status_code == 200:
+            assert resp.json()["status"] == "ok"
+        else:
+            assert resp.json()["status"] == "unavailable"
+
+    def test_ready_reports_providers_available(self, client):
+        resp = client.get("/ready")
+        assert resp.status_code in (200, 503)
+        data = resp.json()
+        assert "config_loaded" in data
+        assert "providers_available" in data
+
     def test_metrics(self, client):
         resp = client.get("/metrics")
         assert resp.status_code == 200

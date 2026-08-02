@@ -202,10 +202,10 @@ class DashboardGenerator:
     def _default_panels(self, service: str) -> list[dict[str, Any]]:
         prefix = service.replace("-", "_")
         return [
-            self._panel(1, "Request rate", f'sum(rate({prefix}_requests_total[5m]))', 0),
-            self._panel(2, "Error rate", f'sum(rate({prefix}_errors_total[5m]))', 0, kind="graph"),
-            self._panel(3, "p95 latency", f"histogram_quantile(0.95, sum(rate({prefix}_latency_seconds_bucket[5m])) by (le))", 0),
-            self._panel(4, "Success ratio", f"sum({prefix}_success_total) / sum({prefix}_requests_total)", 1),
+            self._panel(1, "Request rate", f'sum(rate({prefix}_request_total[5m]))', 0),
+            self._panel(2, "Error rate", f'sum(rate({prefix}_request_failed[5m]))', 0, kind="graph"),
+            self._panel(3, "p95 latency", f"histogram_quantile(0.95, sum(rate({prefix}_provider_latency_seconds_bucket[5m])) by (le))", 0),
+            self._panel(4, "Success ratio", f"sum({prefix}_request_success) / sum({prefix}_request_total)", 1),
             self._panel(5, "Memory usage", f"process_resident_memory_bytes{{job=\"{service}\"}}", 1, kind="graph"),
             self._panel(6, "CPU usage", f"rate(process_cpu_seconds_total{{job=\"{service}\"}}[5m])", 1, kind="graph"),
         ]

@@ -11,6 +11,10 @@ on:
         required: true
         type: string
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   PYTHON_VERSION: "3.12"
   REGISTRY: ghcr.io
@@ -47,6 +51,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push image
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -59,6 +64,9 @@ jobs:
             VERSION=${{ steps.version.outputs.version }}
             GIT_COMMIT=${{ github.sha }}
             BUILD_DATE=${{ steps.version.outputs.version }}
+          provenance: mode=max
+          attestations: |
+            type=sbom, enabled=true
 
       - name: Install cosign
         uses: sigstore/cosign-installer@v3
@@ -67,7 +75,7 @@ jobs:
         run: |
           cosign sign --yes \
             --key env://COSIGN_PRIVATE_KEY \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.meta.outputs.digest || '' }} \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }} \
             || echo "signing skipped (key not configured)"
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}

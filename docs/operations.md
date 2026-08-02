@@ -8,10 +8,10 @@ Operational runbooks for running AI Router in production.
 
 | Script | Purpose |
 | --- | --- |
-| `backup.sh` / `restore.sh` | Backup and restore state (memory.db, config, logs) |
-| `deploy.sh` | Pull and restart the container |
-| `rollback.sh` | Revert to the previous release |
-| `healthcheck.sh` / `verify.sh` | Probe `/health` and `/ready` |
+| `backup.sh` / `restore.sh` | Backup and restore state (config, Grafana provisioning, Prometheus/Loki/Grafana volumes) |
+| `deploy.sh` | Validate config, build the image with version metadata, deploy via compose and wait for health |
+| `rollback.sh` | Revert to the previous release image |
+| `healthcheck.sh` / `verify.sh` | Probe `/health` and report container/service status |
 | `status.sh` | Show container, volume and network state |
 | `prune.sh` | Clean old images, volumes and logs |
 | `update.sh` | Update config from the repo |
@@ -20,8 +20,10 @@ Operational runbooks for running AI Router in production.
 ## Health
 
 - Liveness: `GET /health` — restart if failing for 3 consecutive probes.
-- Readiness: `GET /ready` — remove from load balancer when failing.
-- The Docker image and k8s manifests wire these probes automatically.
+- Readiness: `GET /ready` — returns 200 only when the config is loaded and at
+  least one provider is available (503 otherwise). Docker and k8s probes wire
+  this automatically.
+- `GET /health/providers` gives per-provider readiness for routing decisions.
 
 ## Deployment verification
 

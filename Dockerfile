@@ -29,6 +29,7 @@ LABEL org.opencontainers.image.source="https://github.com/anomalyco/ai-router"
 LABEL org.opencontainers.image.documentation="https://github.com/anomalyco/ai-router#readme"
 LABEL org.opencontainers.image.vendor="AI Router"
 LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.authors="anomalyco"
 LABEL org.opencontainers.image.base.name="python:${PYTHON_VERSION}-slim"
 
 # Create non-root user
@@ -56,5 +57,7 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=10s \
 
 # Drop privileges
 USER ai-router
+
+STOPSIGNAL SIGTERM
 
 CMD ["python", "-m", "app.main"]

@@ -5,14 +5,16 @@ Security hardening overview for the AI Router gateway.
 ## Transport & access
 
 - TLS terminated at Traefik (Let's Encrypt) with HSTS-friendly headers.
-- Rate limiting middleware (100 req/s avg, 50 burst) at the edge.
+- Rate limiting middleware (default 100 requests per 60-second window per
+  client, token-bucket with burst) at the edge.
 - API keys required on gateway endpoints; providers are invoked with their
   own secrets injected via environment/secret store.
 
 ## Secrets
 
-- `app/security/` implements a secret store with AES-GCM encryption and
-  optional KMS/HSM-backed key management (`StorageEncryption`, `HsmClient`).
+- `app/security/` implements a secret store with AES-GCM envelope encryption
+  and optional KMS/HSM-backed key management (`StorageEncryption`,
+  `KeyManager` with `HSMAdapter` / `KMSAdapter` adapters).
 - Secrets are never logged; `as_dict()` omits private material.
 - `SecretNotFoundError` is raised distinctly before generic error handling.
 

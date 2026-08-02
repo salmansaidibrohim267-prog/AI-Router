@@ -17,6 +17,7 @@ fallback.
 | [Security](security.md) | Secrets, signing, hardening, incident response |
 | [Migrations](migrations.md) | Versioned schema migrations and rollback |
 | [Observability](observability.md) | Metrics, SLOs, burn rates, alerts, dashboards |
+| [Upgrade](upgrade.md) | Upgrade paths, migration steps, rollback |
 | [Contributing](contributing.md) | Conventions, style, commits, releases |
 
 ## Related directories

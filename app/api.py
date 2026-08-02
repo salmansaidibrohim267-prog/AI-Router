@@ -139,10 +139,28 @@ async def lifespan(app: FastAPI):
     logger.shutdown()
 
 
+def _get_build_metadata() -> dict:
+    try:
+        import json
+        meta_file = os.path.join(os.path.dirname(__file__), ".meta", "build.json")
+        if os.path.isfile(meta_file):
+            with open(meta_file) as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return {}
+
+
+def _get_app_version() -> str:
+    """Resolve the app version from build metadata, falling back to the release constant."""
+    version = _get_build_metadata().get("version")
+    return version if version else "1.0.0-rc.1"
+
+
 app = FastAPI(
     title="AI Router Gateway",
     description="Production-ready AI Gateway with intelligent routing, health checks, and fallback",
-    version="2.0.0",
+    version=_get_app_version(),
     lifespan=lifespan,
 )
 
@@ -284,18 +302,6 @@ def _get_cpu_usage() -> dict:
         return {}
 
 
-def _get_build_metadata() -> dict:
-    try:
-        import json
-        meta_file = os.path.join(os.path.dirname(__file__), ".meta", "build.json")
-        if os.path.isfile(meta_file):
-            with open(meta_file) as f:
-                return json.load(f)
-    except Exception:
-        pass
-    return {}
-
-
 def _get_uptime() -> float:
     from app.metrics import _start_time
     return time.time() - _start_time
@@ -341,6 +347,30 @@ async def health_check() -> dict[str, Any]:
 @app.get("/health/providers")
 async def providers_health() -> dict[str, HealthCheckResponse]:
     return await provider_manager.check_health()
+
+
+@app.get("/ready")
+async def readiness_check() -> dict[str, Any]:
+    """Readiness probe: the router accepts traffic only when configuration is
+    loaded and at least one provider is available."""
+    config_loaded = config_manager.config is not None
+    provider_health = await provider_manager.check_health()
+    available = any(
+        h.status in (ProviderStatus.HEALTHY, ProviderStatus.DEGRADED)
+        for h in provider_health.values()
+    )
+    ready = config_loaded and available
+    status_code = status.HTTP_200_OK if ready else status.HTTP_503_SERVICE_UNAVAILABLE
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "status": "ok" if ready else "unavailable",
+            "config_loaded": config_loaded,
+            "providers_available": available,
+            "healthy_count": sum(1 for h in provider_health.values() if h.status == ProviderStatus.HEALTHY),
+            "total_providers": len(provider_health),
+        },
+    )
 
 
 @app.get("/health/providers/{provider_name}")
@@ -860,10 +890,10 @@ async def version_info() -> dict:
 async def root() -> dict[str, str]:
     return {
         "name": "AI Router Gateway",
-        "version": "2.0.0",
+        "version": app.version,
         "description": "Production-ready AI Gateway with intelligent routing",
         "docs": "/docs",
-        "version": "/version",
+        "version_endpoint": "/version",
         "health": "/health",
         "metrics": "/metrics",
         "config": "/config",
