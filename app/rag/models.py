@@ -1,0 +1,173 @@
+from __future__ import annotations
+
+import time
+from dataclasses import dataclass, field
+from typing import Any
+from enum import Enum
+
+
+class IntentType(str, Enum):
+    QUESTION = "question"
+    SUMMARIZATION = "summarization"
+    CLASSIFICATION = "classification"
+    GENERATION = "generation"
+    CHAT = "chat"
+    UNKNOWN = "unknown"
+
+
+class LanguageType(str, Enum):
+    EN = "en"
+    FR = "fr"
+    DE = "de"
+    ES = "es"
+    PT = "pt"
+    NL = "nl"
+    IT = "it"
+    JA = "ja"
+    ZH = "zh"
+    RU = "ru"
+    AR = "ar"
+    UNKNOWN = "unknown"
+
+
+@dataclass
+class QueryAnalysis:
+    original: str
+    normalized: str = ""
+    language: LanguageType = LanguageType.UNKNOWN
+    intent: IntentType = IntentType.UNKNOWN
+    expanded: str = ""
+    confidence: float = 1.0
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "original": self.original,
+            "normalized": self.normalized,
+            "language": self.language.value,
+            "intent": self.intent.value,
+            "expanded": self.expanded,
+            "confidence": self.confidence,
+        }
+
+
+@dataclass
+class RetrievedChunk:
+    chunk_id: str
+    content: str
+    score: float
+    rerank_score: float = 0.0
+    source: str = ""
+    metadata: dict[str, Any] = field(default_factory=dict)
+    token_count: int = 0
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "chunk_id": self.chunk_id,
+            "content": self.content[:200],
+            "score": self.score,
+            "rerank_score": self.rerank_score,
+            "source": self.source,
+            "metadata": self.metadata,
+            "token_count": self.token_count,
+        }
+
+
+@dataclass
+class ContextAssembly:
+    chunks: list[RetrievedChunk] = field(default_factory=list)
+    total_tokens: int = 0
+    token_budget: int = 2048
+    truncated: bool = False
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "chunks": [c.to_dict() for c in self.chunks],
+            "total_tokens": self.total_tokens,
+            "token_budget": self.token_budget,
+            "truncated": self.truncated,
+        }
+
+
+@dataclass
+class ConversationTurn:
+    role: str = "user"
+    content: str = ""
+    timestamp: float = 0.0
+
+
+@dataclass
+class RAGRequest:
+    query: str = ""
+    conversation_history: list[ConversationTurn] = field(default_factory=list)
+    retrieval_top_k: int | None = None
+    rerank_top_k: int | None = None
+    context_token_budget: int | None = None
+    system_prompt: str = ""
+    temperature: float | None = None
+    max_tokens: int | None = None
+    stream: bool = False
+    provider_override: str = ""
+
+
+@dataclass
+class RAGResponse:
+    answer: str
+    query_analysis: QueryAnalysis | None = None
+    context: ContextAssembly | None = None
+    sources: list[dict[str, Any]] = field(default_factory=list)
+    model: str = ""
+    provider: str = ""
+    total_latency_ms: float = 0.0
+    retrieval_latency_ms: float = 0.0
+    llm_latency_ms: float = 0.0
+    token_usage: dict[str, int] = field(default_factory=dict)
+    confidence: float = 0.0
+    fallback_used: bool = False
+    cache_hit: bool = False
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "answer": self.answer,
+            "query_analysis": self.query_analysis.to_dict() if self.query_analysis else None,
+            "context": self.context.to_dict() if self.context else None,
+            "sources": self.sources,
+            "model": self.model,
+            "provider": self.provider,
+            "total_latency_ms": round(self.total_latency_ms, 4),
+            "retrieval_latency_ms": round(self.retrieval_latency_ms, 2),
+            "llm_latency_ms": round(self.llm_latency_ms, 2),
+            "token_usage": self.token_usage,
+            "confidence": self.confidence,
+            "fallback_used": self.fallback_used,
+            "cache_hit": self.cache_hit,
+        }
+
+
+@dataclass
+class RAGMetrics:
+    total_requests: int = 0
+    total_latency_ms: float = 0.0
+    average_latency_ms: float = 0.0
+    total_retrieval_latency_ms: float = 0.0
+    total_llm_latency_ms: float = 0.0
+    total_prompt_tokens: int = 0
+    total_completion_tokens: int = 0
+    cache_hits: int = 0
+    cache_misses: int = 0
+    fallbacks: int = 0
+    errors: int = 0
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "total_requests": self.total_requests,
+            "total_latency_ms": round(self.total_latency_ms, 4),
+            "average_latency_ms": round(self.average_latency_ms, 4),
+            "total_retrieval_latency_ms": round(self.total_retrieval_latency_ms, 2),
+            "total_llm_latency_ms": round(self.total_llm_latency_ms, 2),
+            "total_prompt_tokens": self.total_prompt_tokens,
+            "total_completion_tokens": self.total_completion_tokens,
+            "cache_hits": self.cache_hits,
+            "cache_misses": self.cache_misses,
+            "fallbacks": self.fallbacks,
+            "errors": self.errors,
+        }

@@ -19,6 +19,9 @@ from app.models import ProviderConfig, ReloadConfigResponse, RouterConfig, TaskC
 CONFIG_DIR = Path(__file__).resolve().parent.parent / "config"
 MODELS_CONFIG = CONFIG_DIR / "models.yaml"
 PROVIDERS_CONFIG = CONFIG_DIR / "providers.yaml"
+ORCHESTRATOR_CONFIG = CONFIG_DIR / "orchestrator.yaml"
+
+WATCHED_FILES = [MODELS_CONFIG, PROVIDERS_CONFIG, ORCHESTRATOR_CONFIG]
 
 
 class ConfigManager:
@@ -238,6 +241,9 @@ class ConfigManager:
         return self._config_hash
 
     # Config Watcher (auto-reload on file change)
+    def register_reload_callback(self, callback):
+        self._reload_callbacks.append(callback)
+
     def enable_watcher(self, callback=None):
         """Enable file watching for auto-reload."""
         self._watch_active = True
@@ -248,10 +254,9 @@ class ConfigManager:
             while self._watch_active:
                 try:
                     current_mtime = 0
-                    if MODELS_CONFIG.exists():
-                        current_mtime = max(current_mtime, os.path.getmtime(MODELS_CONFIG))
-                    if PROVIDERS_CONFIG.exists():
-                        current_mtime = max(current_mtime, os.path.getmtime(PROVIDERS_CONFIG))
+                    for f in WATCHED_FILES:
+                        if f.exists():
+                            current_mtime = max(current_mtime, os.path.getmtime(f))
 
                     if self._last_mtime > 0 and current_mtime > self._last_mtime:
                         time.sleep(0.5)

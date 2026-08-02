@@ -1,0 +1,60 @@
+"""Release management subsystem (Stage 10.10).
+
+Semantic versioning, release candidates, changelog generation, signed
+releases, artifact manifests and automated publishing for the AI Router
+v1.0.0 release line.
+"""
+
+from .changelog import ChangelogGenerator, CommitEntry, ReleaseEntry
+from .config import ReleaseConfig
+from .exceptions import (
+    ChangelogError,
+    PublishError,
+    ReleaseError,
+    ReleaseLockedError,
+    SignatureVerificationError,
+    SigningError,
+    VersionError,
+    VersionNotFoundError,
+)
+from .manager import ArtifactManifest, ReleaseManager, create_release_manager, sha256_file
+from .publishing import (
+    ContainerRegistryPublisher,
+    GitHubPublisher,
+    LocalPublisher,
+    Publisher,
+    PublisherRegistry,
+    create_publisher,
+)
+from .signing import Ed25519StyleSigner, ReleaseSigner, Signature, canonical_json
+from .version import SemanticVersion
+
+__all__ = [
+    "ReleaseConfig",
+    "SemanticVersion",
+    "CommitEntry",
+    "ReleaseEntry",
+    "ChangelogGenerator",
+    "Signature",
+    "ReleaseSigner",
+    "Ed25519StyleSigner",
+    "canonical_json",
+    "Publisher",
+    "GitHubPublisher",
+    "ContainerRegistryPublisher",
+    "LocalPublisher",
+    "PublisherRegistry",
+    "create_publisher",
+    "ArtifactManifest",
+    "ReleaseManager",
+    "create_release_manager",
+    "sha256_file",
+    "ReleaseError",
+    "VersionError",
+    "VersionNotFoundError",
+    "ChangelogError",
+    "SigningError",
+    "SignatureVerificationError",
+    "PublishError",
+    "ReleaseLockedError",
+]

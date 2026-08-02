@@ -1,0 +1,15 @@
+name: translation
+version: 1.0.0
+description: Request/response translation plugin for multi-language support
+author: AI Router
+tags:
+  - translation
+  - i18n
+  - language
+events:
+  - request.started
+  - request.finished
+hooks:
+  - before_request
+  - after_response
+  - on_error

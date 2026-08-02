@@ -1,0 +1,64 @@
+name: Test
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pytest pytest-asyncio pytest-cov
+      - name: Run full test suite with coverage
+        run: |
+          PYTHONPATH=. pytest tests/ -v --cov=app --cov-report=term-missing --cov-report=xml
+        env:
+          OPENROUTER_API_KEY: "test"
+          OPENAI_API_KEY: "test"
+          ANTHROPIC_API_KEY: "test"
+          GOOGLE_API_KEY: "test"
+      - name: Enforce per-subsystem coverage floor (>= 95%)
+        run: |
+          PYTHONPATH=. pytest tests/test_release.py tests/test_migrations.py \
+            tests/test_observability.py tests/test_deploy.py tests/test_benchmarks.py \
+            --cov=app.release --cov=app.migrations --cov=app.observability \
+            --cov=app.deploy --cov=benchmarks.suites --cov-fail-under=95
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+
+  migrations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt pytest pytest-asyncio
+      - name: Dry-run migrations against SQLite
+        run: |
+          PYTHONPATH=. python -c "
+          from app.migrations import MigrationConfig, MigrationManager
+          manager = MigrationManager(MigrationConfig(driver='sqlite', database_path=':memory:'))
+          applied = manager.upgrade()
+          assert manager.pending() == []
+          print(f'migrations ok: {len(applied)} steps')
+          "

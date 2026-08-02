@@ -102,3 +102,85 @@ class TestAIPlugin:
         import asyncio
         result = asyncio.run(p.after_response(None, None, {}))
         assert result.modified_response == {"modified": True}
+
+    def test_before_route_default(self):
+        p = AIPlugin()
+        import asyncio
+        result = asyncio.run(p.before_route(None, {}))
+        assert isinstance(result, HookResult)
+        assert result.should_cancel is False
+
+    def test_after_route_default(self):
+        p = AIPlugin()
+        import asyncio
+        result = asyncio.run(p.after_route(None, {}, []))
+        assert isinstance(result, HookResult)
+        assert result.should_cancel is False
+
+    def test_before_provider_default(self):
+        p = AIPlugin()
+        import asyncio
+        result = asyncio.run(p.before_provider(None, "p", "m", {}))
+        assert isinstance(result, HookResult)
+        assert result.should_cancel is False
+
+    def test_after_provider_default(self):
+        p = AIPlugin()
+        import asyncio
+        result = asyncio.run(p.after_provider(None, None, "p", "m", {}))
+        assert isinstance(result, HookResult)
+        assert result.should_cancel is False
+
+    def test_before_response_default(self):
+        p = AIPlugin()
+        import asyncio
+        result = asyncio.run(p.before_response(None, None, {}))
+        assert isinstance(result, HookResult)
+        assert result.should_cancel is False
+
+    def test_plugin_enabled_default(self):
+        p = AIPlugin()
+        assert p._plugin_enabled is True
+
+    def test_before_route_cancels(self):
+        class BlockPlugin(AIPlugin):
+            async def before_route(self, request, context):
+                return HookResult(should_cancel=True, cancel_reason="blocked route")
+
+        p = BlockPlugin()
+        import asyncio
+        result = asyncio.run(p.before_route(None, {}))
+        assert result.should_cancel is True
+        assert result.cancel_reason == "blocked route"
+
+    def test_before_provider_injects_metadata(self):
+        class MetaPlugin(AIPlugin):
+            async def before_provider(self, request, provider_name, model, context):
+                return HookResult(metadata={"p": provider_name, "m": model})
+
+        p = MetaPlugin()
+        import asyncio
+        result = asyncio.run(p.before_provider(None, "openai", "gpt-4", {}))
+        assert result.metadata == {"p": "openai", "m": "gpt-4"}
+
+    def test_after_route_receives_routes(self):
+        received = []
+        class RoutePlugin(AIPlugin):
+            async def after_route(self, request, context, routes):
+                received.extend(routes)
+                return HookResult()
+
+        p = RoutePlugin()
+        import asyncio
+        asyncio.run(p.after_route(None, {}, [("a", "b")]))
+        assert received == [("a", "b")]
+
+    def test_before_response_modifies(self):
+        class ModPlugin(AIPlugin):
+            async def before_response(self, request, response, context):
+                return HookResult(modified_response="modified!")
+
+        p = ModPlugin()
+        import asyncio
+        result = asyncio.run(p.before_response(None, None, {}))
+        assert result.modified_response == "modified!"

@@ -1,0 +1,73 @@
+from __future__ import annotations
+
+import asyncio
+from typing import Any, Callable, Coroutine
+
+from app.rag.config import RAGConfig
+from app.rag.exceptions import RAGFallbackTriggered
+from app.rag.models import RAGResponse
+
+
+class FallbackStrategy:
+    REDUCE = "reduce"
+    STATIC = "static"
+    RAISE = "raise"
+
+
+class FallbackHandler:
+    def __init__(self, config: RAGConfig | None = None):
+        self._config = config or RAGConfig()
+
+    async def handle_retrieval_failure(
+        self,
+        query: str,
+        fallback_strategy: str = "",
+    ) -> str:
+        strategy = fallback_strategy or self._config.fallback_strategy
+        if strategy == FallbackStrategy.RAISE:
+            raise RAGFallbackTriggered("Retrieval failed and fallback strategy is 'raise'")
+        if strategy == FallbackStrategy.STATIC:
+            return "I'm unable to answer that question without access to my knowledge base."
+        return "I'll try to answer based on my general knowledge."
+
+    async def handle_reranker_failure(
+        self,
+        query: str,
+        chunks: list[Any],
+        fallback_strategy: str = "",
+    ) -> list[Any]:
+        strategy = fallback_strategy or self._config.fallback_strategy
+        if strategy == FallbackStrategy.RAISE:
+            raise RAGFallbackTriggered("Reranker failed and fallback strategy is 'raise'")
+        return chunks
+
+    async def handle_llm_timeout(
+        self,
+        query: str,
+        fallback_strategy: str = "",
+    ) -> str:
+        strategy = fallback_strategy or self._config.fallback_strategy
+        if strategy == FallbackStrategy.RAISE:
+            raise RAGFallbackTriggered("LLM timeout and fallback strategy is 'raise'")
+        if strategy == FallbackStrategy.STATIC:
+            return "I apologize, but the request timed out. Please try again."
+        return "I encountered a delay. Based on the information available, I cannot provide a complete answer right now."
+
+    def with_retry(
+        self,
+        func: Callable[..., Coroutine[Any, Any, Any]],
+        max_retries: int = 2,
+        retry_delay: float = 0.5,
+    ) -> Callable[..., Coroutine[Any, Any, Any]]:
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            last_exc: Exception | None = None
+            for attempt in range(max_retries + 1):
+                try:
+                    return await func(*args, **kwargs)
+                except Exception as e:
+                    last_exc = e
+                    if attempt < max_retries:
+                        await asyncio.sleep(retry_delay * (2 ** attempt))
+            raise last_exc  # type: ignore[misc]
+
+        return wrapper

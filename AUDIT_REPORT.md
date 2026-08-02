@@ -1,255 +1,178 @@
-# AI-Router Project Audit Report
+# Security & Shutdown Audit Report — AI Router Stage 8 (Distributed)
 
-## Project Overview
-AI-Router is an intelligent router that automatically routes prompts to the best AI model based on task classification (coding, architecture, analysis, chat).
+---
 
-## Current Structure
-```
-AI-Router/
-├── app/
-│   ├── __init__.py
-│   ├── main.py           # FastAPI app (legacy)
-│   ├── api.py            # FastAPI app (active)
-│   ├── router.py         # Main router logic
-│   ├── config.py         # Config loader
-│   ├── classifier.py     # Task classifier
-│   ├── logger.py         # File logger
-│   ├── stats.py          # Statistics tracking
-│   ├── models.py         # Empty
-│   ├── scoring.py        # Model scorer (duplicate of router)
-│   ├── providers/
-│   │   ├── __init__.py
-│   │   ├── base.py       # Abstract base provider
-│   │   ├── manager.py    # Provider manager
-│   │   ├── openrouter.py # OpenRouter provider
-│   │   └── ollama.py     # Ollama provider
-├── config/
-│   └── models.yaml       # Model config
-├── tests/
-│   └── test_router.py    # Empty
-├── logs/                 # Log directory
-├── .env                  # API keys
-├── requirements.txt      # Empty
-├── .gitignore
-└── README.md             # Minimal
-```
+## SECURITY AUDIT
 
-## Critical Issues
+### 1. Logging of Secrets / Sensitive Data
 
-### 1. **Architecture & Design**
-- **Duplicate scoring logic**: Both `router.py` (ModelScorer) and `scoring.py` (ModelScorer) exist
-- **Two FastAPI apps**: `main.py` and `api.py` - unclear which is entry point
-- **Two entry points**: `main.py` and `api.py` both define FastAPI apps
-- **Empty modules**: `models.py`, `app/providers/__init__.py`, `tests/test_router.py`, `requirements.txt`
-- **No clear entry point**: No `__main__.py` or `main.py` with uvicorn runner
+| Severity | File | Line | Finding |
+|----------|------|------|---------|
+| **MEDIUM** | `app/distributed/redis_client.py` | 41 | Redis URL logged verbatim: `logger.info(f"Connected to Redis at {self._url}")`. If `REDIS_URL` contains an embedded password (e.g. `redis://:password@host/db`), it is written to logs in cleartext. |
+| **MEDIUM** | `app/main.py` | 101–103 | Env vars (including `REDIS_URL`) printed to stdout during startup: `print(f"  {var}={val}")`. If `REDIS_URL` includes credentials they leak to console/logs. |
+| **LOW** | `app/api.py` | 376 | Cache key logged/broadcast includes `request.messages` — user conversation content (PII). Not a credential leak but content exposure. |
+| ✅ OK | `app/logger.py` | 18–38 | `SENSITIVE_FIELDS` set and `_sanitize_value` masks `api_key`, `secret`, `password`, `token`, `authorization`. This is correct defense-in-depth. |
 
-### 2. **Provider System Issues**
-- **`OllamaProvider` doesn't inherit from `BaseProvider`** - violates LSP
-- **`OpenRouterProvider` missing abstract methods**: No `stream()`, `health_check()`, `embeddings()`, `close()`
-- **`BaseProvider` too minimal**: Only has `chat()` abstract method
-- **No health checks** on any provider
-- **No provider discovery/registration** - hardcoded in manager
-- **No connection pooling** - new httpx client per request
-- **No timeout configuration** - hardcoded timeouts
-- **No retry logic** on failures
-- **No streaming support** in any provider
-- **Ollama uses wrong API**: Uses `/api/generate` instead of `/api/chat` for chat
+### 2. Unsafe Deserialization (eval / exec / pickle)
 
-### 3. **Router Issues**
-- **Hardcoded scores** in router (duplicate of scoring.py)
-- **Uses `print()` instead of logging** for debugging
-- **No health check before routing** - tries dead providers
-- **No latency-based routing** - only static scores
-- **No circuit breaker** - keeps trying failed providers
-- **No request/response models** - uses raw dicts
-- **Blocking calls** - no async support
-- **No request validation** beyond Pydantic
-- **No streaming support**
+| Severity | File | Line | Finding |
+|----------|------|------|---------|
+| ✅ OK | *(all files)* | — | No `eval()`, `exec()`, `pickle`, `shelve`, or `yaml.load()` without `Loader`. All JSON deserialization uses safe `json.loads()`. |
+| INFO | `app/distributed/dlq.py` | 58 | Uses `__import__("app.tasks.status", ...)` — dynamic import, but of a known internal module only. Not a vector. |
 
-### 4. **Configuration Issues**
-- **Config loaded once at startup** - no hot reload
-- **No config validation** - invalid YAML crashes at startup
-- **No environment variable substitution** in YAML
-- **Hardcoded config path** - not configurable
-- **Invalid model in config**: `coding.primary.model` = `model-tidak-ada` (doesn't exist)
-- **No schema validation** for YAML
+### 3. Command Injection
 
-### 5. **API Issues**
-- **Two FastAPI apps** (`main.py` and `api.py`) - confusing
-- **No health check endpoint**
-- **No provider health/status endpoint**
-- **No models endpoint**
-- **No statistics endpoint** (exists in main.py but not api.py)
-- **No logs endpoint**
-- **No config reload endpoint**
-- **No metrics endpoint** (Prometheus)
-- **No rate limiting**
-- **No request ID tracking**
-- **No streaming endpoint**
-- **No embeddings endpoint**
+| Severity | File | Line | Finding |
+|----------|------|------|---------|
+| ✅ OK | *(all files)* | — | No `os.system()`, `subprocess.Popen()`, or shell execution with unsanitized user input found. |
 
-### 6. **Observability Issues**
-- **Logging uses plain text**, not JSON
-- **No structured logging** (JSON)
-- **No log levels** (DEBUG, INFO, WARNING, ERROR)
-- **No log rotation**
-- **Print statements** in router and providers
-- **Stats only track basic counts** - no percentiles, no per-model latency distribution
-- **No Prometheus metrics**
-- **No request tracing** (no request IDs)
+### 4. Path Traversal
 
-### 7. **Error Handling**
-- **Raw exceptions** raised from providers
-- **No custom exceptions** - all generic `Exception`
-- **No retry logic** with exponential backoff
-- **No circuit breaker pattern**
-- **Print statements** for errors instead of logging
-- **No error classification** (retryable vs non-retryable)
+| Severity | File | Line | Finding |
+|----------|------|------|---------|
+| ✅ OK | *(all files)* | — | All file reads use hardcoded paths (e.g. `/proc/self/status`, `.meta/build.json`, config dir). No user-supplied path components are used. |
 
-### 8. **Testing**
-- **Zero tests** - empty test file
-- **No pytest configuration**
-- **No test fixtures**
-- **No mocking** for providers
-- **No CI/CD pipeline**
+### 5. Redis Port Exposure & Authentication
 
-### 9. **Packaging & Deployment**
-- **Empty requirements.txt**
-- **No pyproject.toml** (modern Python packaging)
-- **No Dockerfile**
-- **No docker-compose.yml**
-- **No .env.example**
-- **No Makefile**
-- **No pre-commit hooks**
-- **No linting/type checking config**
+| Severity | File | Line | Finding |
+|----------|------|------|---------|
+| **CRITICAL** | `docker-compose.yml` | 201–202 | Redis port `6379` is mapped to **all interfaces** (`"6379:6379"`). No `127.0.0.1:` binding. In contrast, the ollama service correctly uses `"127.0.0.1:11434:11434"`. Redis is reachable from any host that can reach the Docker host. |
+| **CRITICAL** | `docker-compose.yml` | 197–212 | Redis has **no password / `--requirepass`** and no mounted `redis.conf`. Any container or external host that connects can issue arbitrary commands. |
+| **CRITICAL** | `docker-compose.yml` | 211 | Redis is on the `ai-router-net` bridge, shared with all other services — so if any container is compromised, Redis is directly accessible without auth. |
 
-### 10. **Code Quality**
-- **Inconsistent type hints** - some have, many don't
-- **No docstrings** on most classes/methods
-- **Print statements** instead of logging
-- **Hardcoded values** everywhere (timeouts, URLs, scores)
-- **Magic strings** for task types
-- **Duplicate code** (scoring in two places)
-- **Unused imports** in some files
-- **Empty `__init__.py`** files
-- **Inconsistent naming** (snake_case vs camelCase in dicts)
+### 6. Input Validation on New Runtime Endpoints
 
-### 11. **Security**
-- **API key in .env** committed (should be in .env.example)
-- **No input sanitization**
-- **No request size limits**
-- **No authentication/authorization**
+| Severity | File | Line | Endpoint | Finding |
+|----------|------|------|----------|---------|
+| ✅ OK | `app/api.py` | 1215–1251 | `/runtime/health`, `/runtime/workers`, `/runtime/leader`, `/runtime/queue`, `/runtime/events` | All are read-only `GET` endpoints with **no user input parameters**. No validation needed. |
+| **BUG** (functional) | `app/api.py` | 1187–1212 | `_get_health()` | Creates `AsyncRedisClient()` but **never calls `.connect()`**. Every method checks `if self._redis is None: return None`. Runtime endpoints silently return empty/default data instead of actual health info. |
 
-### 12. **Performance**
-- **No connection pooling** - new httpx client per request
-- **No caching** for model responses
-- **No request batching**
-- **Blocking I/O** - no async support
-- **No timeout configuration**
+### 7. docker-compose.yml — Redis Summary
 
-## Medium Priority Issues
+- **Password**: ❌ Not set (no `command: redis-server --requirepass ...`, no config file)
+- **Port binding**: ❌ `"6379:6379"` → bound to `0.0.0.0:6379` (should be `"127.0.0.1:6379:6379"`)
+- **Network**: On the shared bridge `ai-router-net`, accessible to all containers
 
-### 13. **Classifier Issues**
-- **Keyword-based only** - no ML classifier option
-- **Hardcoded keywords** - not configurable
-- **No confidence scores**
-- **Case sensitive issues** - lower() called but keywords lowercase
+---
 
-### 14. **Statistics**
-- **In-memory only** - lost on restart
-- **No persistence** to disk/database
-- **No time-windowed stats** (last hour, last day)
-- **No percentile calculations**
+## SHUTDOWN AUDIT
 
-### 15. **Logger**
-- **No log levels**
-- **No structured logging**
-- **No log rotation**
-- **File only** - no stdout option
+### 1. `app/worker.py` — SIGTERM/SIGINT Handling
 
-## Recommendations Priority Order
+| Severity | Lines | Finding |
+|----------|-------|---------|
+| **HIGH** | 101–102 | `loop.add_signal_handler(sig, lambda: loop.stop())` stops the event loop immediately but does **not** cancel the worker tasks. The `finally` block in `run_worker()` (lines 90–94) may not execute because `loop.stop()` does not raise `CancelledError` — it just halts the loop. |
+| **HIGH** | 36–73 | `process_one()` has **no cancellation point**. If SIGTERM arrives while a task is being processed, the task is abandoned mid-flight: the lease is not released, no `nack` is sent, and the task may remain in RUNNING state permanently. |
+| **HIGH** | 85 | Worker tasks are `asyncio.gather(*tasks)` but cancellation only propagates if the tasks are actually cancelled — `loop.stop()` does not cancel them. |
+| **MEDIUM** | 96 | `stop_heartbeat()` is called on exit (line 94), but **`registry.unregister()` is never called**. The worker remains in the registry as ONLINE until heartbeat TTL expires (15s). |
+| **MEDIUM** | 75–83 | `poll_loop()` uses `while True` with **no `_running` flag**. It relies solely on `CancelledError` to break, which requires explicit task cancellation. |
 
-### Phase 1: Core Infrastructure (Critical)
-1. Fix provider interface - add all abstract methods, make Ollama inherit
-2. Remove duplicate scoring (remove scoring.py or router's ModelScorer)
-3. Choose single FastAPI app (api.py) and remove main.py
-4. Add custom exceptions
-5. Add config validation with Pydantic
-6. Add health checks to all providers
-7. Add proper logging with structlog/json
+### 2. `app/scheduler.py` — Leadership Release on Shutdown
 
-### Phase 2: API & Routing (High)
-8. Add health check endpoint
-9. Add provider status endpoint
-10. Add models endpoint
-11. Add statistics endpoint
-12. Add config reload endpoint
-12. Add request ID middleware
-13. Improve router with health checks, latency-based routing, circuit breaker
-14. Add async support
+| Severity | Lines | Finding |
+|----------|-------|---------|
+| **CRITICAL** | 37–38 | Signal handler calls `loop.stop()` directly. **`scheduler.stop()` is never called.** The distributed lock and leader key remain in Redis, causing a stale leader record. |
+| **CRITICAL** | 27–31 | `run_scheduler()` has `while True` with no cancellation handling. When the loop stops, the `DistributedScheduler.stop()` method (which releases the leadership lock) is never invoked. |
+| **HIGH** | `distributed_scheduler.py:144–148` | `_release_leadership` exists and works correctly, but is **dead code** — nothing in `scheduler.py` calls `scheduler.stop()`. |
 
-### Phase 3: Observability (High)
-15. Add structured JSON logging
-16. Add Prometheus metrics
-17. Add request tracing
-17. Improve statistics with percentiles
+### 3. `app/main.py` — Distributed Lifecycle Shutdown
 
-### Phase 4: Features (Medium)
-18. Add streaming support
-19. Add embeddings endpoint
-20. Add caching with TTL
-21. Add rate limiting
-22. Add config validation
+| Severity | Lines | Finding |
+|----------|-------|---------|
+| **CRITICAL** | 115–121 | `graceful_shutdown()` calls `sys.exit(0)`. Does **not** close Redis connections, stop the event bus listener, stop the scheduler, or stop heartbeats. |
+| **CRITICAL** | 131–180 | Distributed components are created and started but **no references are retained** for shutdown. When `sys.exit(0)` is called, Redis connections, pubsub subscriptions, and heartbeat loops are all leaked. |
+| **HIGH** | 165–175 | Services are started in a separate event loop (`_loop`), but signal handlers for SIGTERM/SIGINT are registered *after* this block. The `graceful_shutdown` handler only calls `sys.exit(0)`, so the second event loop's tasks are never awaited. |
 
-### Phase 5: Quality & Deployment (Medium)
-23. Add unit tests with pytest
-24. Add integration tests
-25. Add requirements.txt
-26. Add pyproject.toml
-27. Add Dockerfile
-28. Add docker-compose.yml
-29. Add .env.example
-30. Add Makefile
-31. Add pre-commit hooks
-32. Update README with full documentation
+### 4. `distributed_queue.py` — Shutdown Cleanup
 
-### Phase 6: Advanced (Low)
-33. Add ML classifier option
-34. Add request batching
-35. Add authentication
-36. Add request size limits
-37. Add response caching
-38. Add circuit breaker pattern
-39. Add metrics persistence
+| Severity | File | Finding |
+|----------|------|---------|
+| ✅ OK | `distributed_queue.py` | No cleanup needed — the queue is a stateless wrapper around Redis operations. Redis connection lifecycle is managed by `AsyncRedisClient`. |
 
-## File-Level Issues Summary
+### 5. `event_bus.py` — `stop_listener()` Cleanup
 
-| File | Issues |
-|------|--------|
-| `app/main.py` | Duplicate app, should be removed |
-| `app/api.py` | Active app, needs all endpoints added |
-| `app/router.py` | Print statements, duplicate scorer, no health checks, blocking |
-| `app/config.py` | No validation, no reload, hardcoded path |
-| `app/classifier.py` | Hardcoded keywords, no config |
-| `app/logger.py` | Plain text, no levels, no rotation |
-| `app/stats.py` | Basic only, no percentiles |
-| `app/models.py` | Empty |
-| `app/scoring.py` | Duplicate of router |
-| `app/providers/base.py` | Incomplete interface |
-| `app/providers/manager.py` | Hardcoded providers, no health |
-| `app/providers/openrouter.py` | Missing methods, no health, no streaming |
-| `app/providers/ollama.py` | Wrong API, no BaseProvider, no health |
-| `config/models.yaml` | Invalid model name, no validation |
-| `requirements.txt` | Empty |
-| `tests/test_router.py` | Empty |
-| `README.md` | Minimal |
-| `.env` | Real API key committed |
+| Severity | Lines | Finding |
+|----------|-------|---------|
+| ✅ OK | 74–82 | `stop_listener()` correctly sets `_running = False`, cancels `_listener_task`, awaits it, and unsubscribes from the channel. |
+| ✅ OK | 84–98 | `_listen_loop()` checks `self._running` and catches `CancelledError` to break cleanly. |
+| **LOW** | 97–98 | Exception handler catches all `Exception` but not `BaseException` — `CancelledError` (which is `BaseException`) is not caught here, which is actually correct behavior for cancellation. |
 
-## Estimated Effort
-- **Phase 1-2 (Core + API)**: ~20-30 hours
-- **Phase 3 (Observability)**: ~8-12 hours
-- **Phase 4 (Features)**: ~12-16 hours
-- **Phase 5 (Quality)**: ~8-12 hours
-- **Phase 6 (Advanced)**: ~16-24 hours
+### 6. `worker_registry.py` — `stop_heartbeat()` Cleanup
 
-**Total: ~64-94 hours** for complete production-ready system
+| Severity | Lines | Finding |
+|----------|-------|---------|
+| ✅ OK | 96–97 | `stop_heartbeat()` sets `_running = False`, which causes `start_heartbeat_loop()` to exit on its next iteration check. |
+| **LOW** | 94 | The heartbeat loop sleeps for `_heartbeat_interval` seconds. Setting `_running = False` while the loop is sleeping won't interrupt it — the loop exits one sleep-cycle later. Not immediate. |
+| **MEDIUM** | — | `stop_heartbeat()` does **not** call `unregister()`. The worker record stays in Redis with `status = ONLINE` until the heartbeat key expires (15s TTL). |
+
+---
+
+## MEMORY / ORPHAN TASK AUDIT
+
+### 1. Untracked `asyncio.create_task()` Calls
+
+| Severity | File | Line | Finding |
+|----------|------|------|---------|
+| **MEDIUM** | `distributed_scheduler.py` | 66–67 | `asyncio.create_task(self._leader_election_loop())` and `asyncio.create_task(self._job_execution_loop())` are **fire-and-forget**. They are not stored as instance variables, cannot be explicitly cancelled, and not awaited. If `stop()` is called, `_running` is set to `False` but the tasks continue their current iteration. |
+| **LOW** | `distributed_scheduler.py` | 66–67 | If `_leader_election_loop()` crashes with an exception not caught by the `try/except` (e.g. `asyncio.CancelledError`), the task silently terminates while `_job_execution_loop` continues. The scheduler becomes a zombie — not leader, not trying to become leader. |
+| ✅ OK | `event_bus.py` | 72 | `self._listener_task = asyncio.create_task(self._listen_loop())` — properly tracked and cancelled in `stop_listener()`. |
+| ✅ OK | `worker.py` | 85 | Worker poll tasks stored in a list and `await asyncio.gather(*tasks)`. |
+
+### 2. Infinite Loops Without Cancellation Mechanisms
+
+| Severity | File | Line | Finding |
+|----------|------|------|---------|
+| **MEDIUM** | `worker.py` | 75–83 | `poll_loop()` uses `while True` without a `_running` flag. The only exit path is `asyncio.CancelledError`. Since the signal handler uses `loop.stop()` instead of cancelling tasks, this loop may never exit gracefully. |
+| ✅ OK | `distributed_scheduler.py` | 82, 118 | Both `_leader_election_loop` and `_job_execution_loop` check `while self._running`. |
+| ✅ OK | `event_bus.py` | 84 | `_listen_loop` checks `while self._running`. |
+| ✅ OK | `worker_registry.py` | 89 | `start_heartbeat_loop` checks `while self._running`. |
+
+### 3. Orphan Tasks on Exception
+
+| Severity | File | Lines | Finding |
+|----------|------|-------|---------|
+| **MEDIUM** | `distributed_scheduler.py` | 66–67 | Both background tasks are isolated fire-and-forget. If `_job_execution_loop` raises an exception (its `try` at line 126 handles `Exception` in the inner loop, but an exception in the outer logic would kill the task), `_leader_election_loop` continues running but no jobs are executed — the scheduler is in a broken state. |
+| ✅ OK | `worker.py` | 81–83 | The `except Exception` in `poll_loop()` catches all errors and continues, preventing orphan tasks. |
+
+### 4. `distributed_scheduler.py` — Loop Stop on Shutdown
+
+| Severity | Lines | Finding |
+|----------|-------|---------|
+| **CRITICAL** | 69–73 | `stop()` exists and sets `_running = False` then releases leadership. **But it is never called** from the entry point (`scheduler.py`). |
+| **MEDIUM** | 82, 118 | Even if `stop()` were called, `_leader_election_loop` and `_job_execution_loop` could be mid-`asyncio.sleep()` (3s and 1s respectively). Setting `_running = False` doesn't interrupt the sleep. Loops exit after their current delay completes. Not a leak but delayed shutdown. |
+| **LOW** | 142 | `_job_execution_loop` could be executing `queue.create_task()` (a DB write) when `_running` is set to `False`. The loop won't check until the next iteration, after the DB write completes. Acceptable behavior. |
+
+---
+
+## CONSOLIDATED FINDINGS SUMMARY
+
+### CRITICAL (3)
+1. **Redis exposed on 0.0.0.0 without password** — `docker-compose.yml:201-202`, `:197-212`. Any host can connect. No auth, no localhost binding.
+2. **No cleanup of distributed lifecyle on shutdown** — `app/main.py:115-121`, `:131-180`. `sys.exit(0)` leaks Redis connections, pubsub, heartbeats, and scheduler leader lock.
+3. **Scheduler never releases leadership on shutdown** — `app/scheduler.py:37-38`, `distributed_scheduler.py:69-73` (dead code). Stale leader key remains in Redis.
+
+### HIGH (3)
+1. **Worker abandons active tasks on SIGTERM** — `app/worker.py:101-102`. `loop.stop()` doesn't cancel tasks; leases not released; no nack sent.
+2. **Worker doesn't unregister on shutdown** — `app/worker.py:94`. Only stops heartbeat, leaves `status=ONLINE` in registry.
+3. **Runtime health endpoints silently return empty data** — `app/api.py:1187-1212`. `AsyncRedisClient.connect()` never called; all methods return `None`.
+
+### MEDIUM (5)
+1. **Redis URL (with possible credentials) logged** — `app/distributed/redis_client.py:41`
+2. **Env vars including REDIS_URL printed at startup** — `app/main.py:101-103`
+3. **Fire-and-forget create_task in DistributedScheduler** — `distributed_scheduler.py:66-67`. Tasks not tracked, can't be cancelled.
+4. **Worker poll_loop has no `_running` flag** — `app/worker.py:75-83`. Only exits via CancelledError.
+5. **stop_heartbeat doesn't interrupt active sleep** — `worker_registry.py:94`. Delayed shutdown by up to heartbeat_interval.
+
+### LOW (4)
+1. **Cache key logs user messages (PII)** — `app/api.py:376`
+2. **stop_heartbeat doesn't call unregister()** — `worker_registry.py:96-97`
+3. **Event bus exception handler doesn't catch BaseException** — `event_bus.py:97-98` (intentional, but worth noting)
+4. **DistributedScheduler loops can't be interrupted mid-sleep** — `distributed_scheduler.py:116,142`
+
+### No Issues Found In
+- ✅ Unsafe deserialization (eval, exec, pickle) — none used
+- ✅ Command injection — no vector found
+- ✅ Path traversal — all file paths hardcoded
+- ✅ Input validation on new runtime endpoints — all are parameterless GET
+- ✅ `distributed_queue.py` shutdown — stateless, no cleanup needed
+- ✅ `event_bus.py stop_listener` — proper cleanup of pubsub and listener task

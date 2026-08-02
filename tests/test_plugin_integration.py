@@ -7,6 +7,130 @@ from app.plugin.base import AIPlugin, HookResult
 from app.router import AIRouter, ProviderMetrics
 
 
+class TestNewHooksInRouter:
+    def test_before_route_in_router(self):
+        router = AIRouter()
+        results = []
+
+        class TestPlugin(AIPlugin):
+            name = "test_route"
+            async def before_route(self, request, context):
+                results.append("before_route_called")
+                return HookResult()
+
+        router.plugin_registry._plugins["test_route"] = TestPlugin()
+        import asyncio
+        asyncio.run(router.pipeline.execute_before_route("req", {}))
+        assert "before_route_called" in results
+
+    def test_after_route_in_router(self):
+        router = AIRouter()
+        received = []
+
+        class TestPlugin(AIPlugin):
+            name = "test_after_route"
+            async def after_route(self, request, context, routes):
+                received.append(routes)
+                return HookResult()
+
+        router.plugin_registry._plugins["test_after_route"] = TestPlugin()
+        import asyncio
+        routes = [("p1", "m1"), ("p2", "m2")]
+        asyncio.run(router.pipeline.execute_after_route("req", {}, routes))
+        assert received == [routes]
+
+    def test_before_provider_in_router(self):
+        router = AIRouter()
+        received = {}
+
+        class TestPlugin(AIPlugin):
+            name = "test_bp"
+            async def before_provider(self, request, provider_name, model, context):
+                received["p"] = provider_name
+                received["m"] = model
+                return HookResult()
+
+        router.plugin_registry._plugins["test_bp"] = TestPlugin()
+        import asyncio
+        asyncio.run(router.pipeline.execute_before_provider("req", "openai", "gpt-4", {}))
+        assert received == {"p": "openai", "m": "gpt-4"}
+
+    def test_after_provider_in_router(self):
+        router = AIRouter()
+        received = {}
+
+        class TestPlugin(AIPlugin):
+            name = "test_ap"
+            async def after_provider(self, request, response, provider_name, model, context):
+                received["resp"] = response
+                return HookResult()
+
+        router.plugin_registry._plugins["test_ap"] = TestPlugin()
+        import asyncio
+        asyncio.run(router.pipeline.execute_after_provider("req", "resp_data", "p", "m", {}))
+        assert received["resp"] == "resp_data"
+
+    def test_before_response_in_router(self):
+        router = AIRouter()
+        received = []
+
+        class TestPlugin(AIPlugin):
+            name = "test_br"
+            async def before_response(self, request, response, context):
+                received.append(response)
+                return HookResult()
+
+        router.plugin_registry._plugins["test_br"] = TestPlugin()
+        import asyncio
+        asyncio.run(router.pipeline.execute_before_response("req", "resp_data", {}))
+        assert received == ["resp_data"]
+
+    def test_all_new_hooks_integration(self):
+        router = AIRouter()
+        order = []
+
+        class FullPlugin(AIPlugin):
+            name = "full_test"
+
+            async def before_route(self, request, context):
+                order.append("before_route")
+                return HookResult()
+            async def after_route(self, request, context, routes):
+                order.append("after_route")
+                return HookResult()
+            async def before_provider(self, request, provider_name, model, context):
+                order.append("before_provider")
+                return HookResult()
+            async def after_provider(self, request, response, provider_name, model, context):
+                order.append("after_provider")
+                return HookResult()
+            async def before_response(self, request, response, context):
+                order.append("before_response")
+                return HookResult()
+            async def after_response(self, request, response, context):
+                order.append("after_response")
+                return HookResult()
+
+        router.plugin_registry._plugins["full_test"] = FullPlugin()
+        import asyncio
+
+        asyncio.run(router.pipeline.execute_before_route("req", {}))
+        asyncio.run(router.pipeline.execute_after_route("req", {}, [("p", "m")]))
+        asyncio.run(router.pipeline.execute_before_provider("req", "p", "m", {}))
+        asyncio.run(router.pipeline.execute_after_provider("req", "r", "p", "m", {}))
+        asyncio.run(router.pipeline.execute_before_response("req", "r", {}))
+        asyncio.run(router.pipeline.execute_after_response("req", "r", {}))
+
+        assert order == [
+            "before_route",
+            "after_route",
+            "before_provider",
+            "after_provider",
+            "before_response",
+            "after_response",
+        ]
+
+
 class TestEventBusInRouter:
     def test_event_bus_global_instance(self):
         from app.event_bus import event_bus

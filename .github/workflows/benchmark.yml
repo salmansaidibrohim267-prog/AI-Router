@@ -1,0 +1,45 @@
+name: Benchmark
+
+on:
+  push:
+    branches: [main, master]
+    paths: ["benchmarks/**", "app/**"]
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run benchmark suites
+        run: |
+          PYTHONPATH=. python -m benchmarks.suites.cli \
+            --target-name "ci-ubuntu" --suites throughput,latency,cpu,concurrency --json
+      - name: Run failover + RAG suites
+        run: |
+          PYTHONPATH=. python -c "
+          from benchmarks.suites import SuiteRunner
+          from benchmarks.suites.suites import RagQualitySuite
+          runner = SuiteRunner(target=lambda: None, target_name='rag')
+          runner.register('rag', RagQualitySuite())
+          report = runner.run(['rag'])
+          assert report.overall_passed(), report.to_dict()
+          print('rag quality ok')
+          "
+      - name: Upload benchmark report
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-report
+          path: |
+            benchmark-report.json

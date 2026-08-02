@@ -4,7 +4,7 @@ build-backend = "setuptools.backends._legacy:_Backend"
 
 [project]
 name = "ai-router"
-version = "2.0.0"
+version = "1.0.0-rc.1"
 description = "Production-ready AI Gateway with intelligent routing, health checks, and fallback"
 requires-python = ">=3.10"
 
@@ -26,3 +26,24 @@ exclude_lines = [
     "raise NotImplementedError",
     "def __repr__",
 ]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B"]
+ignore = ["E203", "W503"]
+
+[tool.black]
+line-length = 120
+target-version = ["py310"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+no_implicit_optional = true
+
+[tool.flake8]
+max-line-length = 120
+extend-ignore = ["E203", "W503", "F401"]

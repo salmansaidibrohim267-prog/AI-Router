@@ -1,0 +1,80 @@
+> from __future__ import annotations
+  
+> from app.rag.config import RAGConfig
+> from app.rag.exceptions import RAGContextError
+> from app.rag.models import ContextAssembly, RetrievedChunk
+  
+  
+> class ContextBuilder:
+>     def __init__(self, config: RAGConfig | None = None):
+>         self._config = config or RAGConfig()
+  
+>     def build(
+>         self,
+>         chunks: list[RetrievedChunk],
+>         token_budget: int | None = None,
+>     ) -> ContextAssembly:
+>         budget = token_budget or self._config.context_token_budget
+>         separator = self._config.context_chunk_separator
+>         sep_token_count = len(separator.split())
+  
+>         assembly = ContextAssembly(token_budget=budget)
+>         running_tokens = 0
+  
+>         for chunk in sorted(chunks, key=lambda c: c.rerank_score or c.score, reverse=True):
+>             token_count = chunk.token_count or self._estimate_tokens(chunk.content)
+>             needed = token_count + (sep_token_count if assembly.chunks else 0)
+>             if running_tokens + needed > budget:
+>                 assembly.truncated = True
+>                 break
+>             chunk.token_count = token_count
+>             assembly.chunks.append(chunk)
+>             running_tokens += needed
+  
+>         assembly.total_tokens = running_tokens
+>         return assembly
+  
+>     def build_sorted(
+>         self,
+>         chunks: list[RetrievedChunk],
+>         token_budget: int | None = None,
+>         preserve_order: bool = False,
+>     ) -> ContextAssembly:
+>         if preserve_order:
+>             return self._build_with_order(chunks, token_budget)
+>         return self.build(chunks, token_budget)
+  
+>     def _build_with_order(
+>         self,
+>         chunks: list[RetrievedChunk],
+>         token_budget: int | None = None,
+>     ) -> ContextAssembly:
+>         budget = token_budget or self._config.context_token_budget
+>         separator = self._config.context_chunk_separator
+>         sep_cost = len(separator.split())
+  
+>         seen_ids: set[str] = set()
+>         deduped: list[RetrievedChunk] = []
+>         for c in chunks:
+>             if c.chunk_id not in seen_ids:
+>                 seen_ids.add(c.chunk_id)
+>                 deduped.append(c)
+  
+>         assembly = ContextAssembly(token_budget=budget)
+>         running = 0
+>         for chunk in deduped:
+>             tc = chunk.token_count or self._estimate_tokens(chunk.content)
+>             needed = tc + (sep_cost if assembly.chunks else 0)
+>             if running + needed > budget:
+!                 assembly.truncated = True
+!                 break
+>             chunk.token_count = tc
+>             assembly.chunks.append(chunk)
+>             running += needed
+>         assembly.total_tokens = running
+>         return assembly
+  
+>     def _estimate_tokens(self, text: str) -> int:
+>         if not text:
+>             return 0
+>         return len(text.split())

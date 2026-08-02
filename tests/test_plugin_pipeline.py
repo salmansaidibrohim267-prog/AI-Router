@@ -151,3 +151,135 @@ class TestMiddlewarePipeline:
         import asyncio
         result = asyncio.run(p.execute_before_request("req", {}))
         assert result.metadata == {"key1": "val1"}
+
+    def test_execute_before_route(self):
+        class TestPlugin(AIPlugin):
+            name = "test"
+            async def before_route(self, request, context):
+                return HookResult(metadata={"route": True})
+
+        r = PluginRegistry()
+        r._plugins["test"] = TestPlugin()
+        p = MiddlewarePipeline(r)
+        import asyncio
+        result = asyncio.run(p.execute_before_route("req", {}))
+        assert result.metadata == {"route": True}
+
+    def test_execute_after_route(self):
+        class TestPlugin(AIPlugin):
+            name = "test"
+            async def after_route(self, request, context, routes):
+                return HookResult(metadata={"count": len(routes)})
+
+        r = PluginRegistry()
+        r._plugins["test"] = TestPlugin()
+        p = MiddlewarePipeline(r)
+        import asyncio
+        result = asyncio.run(p.execute_after_route("req", {}, [("a", "b")]))
+        assert result.metadata == {"count": 1}
+
+    def test_execute_before_provider(self):
+        class TestPlugin(AIPlugin):
+            name = "test"
+            async def before_provider(self, request, provider_name, model, context):
+                return HookResult(metadata={"provider": provider_name})
+
+        r = PluginRegistry()
+        r._plugins["test"] = TestPlugin()
+        p = MiddlewarePipeline(r)
+        import asyncio
+        result = asyncio.run(p.execute_before_provider("req", "openai", "gpt-4", {}))
+        assert result.metadata == {"provider": "openai"}
+
+    def test_execute_after_provider(self):
+        class TestPlugin(AIPlugin):
+            name = "test"
+            async def after_provider(self, request, response, provider_name, model, context):
+                return HookResult(modified_response="augmented")
+
+        r = PluginRegistry()
+        r._plugins["test"] = TestPlugin()
+        p = MiddlewarePipeline(r)
+        import asyncio
+        result = asyncio.run(p.execute_after_provider("req", "orig", "p", "m", {}))
+        assert result.modified_response == "augmented"
+
+    def test_execute_before_response(self):
+        class TestPlugin(AIPlugin):
+            name = "test"
+            async def before_response(self, request, response, context):
+                return HookResult(modified_response="final")
+
+        r = PluginRegistry()
+        r._plugins["test"] = TestPlugin()
+        p = MiddlewarePipeline(r)
+        import asyncio
+        result = asyncio.run(p.execute_before_response("req", "resp", {}))
+        assert result.modified_response == "final"
+
+    def test_execute_before_route_cancels(self):
+        class CancelPlugin(AIPlugin):
+            name = "cancel"
+            async def before_route(self, request, context):
+                return HookResult(should_cancel=True, cancel_reason="no")
+
+        r = PluginRegistry()
+        r._plugins["cancel"] = CancelPlugin()
+        p = MiddlewarePipeline(r)
+        import asyncio
+        result = asyncio.run(p.execute_before_route("req", {}))
+        assert result.should_cancel is True
+
+    def test_execute_after_route_with_empty_routes(self):
+        class TestPlugin(AIPlugin):
+            name = "test"
+            async def after_route(self, request, context, routes):
+                return HookResult(metadata={"empty": len(routes) == 0})
+
+        r = PluginRegistry()
+        r._plugins["test"] = TestPlugin()
+        p = MiddlewarePipeline(r)
+        import asyncio
+        result = asyncio.run(p.execute_after_route("req", {}, []))
+        assert result.metadata == {"empty": True}
+
+    def test_execute_before_provider_cancels(self):
+        class CancelPlugin(AIPlugin):
+            name = "cancel"
+            async def before_provider(self, request, provider_name, model, context):
+                return HookResult(should_cancel=True, cancel_reason="blocked")
+
+        r = PluginRegistry()
+        r._plugins["cancel"] = CancelPlugin()
+        p = MiddlewarePipeline(r)
+        import asyncio
+        result = asyncio.run(p.execute_before_provider("req", "p", "m", {}))
+        assert result.should_cancel is True
+
+    def test_execute_before_response_cancels(self):
+        class CancelPlugin(AIPlugin):
+            name = "cancel"
+            async def before_response(self, request, response, context):
+                return HookResult(should_cancel=True, cancel_reason="no response")
+
+        r = PluginRegistry()
+        r._plugins["cancel"] = CancelPlugin()
+        p = MiddlewarePipeline(r)
+        import asyncio
+        result = asyncio.run(p.execute_before_response("req", "resp", {}))
+        assert result.should_cancel is True
+
+    def test_full_hook_chain_no_plugins(self):
+        r = PluginRegistry()
+        p = MiddlewarePipeline(r)
+        import asyncio
+        br = asyncio.run(p.execute_before_route("req", {}))
+        assert br.should_cancel is False
+        ar = asyncio.run(p.execute_after_route("req", {}, []))
+        assert ar.should_cancel is False
+        bp = asyncio.run(p.execute_before_provider("req", "p", "m", {}))
+        assert bp.should_cancel is False
+        ap = asyncio.run(p.execute_after_provider("req", "r", "p", "m", {}))
+        assert ap.should_cancel is False
+        br2 = asyncio.run(p.execute_before_response("req", "r", {}))
+        assert br2.should_cancel is False

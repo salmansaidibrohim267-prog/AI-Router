@@ -1,0 +1,161 @@
+# Kubernetes manifests for AI Router v1.0.0-rc.1
+# Apply: kubectl apply -k deployment/k8s/
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-router-config
+  namespace: ai-router
+data:
+  config-dir: /app/config
+  log-level: "INFO"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-router
+  namespace: ai-router
+  labels:
+    app: ai-router
+    version: 1.0.0-rc.1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ai-router
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: ai-router
+        version: 1.0.0-rc.1
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: ai-router
+          image: ghcr.io/anomalyco/ai-router:1.0.0-rc.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            - name: CONFIG_DIR
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-router-config
+                  key: config-dir
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-router-config
+                  key: log-level
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-router
+  namespace: ai-router
+  labels:
+    app: ai-router
+spec:
+  selector:
+    app: ai-router
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ai-router
+  namespace: ai-router
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ai-router
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ai-router
+  namespace: ai-router
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: ai-router
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ai-router
+  namespace: ai-router
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: ai-router.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ai-router
+                port:
+                  name: http
+  tls:
+    - hosts:
+        - ai-router.example.com

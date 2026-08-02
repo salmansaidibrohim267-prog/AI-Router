@@ -1,0 +1,87 @@
+# Ansible playbook for AI Router deployment
+# Usage: ansible-playbook -i inventory/production.yml playbook.yml
+---
+- name: Deploy AI Router v1.0.0-rc.1
+  hosts: ai_router
+  become: true
+  vars:
+    ai_router_version: "1.0.0-rc.1"
+    ai_router_image: "ghcr.io/anomalyco/ai-router"
+    ai_router_port: 8000
+    ai_router_data_dir: "/opt/ai-router"
+    ai_router_release_dir: "/opt/ai-router/releases/{{ ai_router_version }}"
+
+  tasks:
+    - name: Create data directories
+      ansible.builtin.file:
+        path: "{{ ai_router_data_dir }}"
+        state: directory
+        owner: "1000"
+        group: "1000"
+        mode: "0750"
+
+    - name: Create release directory
+      ansible.builtin.file:
+        path: "{{ ai_router_release_dir }}"
+        state: directory
+        owner: "1000"
+        group: "1000"
+        mode: "0750"
+
+    - name: Copy release artifacts
+      ansible.builtin.copy:
+        src: "{{ ai_router_release_dir }}/"
+        dest: "{{ ai_router_release_dir }}"
+        owner: "1000"
+        group: "1000"
+        mode: "0644"
+        remote_src: true
+      when: ai_router_local_release is defined
+
+    - name: Pull container image
+      community.docker.docker_image:
+        name: "{{ ai_router_image }}:{{ ai_router_version }}"
+        source: pull
+
+    - name: Run AI Router container
+      community.docker.docker_container:
+        name: ai-router
+        image: "{{ ai_router_image }}:{{ ai_router_version }}"
+        state: started
+        restart_policy: unless-stopped
+        ports:
+          - "8000:{{ ai_router_port }}"
+        env:
+          LOG_LEVEL: "{{ ai_router_log_level | default('INFO') }}"
+        volumes:
+          - "{{ ai_router_data_dir }}/config:/app/config:ro"
+          - "{{ ai_router_data_dir }}/logs:/app/logs"
+        healthcheck:
+          test: ["CMD", "python", "-c", "import http.client; http.client.HTTPConnection('localhost', 8000).request('GET', '/health')"]
+          interval: 30
+          timeout: 5
+          retries: 3
+          start_period: 15
+
+    - name: Verify deployment
+      ansible.builtin.uri:
+        url: "http://localhost:{{ ai_router_port }}/health"
+        status_code: 200
+      register: health_result
+      retries: 10
+      delay: 5
+      until: health_result.status == 200
+
+    - name: Swap release symlink
+      ansible.builtin.file:
+        src: "{{ ai_router_release_dir }}"
+        dest: "{{ ai_router_data_dir }}/current"
+        state: link
+        force: true
+
+    - name: Rollback support - keep previous release dirs
+      ansible.builtin.find:
+        paths: "{{ ai_router_data_dir }}/releases"
+        file_type: directory
+      register: releases
+      changed_when: false

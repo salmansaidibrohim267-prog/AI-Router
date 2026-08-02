@@ -1,0 +1,15 @@
+---
+ai_router:
+  hosts:
+    ai-router-01:
+      ansible_host: 10.0.0.10
+      ansible_user: deploy
+      ai_router_log_level: INFO
+    ai-router-02:
+      ansible_host: 10.0.0.11
+      ansible_user: deploy
+      ai_router_log_level: INFO
+
+all:
+  vars:
+    ansible_python_interpreter: /usr/bin/python3

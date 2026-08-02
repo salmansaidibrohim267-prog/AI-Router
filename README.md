@@ -1,29 +1,40 @@
 # AI-Router Gateway
 
-FastAPI-based intelligent AI model router with automatic task classification, provider management, health monitoring, circuit breaker, smart routing, streaming, benchmarking, and comprehensive observability (Prometheus + Grafana + Loki).
+FastAPI-based intelligent AI model router with automatic task classification, provider management, health monitoring, circuit breaker, smart routing, streaming, benchmarking, comprehensive observability (Prometheus + Grafana + Loki), and an **AI Orchestration Engine** for multi-agent workflows, consensus, debate, and reflection.
 
 ## Architecture
 
 ```
-┌─────────────┐     ┌──────────────┐     ┌──────────────┐     ┌─────────────┐
-│   Client    │────▶│  FastAPI App  │────▶│  Classifier   │     │  Prometheus  │
-└─────────────┘     │  (api.py)     │     │  (NLP/Keyword)│     │  :9090      │
-                    │               │     └──────┬───────┘     └──────▲──────┘
-                    │  /v1/chat     │            │                    │
-                    │  /v1/embed    │     ┌──────▼───────┐           │ scrape
-                    │  /health      │     │  AI Router    │           │
-                    │  /models      │     │  (router.py)  │     ┌─────┴──────┐
-                    │  /metrics     │     └──────┬───────┘     │  Grafana    │
-                    │  /providers   │            │             │  :3000      │
-                    │  /benchmark   │     ┌──────▼────────┐    └─────▲──────┘
-                    │  /dashboard   │     │ProviderManager│          │
-                    │  /costs       │     │ (manager.py)  │    ┌─────┴──────┐
-                    │  /logs        │     └───┬───┬───┬───┬┘    │  Loki      │
-                    └──────────────┘     ┌────┘   │   │   └──┐  │  :3100     │
-                    logs/router.jsonl───▶│ Promtail  │       │  └─────▲──────┘
-                                         ▼          ▼       ▼        │
-                                    OpenRouter  Ollama  Groq    Gemini
-```
+┌───────────────────────────────────────────────────────┐
+│                    Client                              │
+└──────────┬────────────────────────────────────────────┘
+           │
+┌──────────▼────────────────────────────────────────────┐
+│           Orchestration Engine (app/orchestration/)     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────┐ │
+│  │ Planner   │  │  Agents  │  │ Consensus│  │ Debate │ │
+│  └─────┬────┘  └────┬─────┘  └────┬─────┘  └───┬────┘ │
+│        │            │              │             │      │
+│  ┌─────▼────────────▼──────────────▼─────────────▼────┐ │
+│  │              Execution Engine                       │ │
+│  │  Sequential · Parallel · Workflow · Reflection     │ │
+│  └──────────────────────┬─────────────────────────────┘ │
+└─────────────────────────┼───────────────────────────────┘
+                          │
+┌─────────────────────────▼───────────────────────────────┐
+│               AI Router (router.py)                      │
+│     ┌──────────────┐     ┌──────────────┐               │
+│     │  Classifier   │     │  Router      │               │
+│     │  (NLP/Keyword)│     │  (routing,   │               │
+│     └──────┬───────┘     │   retry, CB) │               │
+│            │             └──────┬───────┘               │
+│     ┌──────▼────────────────────▼──────────────────┐    │
+│     │           ProviderManager                     │    │
+│     └───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬──┘    │
+└─────────┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───────┘
+          │   │   │   │   │   │   │   │   │   │   │
+          ▼   ▼   ▼   ▼   ▼   ▼   ▼   ▼   ▼   ▼   ▼
+     OpenRouter · OpenAI · Anthropic · Google · Mistral · Groq · Ollama
 
 ## Features
 
@@ -59,6 +70,15 @@ FastAPI-based intelligent AI model router with automatic task classification, pr
 | 20 | Grafana Dashboards (overview + provider details, ready-to-import) | Done |
 | 21 | Loki + Promtail (log aggregation pipeline) | Done |
 | 22 | Prometheus Alerting Rules (error rate, provider down, high latency, circuit breaker) | Done |
+| 23 | Orchestration Engine (Planner, Agents, Executor) | Done |
+| 24 | Reflection (auto-evaluate + retry on low scores) | Done |
+| 25 | Consensus Mode (majority vote, weighted score, first success, best latency) | Done |
+| 26 | Debate Mode (two providers argue, reviewer picks winner) | Done |
+| 27 | Tool Pipeline (search, calculator, database, http) | Done |
+| 28 | Workflow Engine (IF/ELSE/FOR/PARALLEL/WAIT/RETRY/TIMEOUT/MERGE) | Done |
+| 29 | Streaming through Orchestration (SSE via /v1/orchestrate) | Done |
+| 30 | Orchestration Metrics (9 Prometheus metrics) | Done |
+| 31 | Tests (1111+ tests, orchestration coverage expanded) | Done |
 
 ## Folder Structure
 
@@ -79,6 +99,20 @@ AI-Router/
 │   ├── costs.py            # Token accounting & cost estimation
 │   ├── exceptions.py       # Custom exception hierarchy (15+ classes)
 │   ├── rate_limit.py       # Rate limiter (sliding window + token bucket)
+│   ├── orchestration/        # AI Orchestration Engine (Stage 6)
+│   │   ├── __init__.py       # Public API exports
+│   │   ├── orchestrator.py   # Main orchestrator (plans, executes, reflects)
+│   │   ├── planner.py        # Plan creation (single/multi/parallel)
+│   │   ├── agents.py         # Agent system (6 agents + registry)
+│   │   ├── executor.py       # Execution engine (sequential/parallel/workflow)
+│   │   ├── reflection.py     # Self-evaluation + auto-retry
+│   │   ├── consensus.py      # Multi-provider consensus + voting
+│   │   ├── debate.py         # Two-provider debate with reviewer
+│   │   ├── tools.py          # Tool pipeline (search, calc, db, http)
+│   │   ├── workflow.py       # Workflow builder (IF/ELSE/FOR/PARALLEL/etc)
+│   │   ├── memory.py         # Execution memory context
+│   │   ├── metrics.py        # Orchestration Prometheus metrics
+│   │   └── models.py         # Orchestration Pydantic models
 │   └── providers/
 │       ├── __init__.py
 │       ├── base.py         # Abstract base provider (5 abstract methods)
@@ -170,8 +204,323 @@ python -m app.main
 | GET | `/costs` | Token usage & costs |
 | GET | `/costs/{provider}` | Provider-specific costs |
 | GET | `/benchmark` | Run benchmark (query: model, num_requests, concurrency, stream) |
+| POST | `/v1/orchestrate` | Orchestrate multi-agent workflow (streaming with `stream: true`) |
+| POST | `/v1/agents` | Execute agents on a prompt |
+| POST | `/v1/workflow` | Execute a defined workflow |
+| POST | `/v1/consensus` | Run consensus across providers |
+| POST | `/v1/debate` | Run debate between two providers |
 
-## Configuration
+## Orchestration Engine
+
+The orchestration layer (`app/orchestration/`) sits above the router and enables multi-agent workflows, reflection, consensus, debate, and streaming.
+
+### Execution Flow
+
+```
+User Request
+     │
+     ▼
+  Orchestrator  ──►  Planner  ──►  ExecutionPlan
+     │                                   │
+     │                              ExecutionEngine
+     │                             /     │      \
+     │                         Agent A  Agent B  Agent C
+     │                            │        │        │
+     │                         Router  Router   Router
+     │                            │        │        │
+     │                         Provider Provider Provider
+     │
+     ├── Reflection ──► evaluate scores ──► retry if below threshold
+     ├── Consensus  ──► query N providers ──► pick best
+     └── Debate     ──► provider A vs B ──► reviewer picks winner
+```
+
+### POST /v1/orchestrate
+
+Execute any orchestration mode. Returns JSON or SSE stream.
+
+```bash
+# Single agent streaming
+curl -X POST http://localhost:8000/v1/orchestrate \
+  -H "Content-Type: application/json" \
+  -d '{"prompt":"Write a poem","mode":"single","stream":true}'
+
+# Multi-agent sequential
+curl -X POST http://localhost:8000/v1/orchestrate \
+  -H "Content-Type: application/json" \
+  -d '{"prompt":"Build a REST API","agents":["architect","coder","reviewer"],"mode":"multi"}'
+
+# With reflection
+curl -X POST http://localhost:8000/v1/orchestrate \
+  -H "Content-Type: application/json" \
+  -d '{"prompt":"Write production code","agents":["coder"],"reflection":true}'
+```
+
+### POST /v1/consensus
+
+Query multiple providers, return best answer.
+
+```bash
+curl -X POST http://localhost:8000/v1/consensus \
+  -H "Content-Type: application/json" \
+  -d '{"prompt":"Capital of France?","providers":["openai","anthropic","google"],"strategy":"majority_vote"}'
+```
+
+Strategies: `majority_vote`, `weighted_score`, `highest_confidence`, `first_success`, `best_latency`.
+
+### POST /v1/debate
+
+Two providers argue, reviewer picks winner.
+
+```bash
+curl -X POST http://localhost:8000/v1/debate \
+  -H "Content-Type: application/json" \
+  -d '{"prompt":"Is AGI possible by 2030?","provider_a":"openai","provider_b":"anthropic"}'
+```
+
+### POST /v1/workflow
+
+Multi-step workflow with control flow nodes: `task`, `if`, `else`, `for`, `parallel`, `wait`, `retry`, `timeout`, `merge`.
+
+```bash
+curl -X POST http://localhost:8000/v1/workflow \
+  -H "Content-Type: application/json" \
+  -d '{"id":"wf","steps":[{"id":"s1","type":"task","agent":"chat","prompt":"Hello"},{"id":"s2","type":"wait","prompt":"0.5"},{"id":"s3","type":"merge","merge_strategy":"concat"}]}'
+```
+
+### Orchestrator Configuration (`config/orchestrator.yaml`)
+
+```yaml
+orchestrator:
+  enabled: true
+  default_mode: single
+planner:
+  enabled: true
+  agent_map:
+    coding: coder  architecture: architect
+    analysis: analyst  review: reviewer
+reflection:
+  enabled: false
+  threshold: 0.7
+  max_retries: 2
+consensus:
+  enabled: false
+  default_strategy: majority_vote
+debate:
+  enabled: false
+
+```
+
+### Orchestration Metrics (Prometheus)
+
+| Metric | Type | Description |
+|--------|------|-------------|
+| `orchestrator_requests_total` | Counter | Requests by mode |
+| `orchestrator_planner_latency_seconds` | Histogram | Planner latency |
+| `orchestrator_execution_latency_seconds` | Histogram | Execution latency |
+| `orchestrator_agent_latency_seconds` | Histogram | Per-agent latency |
+| `orchestrator_reflection_retry_total` | Counter | Reflection retries |
+| `orchestrator_consensus_count_total` | Counter | Consensus executions |
+| `orchestrator_debate_count_total` | Counter | Debate executions |
+| `orchestrator_workflow_count_total` | Counter | Workflow executions |
+| `orchestrator_active_requests` | Gauge | Active requests |
+
+## Enterprise Orchestration Platform
+
+The platform extends the orchestration engine with conversation memory, tool calling, DAG workflows, task queues, budget management, context compression, human approval, and distributed workers.
+
+### Architecture
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                     Orchestration Platform                         │
+│                                                                   │
+│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────────┐ │
+│  │ Conversation │  │  Tool        │  │  Workflow DAG            │ │
+│  │ Memory       │  │  Registry    │  │  Topological Sort        │ │
+│  │ (app/memory/)│  │  (app/tools/)│  │  Cycle Detection         │ │
+│  └──────┬──────┘  └──────┬───────┘  └────────┬────────────────┘ │
+│         │                │                     │                  │
+│  ┌──────▼────────────────▼─────────────────────▼────────────────┐ │
+│  │                    Task Queue (app/tasks/)                     │ │
+│  │  Storage ── Worker Pool ── Scheduler ── Timeline ── Graph     │ │
+│  └─────────────────────────────┬─────────────────────────────────┘ │
+│                                │                                   │
+│  ┌─────────────────────────────▼─────────────────────────────────┐ │
+│  │              Orchestrator (app/orchestration/)                  │ │
+│  │  Budget ── Context Compression ── Approval ── Persistence     │ │
+│  └─────────────────────────────────────────────────────────────────┘ │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+### Conversation Memory (`app/memory/`)
+
+Session-based conversation memory with short-term and long-term storage, automatic summarization, TTL, pruning, and token budgeting.
+
+```python
+from app.memory import ConversationMemory
+
+memory = ConversationMemory()
+session_id = memory.create_session({"user": "alice"})
+memory.add_message(session_id, "user", "Hello")
+history = memory.get_history(session_id)
+```
+
+**Storage backends:** SQLite (default), Redis, Filesystem — hot-swappable via `MEMORY_BACKEND` env var.
+
+### Tool Registry (`app/tools/`)
+
+Plugin-like tool system with permission management, timeout, validation, and metrics.
+
+**Built-in tools:** `python`, `shell`, `http`, `git`, `filesystem`, `search`, `calculator`
+
+```python
+from app.tools import ToolRegistry, ToolExecutor
+
+registry = ToolRegistry()
+executor = ToolExecutor(registry)
+result = await executor.execute("calculator", "2 + 2")
+```
+
+### Workflow DAG (`app/orchestration/dag.py`)
+
+DAG-based workflow execution with topological sort, cycle detection, and parallel branch support. Use `depends_on` to define edges.
+
+```python
+from app.orchestration.dag import WorkflowDAG
+
+dag = WorkflowDAG(steps)
+levels = dag.topological_sort()  # [[s1], [s2, s3], [s4]]
+viz = dag.to_visualization_data()
+```
+
+### Task Queue (`app/tasks/`)
+
+Background orchestration with queuing, worker pool, and scheduler.
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/tasks` | POST | Create a task |
+| `/tasks/orchestrate` | POST | Submit orchestration as task |
+| `/tasks` | GET | List tasks (filter by state/type) |
+| `/tasks/{id}` | GET | Get task details |
+| `/tasks/{id}` | DELETE | Delete task |
+| `/tasks/{id}/cancel` | POST | Cancel task |
+| `/tasks/{id}/graph` | GET | Execution graph + timeline |
+| `/tasks/queue/depth` | GET | Queue depth by state |
+
+### Execution Timeline
+
+Every orchestration records timeline events automatically:
+
+```json
+[
+  {"event": "orchestration_started", "timestamp": ...},
+  {"event": "plan_created", "steps": 3, "timestamp": ...},
+  {"event": "agent_coder_completed", "agent": "coder", "tokens": 150, "timestamp": ...},
+  {"event": "orchestration_completed", "latency_ms": 1234, "timestamp": ...}
+]
+```
+
+### Execution Graph
+
+Exposed via `GET /tasks/{id}/graph` as JSON with nodes, edges, metadata, status, duration, and cost.
+
+### Budget Manager (`app/orchestration/budget.py`)
+
+Track total/prompt/completion tokens, cost, remaining budget, with automatic downgrade suggestions.
+
+| Limit | Config Key | Default |
+|-------|-----------|---------|
+| Max cost | `max_cost` | $10.00 |
+| Max tokens | `max_tokens` | 1,000,000 |
+| Max latency | `max_latency_ms` | 60,000ms |
+
+**Automatic downgrade chain:** GPT → Claude → Gemma → Qwen → Ollama
+
+### Context Compression (`app/orchestration/compression.py`)
+
+When context exceeds model limit: summarize older messages, compress, continue — never silently truncate. Records compression statistics (ratio, count).
+
+### Human Approval (`app/orchestration/approval.py`)
+
+Workflow checkpoints that pause execution pending human approval.
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/approval/checkpoints` | POST | Create checkpoint |
+| `/approval/checkpoints/{id}/approve` | POST | Approve |
+| `/approval/checkpoints/{id}/reject` | POST | Reject |
+| `/approval/pending` | GET | List pending |
+| `/approval/checkpoints` | GET | List all |
+
+### Persistent Sessions (`app/orchestration/persistence.py`)
+
+Sessions survive restart via configurable backends: SQLite, Redis, or Filesystem. Set `MEMORY_BACKEND=redis` or `MEMORY_BACKEND=file`.
+
+### Distributed Workers (`app/orchestration/worker_pool.py`)
+
+Configurable worker pool that processes tasks from the queue.
+
+```python
+from app.orchestration import WorkerPool
+
+pool = WorkerPool(queue, orchestrator, worker_count=3)
+await pool.start()
+```
+
+### New Prometheus Metrics
+
+| Metric | Type | Description |
+|--------|------|-------------|
+| `orchestrator_task_queue_depth` | Gauge | Queue depth by state |
+| `orchestrator_worker_utilization` | Gauge | Worker utilization |
+| `orchestrator_task_duration_seconds` | Histogram | Task execution duration |
+| `orchestrator_memory_usage_bytes` | Gauge | Memory store usage |
+| `orchestrator_compression_ratio` | Gauge | Context compression ratio |
+| `orchestrator_budget_remaining` | Gauge | Remaining budget in USD |
+| `orchestrator_budget_tokens_remaining` | Gauge | Remaining token budget |
+| `orchestrator_approval_waiting_total` | Gauge | Pending approval count |
+| `orchestrator_execution_graph_count` | Gauge | Execution graphs generated |
+| `orchestrator_tool_call_total` | Counter | Tool call count |
+| `orchestrator_compression_count_total` | Counter | Compression count |
+
+### Configuration
+
+Add to `config/orchestrator.yaml`:
+
+```yaml
+memory:
+  backend: sqlite  # sqlite | redis | file
+  session_ttl: 3600
+  max_token_budget: 8000
+  message_ttl: 7200
+
+budget:
+  max_cost: 10.0
+  max_tokens: 1000000
+  max_latency_ms: 60000
+
+compression:
+  enabled: true
+  max_context_tokens: 8000
+  compression_ratio: 0.5
+
+tools:
+  enabled: true
+  python: { enabled: true }
+  shell: { enabled: false }
+  http: { enabled: true }
+  git: { enabled: false }
+  filesystem: { enabled: false }
+  search: { enabled: true }
+  calculator: { enabled: true }
+
+workers:
+  count: 3
+  max_concurrent: 5
+  poll_interval: 1.0
+```
 
 ### Task Routing (`config/models.yaml`)
 
@@ -644,6 +993,207 @@ Grafana dashboards auto-provision on startup. Open http://localhost:3000 (admin/
 | GET | `/cache/stats` | Cache hit/miss statistics |
 | POST | `/cache/clear` | Clear cache |
 | GET | `/benchmark` | Run benchmark |
+| POST | `/v1/orchestrate` | Orchestrate multi-agent workflow (streaming with `stream: true`) |
+| POST | `/v1/agents` | Execute agents on a prompt |
+| POST | `/v1/workflow` | Execute a defined workflow |
+| POST | `/v1/consensus` | Run consensus across providers |
+| POST | `/v1/debate` | Run debate between two providers |
+| POST | `/knowledge/collections` | Create a knowledge collection |
+| GET | `/knowledge/collections` | List collections |
+| GET | `/knowledge/collections/{id}` | Get collection details |
+| PUT | `/knowledge/collections/{id}` | Update collection |
+| DELETE | `/knowledge/collections/{id}` | Delete collection |
+| POST | `/knowledge/documents` | Create a document |
+| GET | `/knowledge/documents` | List/search documents |
+| GET | `/knowledge/documents/{id}` | Get document |
+| PUT | `/knowledge/documents/{id}` | Update document |
+| DELETE | `/knowledge/documents/{id}` | Delete document |
+| GET | `/knowledge/statistics` | Knowledge statistics |
+| POST | `/knowledge/documents/{id}/tags` | Add tags to document |
+| DELETE | `/knowledge/documents/{id}/tags` | Remove tags from document |
+| POST | `/knowledge/documents/upload` | Upload a document file |
+| POST | `/knowledge/documents/import` | Import a document from filesystem |
+| GET | `/knowledge/documents/{id}/metadata` | Get document metadata |
+| POST | `/knowledge/chunk` | Chunk a document and save chunks |
+| POST | `/knowledge/chunk/preview` | Preview chunks without saving |
+| GET | `/knowledge/chunks/{document_id}` | List chunks for a document |
+| GET | `/knowledge/chunks/{document_id}/{chunk_id}` | Get a specific chunk |
+| DELETE | `/knowledge/chunks/{chunk_id}` | Delete chunks |
+| POST | `/knowledge/embed` | Embed a single text |
+| POST | `/knowledge/embed/batch` | Embed multiple texts |
+| GET | `/knowledge/embedding/stats` | Embedding statistics |
+| DELETE | `/knowledge/embedding/cache` | Clear embedding cache |
+
+## Knowledge Foundation (Stage 9)
+
+### Knowledge Collections & Documents
+
+The knowledge module provides a structured document storage system with:
+
+- **Collections**: Group documents into logical collections
+- **Documents**: Store content with metadata, tags, and version tracking
+- **Chunks**: Fine-grained content segments (for future RAG)
+- **Backends**: InMemory (testing) or SQLite (production)
+
+### Document Ingestion Pipeline (Stage 9.2)
+
+```
+Source → Loader → Parser → Cleaner → Metadata Extractor → Language Detector → Duplicate Checker → KnowledgeDocument
+```
+
+**Supported formats**: `.txt`, `.md`/`.mdx`, `.pdf`, `.html`/`.htm`, `.json`
+
+**Pipeline stages**:
+- **Loader**: Reads file content from disk or bytes
+- **Parser**: Converts raw content to clean text (plain text, markdown, PDF text extraction, HTML stripping, JSON flattening)
+- **Cleaner**: Normalizes newlines, trims whitespace, removes control chars, normalizes Unicode, strips BOM
+- **Metadata Extractor**: Extracts filename, extension, MIME type, size, SHA-256 checksum, encoding, file timestamps
+- **Language Detector**: Heuristic detection supporting English, French, German, Spanish, Portuguese, Dutch, Chinese, Japanese, Korean, Russian, Arabic, Hebrew, Hindi, Thai, Greek
+- **Duplicate Detector**: SHA-256 content fingerprinting with configurable reject/allow behavior
+- **Validator**: Enforces max file size, supported formats, MIME types, content integrity (PDF header, JSON syntax, HTML well-formedness)
+
+**Configuration** (`.env`):
+```
+DOCUMENT_MAX_SIZE=10485760
+SUPPORTED_DOCUMENT_TYPES=.txt,.md,.mdx,.pdf,.html,.htm,.json
+ALLOW_DUPLICATE_DOCUMENT=0
+DEFAULT_LANGUAGE=en
+```
+
+### Advanced Chunking Engine (Stage 9.3)
+
+```
+KnowledgeDocument → Preprocessor → ChunkStrategy → ChunkValidator → MetadataBuilder → KnowledgeChunk[]
+```
+
+**5 chunking strategies**:
+| Strategy | Split By | Overlap | Use Case |
+|----------|----------|---------|----------|
+| Fixed Size | Character count | Configurable | General purpose |
+| Recursive | Heading → Paragraph → Sentence → Word | Configurable | Markdown documents |
+| Paragraph | Paragraph breaks | Configurable | Prose articles |
+| Sentence | Sentence boundaries | Configurable | NLP pipelines |
+| Sliding Window | Fixed window + stride | Via stride | Streaming overlap |
+
+**Heading Awareness** (Recursive strategy):
+- Detects `# Heading` / `## Subheading` / `### Detail` in Markdown
+- Stores full section path in chunk metadata: `["Introduction", "Installation", "Docker"]`
+- Falls back to paragraph → sentence → word when content still exceeds max size
+
+**Token Estimation**:
+- Abstraction: `TokenEstimator(Protocol)` with `estimate(text) → int`
+- Default: `HeuristicTokenEstimator` (4 chars/token for ASCII, 2 for non-ASCII)
+- Pluggable — inject custom estimator via DI
+
+**Chunk Metadata**:
+```
+{
+  "document_id": "...", "document_title": "...",
+  "section": ["Intro", "Sub"], "page_number": 3,
+  "language": "en", "source": "...", "tags": [...], "version": 1
+}
+```
+
+**Chunk fields**: `id`, `document_id`, `collection_id`, `content`, `chunk_index`, `start_offset`, `end_offset`, `token_estimate`, `character_count`, `metadata`, `created_at`
+
+**Configuration** (`.env`):
+```
+CHUNK_STRATEGY=fixed
+CHUNK_SIZE=1000
+CHUNK_OVERLAP=200
+MIN_CHUNK_SIZE=100
+MAX_CHUNK_SIZE=2000
+TOKEN_ESTIMATOR=heuristic
+```
+
+**API**:
+- `POST /knowledge/chunk` — Chunk and save
+- `POST /knowledge/chunk/preview` — Preview with optional strategy override
+- `GET /knowledge/chunks/{document_id}` — List chunks
+- `GET /knowledge/chunks/{document_id}/{chunk_id}` — Get single chunk
+- `DELETE /knowledge/chunks/{chunk_id}` — Delete chunks
+
+### Embedding Layer (Stage 9.4)
+
+```
+KnowledgeChunk → EmbeddingService → EmbeddingProvider → [Cache] → EmbeddingResult
+```
+
+**Provider Abstraction** (`EmbeddingProvider` Protocol):
+| Provider | Description | Dependencies |
+|----------|-------------|-------------|
+| `local` | Deterministic numpy-based embeddings (MD5-seeded, normalized) | numpy |
+| `openai` | OpenAI Embeddings API via httpx | httpx, `OPENAI_API_KEY` |
+| `ollama` | Ollama embeddings via HTTP API | httpx, Ollama server |
+
+**Features**:
+- **Batch processing**: Configurable batch size, automatic splitting, partial failure handling
+- **Retry**: Exponential backoff (0.5s → 1s → 2s ..., max 10s), configurable max retry, only recoverable errors
+- **Timeout**: Per-request timeout via `asyncio.wait_for`
+- **Cache**: InMemory with configurable TTL, content-addressed via SHA-256, hit/miss tracking
+- **Validation**: Empty text, text too long, dimension mismatch, empty response
+- **Statistics**: Total embeddings, tokens, latency, batch sizes, provider usage, cache hit rate
+
+**Configuration** (`.env`):
+```
+EMBEDDING_PROVIDER=local
+EMBEDDING_MODEL=text-embedding-3-small
+EMBEDDING_BATCH_SIZE=16
+EMBEDDING_TIMEOUT=60
+EMBEDDING_MAX_RETRY=3
+EMBEDDING_CACHE_ENABLED=1
+EMBEDDING_CACHE_TTL=3600
+```
+
+**API**:
+- `POST /knowledge/embed` — Embed single text
+- `POST /knowledge/embed/batch` — Embed batch of texts
+- `GET /knowledge/embedding/stats` — Embedding service statistics
+- `DELETE /knowledge/embedding/cache` — Clear cache
+
+### Architecture
+
+```
+app/knowledge/
+├── __init__.py
+├── models.py           # KnowledgeCollection, KnowledgeDocument, KnowledgeChunk, KnowledgeMetadata
+├── repository.py       # KnowledgeRepository (protocol), InMemory, SQLite, factory
+├── service.py          # KnowledgeService CRUD operations
+├── validation.py       # Collection name, document title, tag validation
+├── ingestion/
+│   ├── __init__.py
+│   ├── config.py       # IngestionConfig
+│   ├── models.py       # IngestionResult, IngestionStage, LoadedDocument
+│   ├── loaders.py      # TextLoader, MarkdownLoader, PDFLoader, HTMLLoader, JSONLoader
+│   ├── parsers.py      # PlainTextParser, MarkdownParser, PDFParser, HTMLParser, JSONParser
+│   ├── cleaner.py      # TextCleaner (BOM, newlines, whitespace, control chars, Unicode)
+│   ├── metadata.py     # MetadataExtractor (filename, size, checksum, timestamps)
+│   ├── language.py     # HeuristicLanguageDetector (Unicode ranges + stopword-based)
+│   ├── deduplication.py # DuplicateDetector (SHA-256 fingerprinting)
+│   ├── validation.py   # DocumentValidator (size, format, MIME, content integrity)
+│   └── pipeline.py     # IngestionPipeline (orchestrates all stages)
+└── chunking/
+    ├── __init__.py
+    ├── config.py       # ChunkingConfig
+    ├── models.py       # ChunkingResult, ChunkPreview
+    ├── tokenizer.py    # TokenEstimator, HeuristicTokenEstimator
+    ├── strategies.py   # 5 strategies + factory
+    ├── validator.py    # ChunkValidator
+    ├── metadata.py     # ChunkMetadataBuilder
+    ├── statistics.py   # ChunkStatistics
+    └── pipeline.py     # ChunkingPipeline
+└── embedding/
+    ├── __init__.py
+    ├── config.py       # EmbeddingConfig
+    ├── models.py       # EmbeddingRecord, EmbeddingResult
+    ├── providers.py    # EmbeddingProvider protocol + OpenAI, Ollama, Local adapters
+    ├── cache.py        # InMemoryEmbeddingCache
+    ├── batch.py        # BatchProcessor with retry & timeout
+    ├── validation.py   # EmbeddingValidator
+    ├── statistics.py   # EmbeddingStatistics
+    └── service.py      # EmbeddingService orchestrator
+```
+```
 
 ## License
 

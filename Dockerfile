@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir --user --upgrade pip && \
 # ============================================================
 FROM python:3.12-slim AS runtime
 
-ARG VERSION=2.0.0
+ARG VERSION=1.0.0-rc.1
 ARG BUILD_DATE
 ARG GIT_COMMIT
 ARG PYTHON_VERSION=3.12

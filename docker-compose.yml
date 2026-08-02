@@ -28,7 +28,7 @@ services:
     build:
       context: .
       args:
-        VERSION: "2.0.0"
+        VERSION: "1.0.0-rc.1"
         BUILD_DATE: "${BUILD_DATE:-}"
         GIT_COMMIT: "${GIT_COMMIT:-}"
     image: ai-router:latest
@@ -40,6 +40,7 @@ services:
       - .env
     environment:
       - CONFIG_DIR=/app/config
+      - REDIS_URL=redis://default:${REDIS_PASSWORD:-}@redis:6379/0
     volumes:
       - ./config:/app/config:ro
       - ./logs:/app/logs
@@ -194,11 +195,90 @@ services:
     networks:
       - ai-router-net
 
+  redis:
+    image: redis:7.2-alpine
+    container_name: ai-router-redis
+    profiles: ["dev", "monitoring", "production", "distributed"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    <<: [*restart-policy, *default-logging]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-}", "--appendonly", "yes"]
+    networks:
+      - ai-router-net
+
+  ai-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai-router:latest
+    container_name: ai-worker
+    profiles: ["distributed"]
+    environment:
+      - DISTRIBUTED_MODE=1
+      - REDIS_URL=redis://default:${REDIS_PASSWORD:-}@redis:6379/0
+    env_file:
+      - .env
+    volumes:
+      - ./config:/app/config:ro
+      - ./logs:/app/logs
+    command: ["python", "-m", "app.worker"]
+    <<: [*restart-policy, *resources-ai, *default-logging]
+    depends_on:
+      redis:
+        condition: service_healthy
+    stop_grace_period: 30s
+    networks:
+      - ai-router-net
+
+  ai-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai-router:latest
+    container_name: ai-scheduler
+    profiles: ["distributed"]
+    environment:
+      - DISTRIBUTED_MODE=1
+      - REDIS_URL=redis://default:${REDIS_PASSWORD:-}@redis:6379/0
+      - SCHEDULER_MODE=1
+    env_file:
+      - .env
+    <<: [*restart-policy, *resources-ai, *default-logging]
+    depends_on:
+      redis:
+        condition: service_healthy
+    stop_grace_period: 30s
+    networks:
+      - ai-router-net
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.106.0
+    container_name: otel-collector
+    profiles: ["monitoring", "production", "distributed"]
+    ports:
+      - "4318:4318"
+    volumes:
+      - ./otel/otel-collector.yml:/etc/otelcol-contrib/config.yaml:ro
+    <<: [*restart-policy, *default-logging]
+    depends_on:
+      prometheus:
+        condition: service_started
+    networks:
+      - ai-router-net
+
 volumes:
   ollama_data:
   prometheus_data:
   grafana_data:
   loki_data:
+  redis_data:
 
 networks:
   ai-router-net:

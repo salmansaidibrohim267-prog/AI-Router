@@ -1,0 +1,15 @@
+name: guardrails
+version: 1.0.0
+description: Content guardrails plugin for blocking harmful or sensitive content
+author: AI Router
+tags:
+  - guardrails
+  - safety
+  - security
+events:
+  - request.started
+  - request.finished
+hooks:
+  - before_request
+  - after_response
+  - on_error

@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request, Response, status
+from fastapi import FastAPI, File, Form, HTTPException, Request, Response, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse, PlainTextResponse
@@ -60,6 +60,11 @@ from app.metrics import (
     record_rate_limit,
 )
 from app.event_bus import event_bus
+from app.orchestration.models import (
+    OrchestrationRequest,
+    OrchestrationResponse,
+    WorkflowDefinition,
+)
 
 
 @asynccontextmanager
@@ -67,7 +72,69 @@ async def lifespan(app: FastAPI):
     await router.initialize()
     rate_limiter.set_default(RateLimitConfig(requests=100, window_seconds=60))
     config_manager.enable_watcher(callback=lambda: None)
+
+    # Distributed lifecycle (Stage 8)
+    _distributed_mode = os.getenv("DISTRIBUTED_MODE", "0") == "1"
+    _distributed_resources = []
+
+    if _distributed_mode:
+        from app.distributed.distributed_queue import DistributedTaskQueue
+        from app.distributed.distributed_scheduler import DistributedScheduler
+        from app.distributed.event_bus import DistributedEventBus, EventTypes
+        from app.distributed.idempotency import IdempotencyGuard
+        from app.distributed.lease import LeaseManager
+        from app.distributed.redis_client import AsyncRedisClient
+        from app.distributed.tracing import init_tracing
+        from app.distributed.worker_registry import WorkerRegistry
+
+        logger.info("Starting in distributed mode")
+
+        if os.getenv("OTEL_ENABLED", "0") == "1":
+            init_tracing(
+                service_name=os.getenv("OTEL_SERVICE_NAME", "ai-router"),
+                exporter_endpoint=os.getenv("OTEL_EXPORTER_ENDPOINT", ""),
+            )
+
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+        redis_client = AsyncRedisClient(url=redis_url)
+        await redis_client.connect()
+        _distributed_resources.append(redis_client)
+
+        task_queue = DistributedTaskQueue(redis_client)
+        lease_manager = LeaseManager(redis_client)
+        worker_registry = WorkerRegistry(redis_client)
+        scheduler = DistributedScheduler(redis_client)
+        event_bus = DistributedEventBus(redis_client)
+        idempotency = IdempotencyGuard(redis_client)
+
+        await worker_registry.start_heartbeat_loop()
+        await scheduler.start()
+        await event_bus.start_listener()
+        await event_bus.publish(EventTypes.WORKER_STARTED, {
+            "instance": scheduler._instance_id,
+        })
+
+        logger.info("Distributed services started")
+
     yield
+
+    if _distributed_mode:
+        try:
+            await event_bus.publish(EventTypes.WORKER_STOPPED, {
+                "instance": scheduler._instance_id,
+            })
+        except Exception:
+            pass
+        await scheduler.stop()
+        await worker_registry.stop_heartbeat()
+        await event_bus.stop_listener()
+        for res in reversed(_distributed_resources):
+            try:
+                await res.close()
+            except Exception:
+                pass
+        logger.info("Distributed services stopped")
+
     await router.close()
     logger.shutdown()
 
@@ -869,6 +936,1006 @@ async def list_custom_providers() -> dict[str, Any]:
         "total": len(discovered),
         "providers": list(discovered.keys()),
     }
+
+
+# ==================== Orchestration API ====================
+
+
+@app.post("/v1/orchestrate")
+async def orchestrate(request: OrchestrationRequest):
+    """Run an orchestrated multi-agent workflow."""
+    from app.orchestration import orchestrator
+
+    if request.stream:
+        async def generate():
+            try:
+                async for chunk in orchestrator.orchestrate_stream(request):
+                    yield f"data: {chunk.model_dump_json(exclude_none=True)}\n\n"
+                yield "data: [DONE]\n\n"
+            except asyncio.TimeoutError:
+                yield "data: {\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"timeout\"}]}\n\n"
+                yield "data: [DONE]\n\n"
+            except asyncio.CancelledError:
+                yield "data: {\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"cancelled\"}]}\n\n"
+                yield "data: [DONE]\n\n"
+
+        return StreamingResponse(
+            generate(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"},
+        )
+
+    return await orchestrator.orchestrate(request)
+
+
+@app.post("/v1/agents")
+async def run_agents(
+    prompt: str = "",
+    agents: list[str] = ["chat"],
+    parallel: bool = False,
+    reflection: bool = False,
+) -> OrchestrationResponse:
+    """Execute a set of agents on a prompt."""
+    from app.orchestration import orchestrator
+    req = OrchestrationRequest(
+        prompt=prompt,
+        agents=agents,
+        mode="multi" if len(agents) > 1 else "single",
+        parallel=parallel,
+        reflection=reflection,
+    )
+    return await orchestrator.orchestrate(req)
+
+
+@app.post("/v1/workflow")
+async def run_workflow(workflow: WorkflowDefinition) -> OrchestrationResponse:
+    """Execute a defined workflow."""
+    from app.orchestration import orchestrator
+    req = OrchestrationRequest(
+        mode="workflow",
+        workflow=workflow,
+    )
+    return await orchestrator.orchestrate(req)
+
+
+@app.post("/v1/consensus")
+async def run_consensus(
+    prompt: str = "",
+    providers: list[str] = ["openai", "anthropic", "google"],
+    strategy: str = "majority_vote",
+) -> OrchestrationResponse:
+    """Run consensus across multiple providers."""
+    from app.orchestration import orchestrator
+    req = OrchestrationRequest(
+        prompt=prompt,
+        mode="consensus",
+        consensus=True,
+        consensus_providers=providers,
+        consensus_strategy=strategy,
+    )
+    return await orchestrator.orchestrate(req)
+
+
+@app.post("/v1/debate")
+async def run_debate(
+    prompt: str = "",
+    provider_a: str = "openai",
+    provider_b: str = "anthropic",
+) -> OrchestrationResponse:
+    """Run a debate between two providers."""
+    from app.orchestration import orchestrator
+    req = OrchestrationRequest(
+        prompt=prompt,
+        mode="debate",
+        debate=True,
+        debate_provider_a=provider_a,
+        debate_provider_b=provider_b,
+    )
+    return await orchestrator.orchestrate(req)
+
+
+# ==================== Task Queue API ====================
+
+_task_queue = None
+
+
+def _get_task_queue():
+    global _task_queue
+    if _task_queue is None:
+        from app.tasks.queue import TaskQueue
+        _task_queue = TaskQueue()
+    return _task_queue
+
+
+@app.post("/tasks")
+async def create_task(
+    task_type: str = "orchestrate",
+    priority: int = 0,
+    max_retries: int = 3,
+    timeout: int = 300,
+    session_id: str = "",
+) -> dict:
+    """Create a background task."""
+    queue = _get_task_queue()
+    task = queue.create_task(
+        task_type=task_type,
+        payload={},
+        priority=priority,
+        max_retries=max_retries,
+        timeout=timeout,
+        session_id=session_id,
+    )
+    return {"task_id": task["task_id"], "state": task["state"]}
+
+
+@app.post("/tasks/orchestrate")
+async def create_orchestrate_task(
+    request: OrchestrationRequest,
+    priority: int = 0,
+    max_retries: int = 3,
+) -> dict:
+    """Submit an orchestration request as a background task."""
+    queue = _get_task_queue()
+    task = queue.create_task(
+        task_type="orchestrate",
+        payload=request.model_dump(),
+        priority=priority,
+        max_retries=max_retries,
+        timeout=request.timeout or 300,
+    )
+    return {"task_id": task["task_id"], "state": task["state"]}
+
+
+@app.get("/tasks")
+async def list_tasks(
+    state: str = "",
+    task_type: str = "",
+    limit: int = 50,
+    offset: int = 0,
+) -> list[dict]:
+    """List all tasks with optional filters."""
+    queue = _get_task_queue()
+    return queue.list_tasks(state=state, task_type=task_type, limit=limit, offset=offset)
+
+
+@app.get("/tasks/{task_id}")
+async def get_task(task_id: str) -> dict:
+    """Get task details."""
+    queue = _get_task_queue()
+    task = queue.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return task
+
+
+@app.delete("/tasks/{task_id}")
+async def delete_task(task_id: str) -> dict:
+    """Delete a task."""
+    queue = _get_task_queue()
+    queue.delete_task(task_id)
+    return {"status": "deleted", "task_id": task_id}
+
+
+@app.post("/tasks/{task_id}/cancel")
+async def cancel_task(task_id: str) -> dict:
+    """Cancel a task."""
+    queue = _get_task_queue()
+    cancelled = queue.cancel_task(task_id)
+    if not cancelled:
+        raise HTTPException(status_code=400, detail="Task cannot be cancelled")
+    return {"status": "cancelled", "task_id": task_id}
+
+
+@app.get("/tasks/{task_id}/graph")
+async def get_task_graph(task_id: str) -> dict:
+    """Get execution graph for a task."""
+    queue = _get_task_queue()
+    task = queue.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    graph = task.get("graph") or {"nodes": [], "edges": []}
+    timeline = task.get("timeline", [])
+    return {
+        "task_id": task_id,
+        "state": task.get("state", ""),
+        "graph": graph,
+        "timeline": timeline,
+        "duration_ms": (
+            (task.get("completed_at", 0) - task.get("started_at", 0)) * 1000
+            if task.get("completed_at") and task.get("started_at")
+            else 0
+        ),
+        "cost": task.get("result", {}).get("total_cost", 0) if task.get("result") else 0,
+        "tokens": task.get("result", {}).get("total_tokens", 0) if task.get("result") else 0,
+    }
+
+
+@app.get("/tasks/queue/depth")
+async def get_queue_depth() -> dict:
+    """Get queue depth by state."""
+    queue = _get_task_queue()
+    return queue.get_depth()
+
+
+# ==================== Approval API ====================
+
+_approval_manager = None
+
+
+def _get_approval_manager():
+    global _approval_manager
+    if _approval_manager is None:
+        from app.orchestration.approval import ApprovalManager
+        _approval_manager = ApprovalManager()
+    return _approval_manager
+
+
+@app.post("/approval/checkpoints")
+async def create_approval_checkpoint(
+    workflow_id: str = "",
+    step_id: str = "",
+    prompt: str = "",
+) -> dict:
+    """Create an approval checkpoint."""
+    mgr = _get_approval_manager()
+    cp = mgr.create_checkpoint(workflow_id, step_id, prompt)
+    return {
+        "checkpoint_id": cp.checkpoint_id,
+        "workflow_id": cp.workflow_id,
+        "step_id": cp.step_id,
+        "status": cp.status,
+        "created_at": cp.created_at,
+    }
+
+
+@app.post("/approval/checkpoints/{checkpoint_id}/approve")
+async def approve_checkpoint(
+    checkpoint_id: str, user: str = "", notes: str = ""
+) -> dict:
+    """Approve a pending checkpoint."""
+    mgr = _get_approval_manager()
+    success = mgr.approve(checkpoint_id, user=user, notes=notes)
+    if not success:
+        raise HTTPException(
+            status_code=400, detail="Checkpoint not found or already decided"
+        )
+    return {"status": "approved", "checkpoint_id": checkpoint_id}
+
+
+@app.post("/approval/checkpoints/{checkpoint_id}/reject")
+async def reject_checkpoint(
+    checkpoint_id: str, user: str = "", notes: str = ""
+) -> dict:
+    """Reject a pending checkpoint."""
+    mgr = _get_approval_manager()
+    success = mgr.reject(checkpoint_id, user=user, notes=notes)
+    if not success:
+        raise HTTPException(
+            status_code=400, detail="Checkpoint not found or already decided"
+        )
+    return {"status": "rejected", "checkpoint_id": checkpoint_id}
+
+
+@app.get("/approval/pending")
+async def list_pending_approvals() -> list[dict]:
+    """List all pending approval checkpoints."""
+    mgr = _get_approval_manager()
+    return [
+        {
+            "checkpoint_id": cp.checkpoint_id,
+            "workflow_id": cp.workflow_id,
+            "step_id": cp.step_id,
+            "prompt": cp.prompt,
+            "created_at": cp.created_at,
+        }
+        for cp in mgr.list_pending()
+    ]
+
+
+@app.get("/approval/checkpoints")
+async def list_all_approvals() -> list[dict]:
+    """List all approval checkpoints."""
+    mgr = _get_approval_manager()
+    return mgr.list_all()
+
+
+# ---------------------------------------------------------------------------
+# Runtime health endpoints (distributed / Stage 8)
+# ---------------------------------------------------------------------------
+
+_health_checker: Any | None = None
+_health_init_lock = asyncio.Lock()
+
+
+async def _get_health() -> Any:
+    global _health_checker
+    if _health_checker is not None:
+        return _health_checker
+    async with _health_init_lock:
+        if _health_checker is not None:
+            return _health_checker
+        from app.distributed.health import RuntimeHealth
+        from app.distributed.distributed_queue import DistributedTaskQueue
+        from app.distributed.event_bus import DistributedEventBus
+        from app.distributed.redis_client import AsyncRedisClient
+        from app.distributed.distributed_scheduler import DistributedScheduler
+        from app.distributed.worker_registry import WorkerRegistry
+        from app.distributed.lease import LeaseManager
+
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+        redis = AsyncRedisClient(url=redis_url)
+        queue = DistributedTaskQueue(redis)
+        registry = WorkerRegistry(redis)
+        lease = LeaseManager(redis)
+        scheduler = DistributedScheduler(redis)
+        bus = DistributedEventBus(redis)
+        _health_checker = RuntimeHealth(
+            redis=redis,
+            queue=queue,
+            worker_registry=registry,
+            scheduler=scheduler,
+            event_bus=bus,
+            lease_manager=lease,
+        )
+        await redis.connect()
+    return _health_checker
+
+
+@app.get("/runtime/health")
+async def runtime_health() -> dict:
+    """Full runtime health check (Redis, queue, workers, scheduler, event bus)."""
+    h = await _get_health()
+    return await h.full_health()
+
+
+@app.get("/runtime/workers")
+async def runtime_workers() -> list[dict]:
+    """List all registered workers."""
+    h = await _get_health()
+    return await h.get_workers_list()
+
+
+@app.get("/runtime/leader")
+async def runtime_leader() -> dict:
+    """Get the current scheduler leader."""
+    h = await _get_health()
+    leader = await h.check_scheduler()
+    return leader
+
+
+@app.get("/runtime/queue")
+async def runtime_queue() -> dict:
+    """Queue depth and stats."""
+    h = await _get_health()
+    return await h.check_queue()
+
+
+@app.get("/runtime/events")
+async def runtime_events() -> dict:
+    """Event bus stats."""
+    h = await _get_health()
+    return await h.check_event_bus()
+
+
+# ---------------------------------------------------------------------------
+# Knowledge Foundation (Stage 9.1)
+# ---------------------------------------------------------------------------
+
+from app.knowledge.service import KnowledgeService
+from app.knowledge.validation import ValidationError
+
+_knowledge_repo: Any = None
+_knowledge_lock = asyncio.Lock()
+
+
+async def _get_knowledge_service() -> KnowledgeService:
+    global _knowledge_repo
+    if _knowledge_repo is None:
+        async with _knowledge_lock:
+            if _knowledge_repo is None:
+                from app.knowledge.repository import create_knowledge_repository
+                backend = os.getenv("KNOWLEDGE_STORAGE_BACKEND", "sqlite")
+                db_path = os.getenv("KNOWLEDGE_DATABASE_PATH", "knowledge.db")
+                _knowledge_repo = create_knowledge_repository(backend=backend, db_path=db_path)
+    return KnowledgeService(_knowledge_repo)
+
+
+@app.post("/knowledge/collections", status_code=201)
+async def create_collection(body: dict) -> dict:
+    svc = await _get_knowledge_service()
+    try:
+        coll = await svc.create_collection(
+            name=body.get("name", ""),
+            description=body.get("description", ""),
+            metadata=body.get("metadata"),
+            tags=body.get("tags"),
+        )
+        return coll.to_dict()
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+
+@app.get("/knowledge/collections")
+async def list_collections(skip: int = 0, limit: int = 100) -> list[dict]:
+    svc = await _get_knowledge_service()
+    cols = await svc.list_collections(skip=skip, limit=limit)
+    return [c.to_dict() for c in cols]
+
+
+@app.get("/knowledge/collections/{collection_id}")
+async def get_collection(collection_id: str) -> dict:
+    svc = await _get_knowledge_service()
+    coll = await svc.get_collection(collection_id)
+    if not coll:
+        raise HTTPException(status_code=404, detail="Collection not found")
+    return coll.to_dict()
+
+
+@app.put("/knowledge/collections/{collection_id}")
+async def update_collection(collection_id: str, body: dict) -> dict:
+    svc = await _get_knowledge_service()
+    try:
+        coll = await svc.update_collection(
+            collection_id=collection_id,
+            name=body.get("name"),
+            description=body.get("description"),
+            status=body.get("status"),
+            metadata=body.get("metadata"),
+            tags=body.get("tags"),
+        )
+        if not coll:
+            raise HTTPException(status_code=404, detail="Collection not found")
+        return coll.to_dict()
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+
+@app.delete("/knowledge/collections/{collection_id}")
+async def delete_collection(collection_id: str) -> dict:
+    svc = await _get_knowledge_service()
+    ok = await svc.delete_collection(collection_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Collection not found")
+    return {"deleted": True}
+
+
+@app.post("/knowledge/documents", status_code=201)
+async def create_document(body: dict) -> dict:
+    svc = await _get_knowledge_service()
+    try:
+        doc = await svc.create_document(
+            collection_id=body.get("collection_id", ""),
+            title=body.get("title", ""),
+            content=body.get("content", ""),
+            source=body.get("source", ""),
+            metadata=body.get("metadata"),
+            tags=body.get("tags"),
+        )
+        return doc.to_dict()
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+
+@app.get("/knowledge/documents")
+async def list_documents(
+    collection_id: str = "",
+    skip: int = 0,
+    limit: int = 100,
+    query: str = "",
+) -> list[dict]:
+    svc = await _get_knowledge_service()
+    if query:
+        docs = await svc.search_documents(query=query, collection_id=collection_id, limit=limit)
+    else:
+        docs = await svc.list_documents(collection_id=collection_id, skip=skip, limit=limit)
+    return [d.to_dict() for d in docs]
+
+
+@app.get("/knowledge/documents/{document_id}")
+async def get_document(document_id: str) -> dict:
+    svc = await _get_knowledge_service()
+    doc = await svc.get_document(document_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return doc.to_dict()
+
+
+@app.put("/knowledge/documents/{document_id}")
+async def update_document(document_id: str, body: dict) -> dict:
+    svc = await _get_knowledge_service()
+    try:
+        doc = await svc.update_document(
+            document_id=document_id,
+            title=body.get("title"),
+            content=body.get("content"),
+            source=body.get("source"),
+            status=body.get("status"),
+            metadata=body.get("metadata"),
+            tags=body.get("tags"),
+        )
+        if not doc:
+            raise HTTPException(status_code=404, detail="Document not found")
+        return doc.to_dict()
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+
+@app.delete("/knowledge/documents/{document_id}")
+async def delete_document(document_id: str) -> dict:
+    svc = await _get_knowledge_service()
+    ok = await svc.delete_document(document_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return {"deleted": True}
+
+
+@app.get("/knowledge/statistics")
+async def knowledge_statistics(collection_id: str = "") -> dict:
+    svc = await _get_knowledge_service()
+    return await svc.get_statistics(collection_id=collection_id)
+
+
+@app.post("/knowledge/documents/{document_id}/tags")
+async def add_document_tags(document_id: str, body: dict) -> dict:
+    svc = await _get_knowledge_service()
+    try:
+        doc = await svc.add_document_tags(document_id, body.get("tags", []))
+        if not doc:
+            raise HTTPException(status_code=404, detail="Document not found")
+        return doc.to_dict()
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+
+@app.delete("/knowledge/documents/{document_id}/tags")
+async def remove_document_tags(document_id: str, body: dict) -> dict:
+    svc = await _get_knowledge_service()
+    doc = await svc.remove_document_tags(document_id, body.get("tags", []))
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return doc.to_dict()
+
+
+# ---------------------------------------------------------------------------
+# Knowledge Ingestion (Stage 9.2)
+# ---------------------------------------------------------------------------
+
+from app.knowledge.ingestion import IngestionPipeline, IngestionConfig
+from app.knowledge.ingestion.validation import IngestionValidationError
+
+_pipeline: IngestionPipeline | None = None
+_pipeline_lock = asyncio.Lock()
+
+
+async def _get_ingestion_pipeline() -> IngestionPipeline:
+    global _pipeline
+    if _pipeline is None:
+        async with _pipeline_lock:
+            if _pipeline is None:
+                svc = await _get_knowledge_service()
+                config = IngestionConfig.from_env()
+                _pipeline = IngestionPipeline(knowledge_service=svc, config=config)
+    return _pipeline
+
+
+@app.post("/knowledge/documents/upload", status_code=201)
+async def upload_document(
+    collection_id: str = Form(...),
+    title: str = Form(""),
+    file: UploadFile = File(...),
+) -> dict:
+    pipeline = await _get_ingestion_pipeline()
+    data = await file.read()
+    try:
+        result = await pipeline.ingest_bytes(
+            data=data,
+            filename=file.filename or "upload.bin",
+            collection_id=collection_id,
+            title=title or None,
+        )
+    except IngestionValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    if result.is_duplicate:
+        raise HTTPException(status_code=409, detail={
+            "message": "Duplicate document",
+            "document_id": result.document_id,
+            "checksum": result.checksum,
+        })
+    return result.to_dict()
+
+
+@app.post("/knowledge/documents/import", status_code=201)
+async def import_document(body: dict) -> dict:
+    path = body.get("path", "")
+    if not path:
+        raise HTTPException(status_code=422, detail="path is required")
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail=f"File not found: {path}")
+    collection_id = body.get("collection_id", "")
+    if not collection_id:
+        raise HTTPException(status_code=422, detail="collection_id is required")
+    title = body.get("title", "")
+
+    pipeline = await _get_ingestion_pipeline()
+    try:
+        result = await pipeline.ingest_file(
+            path=path,
+            collection_id=collection_id,
+            title=title or None,
+        )
+    except IngestionValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    if result.is_duplicate:
+        raise HTTPException(status_code=409, detail={
+            "message": "Duplicate document",
+            "document_id": result.document_id,
+            "checksum": result.checksum,
+        })
+    return result.to_dict()
+
+
+@app.get("/knowledge/documents/{document_id}/metadata")
+async def get_document_metadata(document_id: str) -> dict:
+    svc = await _get_knowledge_service()
+    doc = await svc.get_document(document_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    meta_dict: dict[str, str] = {}
+    for km in doc.metadata:
+        meta_dict[km.key] = km.value
+    return {
+        "document_id": doc.id,
+        "title": doc.title,
+        "source": doc.source,
+        "size": meta_dict.get("size", "0"),
+        "mime_type": meta_dict.get("mime_type", "unknown"),
+        "checksum": meta_dict.get("checksum", ""),
+        "encoding": meta_dict.get("encoding", "utf-8"),
+        "language": meta_dict.get("language", ""),
+        "created_at": doc.created_at,
+        "updated_at": doc.updated_at,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Knowledge Chunking (Stage 9.3)
+# ---------------------------------------------------------------------------
+
+from app.knowledge.chunking import ChunkingPipeline, ChunkingConfig, create_strategy, ChunkStatistics
+
+_chunking_pipeline: ChunkingPipeline | None = None
+_chunking_lock = asyncio.Lock()
+
+
+async def _get_chunking_pipeline() -> ChunkingPipeline:
+    global _chunking_pipeline
+    if _chunking_pipeline is None:
+        async with _chunking_lock:
+            if _chunking_pipeline is None:
+                svc = await _get_knowledge_service()
+                config = ChunkingConfig.from_env()
+                _chunking_pipeline = ChunkingPipeline(knowledge_service=svc, config=config)
+    return _chunking_pipeline
+
+
+@app.post("/knowledge/chunk", status_code=201)
+async def chunk_document(body: dict) -> dict:
+    document_id = body.get("document_id", "")
+    if not document_id:
+        raise HTTPException(status_code=422, detail="document_id is required")
+
+    pipeline = await _get_chunking_pipeline()
+    try:
+        result = await pipeline.chunk_document(document_id=document_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    saved = await pipeline.save_chunks(document_id, result.chunks)
+
+    return {
+        "document_id": result.document_id,
+        "total_chunks": result.total_chunks,
+        "statistics": result.statistics,
+        "chunks": [c.to_dict() for c in saved],
+    }
+
+
+@app.post("/knowledge/chunk/preview", status_code=200)
+async def chunk_preview(body: dict) -> dict:
+    document_id = body.get("document_id", "")
+    if not document_id:
+        raise HTTPException(status_code=422, detail="document_id is required")
+    strategy_name = body.get("strategy", "")
+    chunk_size = body.get("chunk_size", 0)
+    overlap = body.get("overlap", 0)
+
+    svc = await _get_knowledge_service()
+    doc = await svc.get_document(document_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    pipeline = await _get_chunking_pipeline()
+    strat = None
+    if strategy_name:
+        strat = create_strategy(
+            strategy_name,
+            chunk_size=chunk_size or pipeline.config.chunk_size,
+            overlap=overlap if overlap is not None else pipeline.config.chunk_overlap,
+        )
+
+    result = await pipeline.preview(doc, strategy=strat)
+    return result.to_dict()
+
+
+@app.get("/knowledge/chunks/{document_id}")
+async def list_chunks(document_id: str) -> list[dict]:
+    svc = await _get_knowledge_service()
+    chunks = await svc._repo.list_chunks(document_id)
+    return [c.to_dict() for c in chunks]
+
+
+@app.get("/knowledge/chunks/{document_id}/{chunk_id}")
+async def get_chunk(document_id: str, chunk_id: str) -> dict:
+    svc = await _get_knowledge_service()
+    chunks = await svc._repo.list_chunks(document_id)
+    for c in chunks:
+        if c.id == chunk_id:
+            return c.to_dict()
+    raise HTTPException(status_code=404, detail="Chunk not found")
+
+
+@app.delete("/knowledge/chunks/{chunk_id}")
+async def delete_chunk(chunk_id: str) -> dict:
+    svc = await _get_knowledge_service()
+    await svc._repo.delete_chunks_by_document(chunk_id)
+    return {"deleted": True}
+
+
+# ---------------------------------------------------------------------------
+# Knowledge Embedding (Stage 9.4)
+# ---------------------------------------------------------------------------
+
+from app.knowledge.embedding import (
+    EmbeddingService,
+    EmbeddingConfig,
+    EmbeddingValidator,
+    EmbeddingValidationError,
+    create_embedding_provider,
+)
+
+_embedding_service: EmbeddingService | None = None
+_embedding_lock = asyncio.Lock()
+
+
+async def _get_embedding_service() -> EmbeddingService:
+    global _embedding_service
+    if _embedding_service is None:
+        async with _embedding_lock:
+            if _embedding_service is None:
+                svc = await _get_knowledge_service()
+                config = EmbeddingConfig.from_env()
+                provider = create_embedding_provider(config.provider, config=config)
+                _embedding_service = EmbeddingService(
+                    knowledge_service=svc, config=config, provider=provider,
+                )
+    return _embedding_service
+
+
+@app.post("/knowledge/embed", status_code=200)
+async def embed_text(body: dict) -> dict:
+    text = body.get("text", "")
+    if not text:
+        raise HTTPException(status_code=422, detail="text is required")
+
+    svc = await _get_embedding_service()
+    try:
+        result = await svc.embed_text(text)
+    except EmbeddingValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    return result.to_dict()
+
+
+@app.post("/knowledge/embed/batch", status_code=200)
+async def embed_texts(body: dict) -> list[dict]:
+    texts = body.get("texts", [])
+    if not texts:
+        raise HTTPException(status_code=422, detail="texts is required")
+
+    svc = await _get_embedding_service()
+    try:
+        results = await svc.embed_texts(texts)
+    except EmbeddingValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    return [r.to_dict() for r in results]
+
+
+@app.get("/knowledge/embedding/stats")
+async def embedding_stats() -> dict:
+    svc = await _get_embedding_service()
+    return await svc.get_statistics()
+
+
+@app.delete("/knowledge/embedding/cache")
+async def clear_embedding_cache() -> dict:
+    svc = await _get_embedding_service()
+    if svc._cache:
+        await svc._cache.clear()
+    return {"cleared": True}
+
+
+@app.get("/knowledge/embedding/{chunk_id}")
+async def get_embedding_endpoint(chunk_id: str) -> dict:
+    svc = await _get_embedding_service()
+    record = await svc.get_embedding(chunk_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="embedding not found")
+    return record.to_dict()
+
+
+@app.delete("/knowledge/embedding/{chunk_id}", status_code=200)
+async def delete_embedding_endpoint(chunk_id: str) -> dict:
+    svc = await _get_embedding_service()
+    deleted = await svc.delete_embedding(chunk_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="embedding not found")
+    return {"deleted": True}
+
+
+# ---------------------------------------------------------------------------
+# Knowledge Vector Store (Stage 9.5)
+# ---------------------------------------------------------------------------
+
+from app.knowledge.vector_store import (
+    VectorCollection,
+    VectorRecord,
+    VectorStoreConfig,
+    VectorStoreService,
+    create_vector_store,
+    DistanceMetric,
+)
+
+_vector_store_service: VectorStoreService | None = None
+_vector_store_lock = asyncio.Lock()
+
+
+async def _get_vector_store_service() -> VectorStoreService:
+    global _vector_store_service
+    if _vector_store_service is None:
+        async with _vector_store_lock:
+            if _vector_store_service is None:
+                config = VectorStoreConfig.from_env()
+                store = create_vector_store(config)
+                _vector_store_service = VectorStoreService(store=store, config=config)
+    return _vector_store_service
+
+
+class CreateCollectionRequest(BaseModel):
+    name: str
+    dimensions: int | None = None
+    distance: str = "cosine"
+    namespace: str = "default"
+    metadata: dict[str, Any] = {}
+
+
+class UpsertVectorRequest(BaseModel):
+    id: str = ""
+    vector: list[float]
+    metadata: dict[str, Any] = {}
+    namespace: str = "default"
+
+
+class BatchUpsertRequest(BaseModel):
+    records: list[UpsertVectorRequest]
+
+
+class SearchVectorsRequest(BaseModel):
+    vector: list[float]
+    top_k: int = 10
+    score_threshold: float | None = None
+    collection: str = ""
+    namespace: str = "default"
+    filter: dict[str, Any] = {}
+    include_metadata: bool = True
+    include_vector: bool = False
+
+
+class DeleteVectorsRequest(BaseModel):
+    ids: list[str] = []
+    filter: dict[str, Any] = {}
+    collection: str = ""
+    namespace: str = "default"
+
+
+@app.post("/vector/collections", status_code=201)
+async def create_vector_collection(body: CreateCollectionRequest) -> dict:
+    svc = await _get_vector_store_service()
+    try:
+        coll = await svc.create_collection(
+            name=body.name,
+            dimensions=body.dimensions,
+            distance=DistanceMetric(body.distance),
+            namespace=body.namespace,
+            metadata=body.metadata,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    return coll.to_dict()
+
+
+@app.get("/vector/collections")
+async def list_vector_collections() -> list[dict]:
+    svc = await _get_vector_store_service()
+    colls = await svc.list_collections()
+    return [c.to_dict() for c in colls]
+
+
+@app.delete("/vector/collections/{name}")
+async def delete_vector_collection(name: str) -> dict:
+    svc = await _get_vector_store_service()
+    deleted = await svc.delete_collection(name)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="collection not found")
+    return {"deleted": True}
+
+
+@app.post("/vector/upsert")
+async def upsert_vector(body: UpsertVectorRequest) -> dict:
+    svc = await _get_vector_store_service()
+    try:
+        record = await svc.upsert(VectorRecord(
+            id=body.id, vector=body.vector,
+            metadata=body.metadata, namespace=body.namespace,
+        ))
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    return record.to_dict()
+
+
+@app.post("/vector/upsert/batch")
+async def upsert_vectors_batch(body: BatchUpsertRequest) -> list[dict]:
+    svc = await _get_vector_store_service()
+    records = [
+        VectorRecord(id=r.id, vector=r.vector, metadata=r.metadata, namespace=r.namespace)
+        for r in body.records
+    ]
+    try:
+        results = await svc.upsert_batch(records)
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    return [r.to_dict() for r in results]
+
+
+@app.post("/vector/search")
+async def search_vectors(body: SearchVectorsRequest) -> list[dict]:
+    svc = await _get_vector_store_service()
+    try:
+        results = await svc.search(
+            vector=body.vector,
+            top_k=body.top_k,
+            score_threshold=body.score_threshold,
+            collection=body.collection,
+            namespace=body.namespace,
+            filter=body.filter or None,
+            include_metadata=body.include_metadata,
+            include_vector=body.include_vector,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    return [r.to_dict(include_vector=body.include_vector) for r in results]
+
+
+@app.delete("/vector/{id}")
+async def delete_vector_by_id(id: str) -> dict:
+    svc = await _get_vector_store_service()
+    count = await svc.delete(ids=[id])
+    return {"deleted": count > 0, "count": count}
+
+
+@app.get("/vector/statistics")
+async def vector_store_statistics() -> dict:
+    svc = await _get_vector_store_service()
+    stats = await svc.statistics()
+    return stats.to_dict()
 
 
 if __name__ == "__main__":

@@ -1,0 +1,14 @@
+name: cache
+version: 1.0.0
+description: Response caching plugin for reducing duplicate requests
+author: AI Router
+tags:
+  - cache
+  - performance
+  - optimization
+events:
+  - request.started
+  - request.finished
+hooks:
+  - before_request
+  - after_response

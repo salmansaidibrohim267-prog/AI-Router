@@ -454,7 +454,7 @@ class AIRouter:
             return False
         return True
 
-    async def _try_provider(self, provider_name: str, model: str, request: ChatRequest, request_id: str, task: TaskType, retry_attempt: int = 0) -> ChatResponse | None:
+    async def _try_provider(self, provider_name: str, model: str, request: ChatRequest, request_id: str, task: TaskType, retry_attempt: int = 0, context: dict | None = None) -> ChatResponse | None:
         provider = self.provider_manager.get(provider_name)
         if not provider:
             return None
@@ -464,6 +464,13 @@ class AIRouter:
 
         await event_bus.emit("provider.selected", provider=provider_name, model=model, request_id=request_id)
 
+        hook_ctx = context or {}
+        hook_result = await self.pipeline.execute_before_provider(request, provider_name, model, hook_ctx)
+        if hook_result.should_cancel:
+            return None
+        if hook_result.modified_request is not None:
+            request = hook_result.modified_request
+
         try:
             request.model = model
             record_request(provider_name, model, task.value)
@@ -472,6 +479,8 @@ class AIRouter:
                 return await provider.chat(request)
 
             response = await retry_with_backoff(do_chat, max_retries=3, base_delay=1.0)
+
+            await self.pipeline.execute_after_provider(request, response, provider_name, model, hook_ctx)
 
             latency = (time.perf_counter() - start) * 1000
 
@@ -562,6 +571,12 @@ class AIRouter:
         if hook_result.modified_request is not None:
             request = hook_result.modified_request
 
+        route_result = await self.pipeline.execute_before_route(request, context)
+        if route_result.should_cancel:
+            raise RouterError(f"Request cancelled by plugin: {route_result.cancel_reason}")
+        if route_result.modified_request is not None:
+            request = route_result.modified_request
+
         candidates = self._get_provider_configs(task)
         available = [(p, m) for p, m in candidates if self._is_provider_available(p)]
         if not available:
@@ -606,12 +621,25 @@ class AIRouter:
         providers_to_try = [(selected.provider, selected.model)] if selected else []
         providers_to_try += [(p, m) for p, m in ranked if (p, m) not in providers_to_try]
 
+        after_route_result = await self.pipeline.execute_after_route(request, context, providers_to_try)
+        if after_route_result.should_cancel:
+            raise RouterError(f"Request cancelled by plugin: {after_route_result.cancel_reason}")
+
         for attempt, (provider_name, model) in enumerate(providers_to_try):
-            response = await self._try_provider(provider_name, model, request, request_id, task, retry_attempt=attempt)
+            response = await self._try_provider(provider_name, model, request, request_id, task, retry_attempt=attempt, context=context)
             if response:
                 response.metadata = {"request_id": request_id, "task": task.value}
+                before_resp_result = await self.pipeline.execute_before_response(request, response, context)
+                if before_resp_result.should_cancel:
+                    raise RouterError(f"Request cancelled by plugin: {before_resp_result.cancel_reason}")
+                if before_resp_result.modified_response is not None:
+                    response = before_resp_result.modified_response
                 await self.pipeline.execute_after_response(request, response, context)
                 await event_bus.emit("request.finished", request_id=request_id, provider=provider_name, model=model, success=True)
+                if before_resp_result.metadata:
+                    if not response.metadata:
+                        response.metadata = {}
+                    response.metadata.update(before_resp_result.metadata)
                 return response
             record_fallback(provider_name, model, from_provider="")
             await event_bus.emit("fallback.triggered", from_provider=provider_name, to_provider="", task=task.value)
@@ -647,6 +675,12 @@ class AIRouter:
         if hook_result.modified_request is not None:
             request = hook_result.modified_request
 
+        route_result = await self.pipeline.execute_before_route(request, context)
+        if route_result.should_cancel:
+            raise RouterError(f"Request cancelled by plugin: {route_result.cancel_reason}")
+        if route_result.modified_request is not None:
+            request = route_result.modified_request
+
         candidates = self._get_provider_configs(task)
         available = [(p, m) for p, m in candidates if self._is_provider_available(p)]
         if not available:
@@ -691,6 +725,10 @@ class AIRouter:
         providers_to_try = [(selected.provider, selected.model)] if selected else []
         providers_to_try += [(p, m) for p, m in ranked if (p, m) not in providers_to_try]
 
+        after_route_result = await self.pipeline.execute_after_route(request, context, providers_to_try)
+        if after_route_result.should_cancel:
+            raise RouterError(f"Request cancelled by plugin: {after_route_result.cancel_reason}")
+
         for attempt, (provider_name, model) in enumerate(providers_to_try):
             provider = self.provider_manager.get(provider_name)
             if not provider:
@@ -706,6 +744,13 @@ class AIRouter:
                 final_usage = None
                 first_token_latency = 0.0
                 first_chunk_received = False
+
+                hook_ctx_stream = dict(context)
+                bp_result = await self.pipeline.execute_before_provider(request, provider_name, model, hook_ctx_stream)
+                if bp_result.should_cancel:
+                    return
+                if bp_result.modified_request is not None:
+                    request = bp_result.modified_request
 
                 async for chunk in provider.stream_chat(request):
                     if not first_chunk_received:
@@ -748,6 +793,16 @@ class AIRouter:
                     success=True,
                     model=model,
                 )
+
+                # Build a response-like object for hooks
+                stream_response = {
+                    "provider": provider_name,
+                    "model": model,
+                    "usage": {"prompt_tokens": pt, "completion_tokens": ct, "total_tokens": tt},
+                }
+                ap_result = await self.pipeline.execute_after_provider(request, stream_response, provider_name, model, hook_ctx_stream)
+                br_result = await self.pipeline.execute_before_response(request, stream_response, context)
+                await self.pipeline.execute_after_response(request, stream_response, context)
 
                 await event_bus.emit("request.finished", request_id=request_id, provider=provider_name, model=model, success=True)
 

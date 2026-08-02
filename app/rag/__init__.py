@@ -1,0 +1,38 @@
+from app.rag.config import RAGConfig
+from app.rag.models import (
+    ContextAssembly,
+    ConversationTurn,
+    IntentType,
+    LanguageType,
+    QueryAnalysis,
+    RAGMetrics,
+    RAGRequest,
+    RAGResponse,
+    RetrievedChunk,
+)
+from app.rag.pipeline import RAGPipeline
+
+
+def create_rag_pipeline(
+    config: RAGConfig | None = None,
+    **kwargs,
+) -> RAGPipeline:
+    if config is None:
+        config = RAGConfig.from_env()
+    return RAGPipeline(config=config, **kwargs)
+
+
+__all__ = [
+    "RAGConfig",
+    "RAGPipeline",
+    "RAGRequest",
+    "RAGResponse",
+    "RAGMetrics",
+    "QueryAnalysis",
+    "ContextAssembly",
+    "RetrievedChunk",
+    "ConversationTurn",
+    "IntentType",
+    "LanguageType",
+    "create_rag_pipeline",
+]

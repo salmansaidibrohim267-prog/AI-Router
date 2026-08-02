@@ -1,0 +1,167 @@
+from __future__ import annotations
+
+import re
+from typing import Protocol
+
+
+class LanguageDetector(Protocol):
+    async def detect(self, text: str) -> tuple[str, float]:
+        ...
+
+
+_CHINESE_PATTERN = re.compile(r"[\u4e00-\u9fff\u3400-\u4dbf]")
+_JAPANESE_PATTERN = re.compile(r"[\u3040-\u309f\u30a0-\u30ff]")
+_KOREAN_PATTERN = re.compile(r"[\uac00-\ud7af\u1100-\u11ff]")
+_CYRILLIC_PATTERN = re.compile(r"[\u0400-\u04ff]")
+_ARABIC_PATTERN = re.compile(r"[\u0600-\u06ff]")
+_HEBREW_PATTERN = re.compile(r"[\u0590-\u05ff]")
+_DEVANAGARI_PATTERN = re.compile(r"[\u0900-\u097f]")
+_THAI_PATTERN = re.compile(r"[\u0e00-\u0e7f]")
+_GREEK_PATTERN = re.compile(r"[\u0370-\u03ff]")
+
+
+_ENGLISH_STOPWORDS = {
+    "the", "be", "to", "of", "and", "a", "in", "that", "have", "i",
+    "it", "for", "not", "on", "with", "he", "as", "you", "do", "at",
+    "this", "but", "his", "by", "from", "they", "we", "say", "her", "she",
+    "or", "an", "will", "my", "one", "all", "would", "there", "their", "what",
+    "so", "up", "out", "if", "about", "who", "get", "which", "go", "me",
+    "when", "make", "can", "like", "time", "no", "just", "him", "know", "take",
+    "people", "into", "year", "your", "good", "some", "could", "them", "see", "other",
+    "than", "then", "now", "look", "only", "come", "its", "over", "think", "also",
+    "back", "after", "use", "two", "how", "our", "work", "first", "well", "way",
+    "even", "new", "want", "because", "any", "these", "give", "day", "most", "us",
+    "is", "are", "was", "were", "been", "being", "has", "had", "does", "did",
+    "shall", "should", "may", "might", "must", "need", "dare", "ought", "used",
+}
+
+_FRENCH_STOPWORDS = {
+    "le", "la", "les", "de", "du", "des", "et", "est", "pas", "dans",
+    "une", "que", "qui", "sur", "avec", "pour", "nous", "vous", "ils", "elles",
+    "ce", "cet", "cette", "ces", "son", "sa", "ses", "leur", "leurs", "mon",
+    "ma", "mes", "ton", "ta", "tes", "notre", "nos", "votre", "vos", "lui",
+    "je", "tu", "il", "elle", "on", "nous", "vous", "ils", "elles", "se",
+    "me", "te", "le", "la", "les", "lui", "leur", "y", "en", "ne",
+    "au", "aux", "ou", "mais", "donc", "car", "ni", "sans", "très", "plus",
+    "était", "sont", "ont", "fait", "être", "avoir", "faire", "peut", "tout", "aussi",
+}
+
+_GERMAN_STOPWORDS = {
+    "der", "die", "das", "den", "dem", "des", "ein", "eine", "einen", "einer",
+    "eines", "einem", "und", "oder", "aber", "mit", "von", "für", "auf", "ist",
+    "sind", "war", "waren", "wird", "werden", "hat", "haben", "hatte", "hatten", "kann",
+    "können", "konnte", "konnten", "muss", "müssen", "soll", "sollen", "will", "wollen",
+    "nicht", "kein", "keine", "keinen", "keiner", "keines", "sein", "seine", "seinen",
+    "seiner", "seines", "seinem", "ihr", "ihre", "ihren", "ihrer", "ihres", "ihrem",
+    "mein", "meine", "meinen", "meiner", "meines", "meinem", "dass", "daß", "wie",
+    "bei", "nach", "aus", "durch", "gegen", "bis", "ohne", "um", "zum", "zur",
+    "am", "im", "an", "vor", "hinter", "über", "unter", "neben", "zwischen",
+}
+
+_SPANISH_STOPWORDS = {
+    "el", "la", "los", "las", "de", "del", "un", "una", "unos", "unas",
+    "y", "e", "o", "u", "pero", "sino", "que", "en", "por", "para",
+    "con", "sin", "sobre", "entre", "detrás", "dentro", "fuera", "tras", "durante",
+    "es", "son", "era", "eran", "ser", "haber", "he", "has", "ha", "hemos",
+    "han", "está", "están", "estaba", "estaban", "estar", "tener", "tengo", "tiene",
+    "tienen", "puede", "pueden", "hacer", "hago", "hace", "hacen",
+    "me", "te", "se", "nos", "le", "les", "lo", "la", "los", "las",
+    "su", "sus", "mi", "mis", "tu", "tus", "nuestro", "nuestra", "vuestro", "vuestra",
+    "este", "esta", "estos", "estas", "ese", "esa", "esos", "esas", "aquel", "aquella",
+    "más", "menos", "muy", "bien", "mal", "casi", "tan", "tanto",
+}
+
+_PORTUGUESE_STOPWORDS = {
+    "o", "a", "os", "as", "de", "do", "da", "dos", "das", "um",
+    "uma", "uns", "umas", "e", "mas", "ou", "que", "em", "no", "na",
+    "nos", "nas", "para", "por", "com", "sem", "como", "são", "é",
+    "está", "estão", "era", "eram", "ser", "haver", "tem", "têm", "ter",
+    "pode", "podem", "fazer", "faz", "fez",
+    "me", "te", "se", "nos", "lhe", "lhes", "o", "a", "os", "as",
+    "seu", "sua", "seus", "suas", "meu", "minha", "meus", "minhas", "teu", "tua",
+    "este", "esta", "estes", "estas", "esse", "essa", "esses", "essas", "aquele", "aquela",
+    "mais", "menos", "muito", "bem", "mal", "quase", "tão", "tanto",
+}
+
+_DUTCH_STOPWORDS = {
+    "de", "het", "een", "van", "op", "in", "en", "dat", "die", "die",
+    "voor", "met", "te", "aan", "naar", "door", "over", "bij", "uit", "om",
+    "zijn", "is", "was", "waren", "worden", "werd", "werden", "heeft", "hebben",
+    "had", "kunnen", "kan", "moeten", "moet", "zullen", "zal", "zouden",
+    "niet", "geen", "geen", "dit", "deze", "die", "dat",
+    "mijn", "jouw", "zijn", "haar", "ons", "onze", "jullie", "hun",
+    "ik", "jij", "hij", "zij", "het", "wij", "jullie",
+    "maar", "dus", "want", "of", "echter", "toch", "ook", "nog",
+}
+
+_STOPWORD_MAPS: dict[str, set[str]] = {
+    "en": _ENGLISH_STOPWORDS,
+    "fr": _FRENCH_STOPWORDS,
+    "de": _GERMAN_STOPWORDS,
+    "es": _SPANISH_STOPWORDS,
+    "pt": _PORTUGUESE_STOPWORDS,
+    "nl": _DUTCH_STOPWORDS,
+}
+
+
+class HeuristicLanguageDetector:
+    async def detect(self, text: str) -> tuple[str, float]:
+        text = text.strip()
+        if not text:
+            return ("en", 0.0)
+
+        chinese_chars = len(_CHINESE_PATTERN.findall(text))
+        japanese_chars = len(_JAPANESE_PATTERN.findall(text))
+        korean_chars = len(_KOREAN_PATTERN.findall(text))
+        cyrillic_chars = len(_CYRILLIC_PATTERN.findall(text))
+        arabic_chars = len(_ARABIC_PATTERN.findall(text))
+        hebrew_chars = len(_HEBREW_PATTERN.findall(text))
+        devanagari_chars = len(_DEVANAGARI_PATTERN.findall(text))
+        thai_chars = len(_THAI_PATTERN.findall(text))
+        greek_chars = len(_GREEK_PATTERN.findall(text))
+
+        total_non_ascii = (
+            chinese_chars + japanese_chars + korean_chars + cyrillic_chars
+            + arabic_chars + hebrew_chars + devanagari_chars + thai_chars + greek_chars
+        )
+
+        if total_non_ascii > 3:
+            non_latin = {
+                "zh": (chinese_chars - japanese_chars),
+                "ja": japanese_chars,
+                "ko": korean_chars,
+                "ru": cyrillic_chars,
+                "ar": arabic_chars,
+                "he": hebrew_chars,
+                "hi": devanagari_chars,
+                "th": thai_chars,
+                "el": greek_chars,
+            }
+            best = max(non_latin, key=non_latin.get)
+            score_pct = non_latin[best] / max(total_non_ascii, 1)
+            confidence = min(0.95, score_pct)
+            return (best, confidence)
+
+        words = re.findall(r"[a-zA-Z]+", text.lower())
+        if not words:
+            return ("en", 0.0)
+
+        word_set = set(words)
+        scores: dict[str, float] = {}
+        for lang, stops in _STOPWORD_MAPS.items():
+            overlap = word_set & stops
+            if overlap:
+                scores[lang] = len(overlap) / len(stops)
+
+        if not scores:
+            return ("en", 0.3)
+
+        best_lang = max(scores, key=scores.get)
+        best_score = scores[best_lang]
+        second_score = sorted(scores.values(), reverse=True)[1] if len(scores) > 1 else 0
+
+        delta = best_score - second_score
+        if delta < 0.01:
+            return ("en", 0.3)
+        confidence = min(0.95, best_score * 2)
+        return (best_lang, confidence)

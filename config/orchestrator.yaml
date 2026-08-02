@@ -1,0 +1,65 @@
+orchestrator:
+  enabled: true
+  default_mode: single
+
+planner:
+  enabled: true
+  default_agent: chat
+  agent_map:
+    coding: coder
+    code: coder
+    programming: coder
+    architecture: architect
+    design: architect
+    system: architect
+    analysis: analyst
+    analyze: analyst
+    research: analyst
+    review: reviewer
+    refactor: reviewer
+    chat: chat
+    talk: chat
+    plan: planner
+
+agents:
+  enabled: true
+  preferred_providers:
+    planner: [openai, anthropic]
+    coder: [anthropic, openai]
+    architect: [openai, anthropic]
+    analyst: [openai, anthropic, google]
+    reviewer: [openai, anthropic]
+    chat: []
+
+execution:
+  enabled: true
+  default_timeout: 60
+  max_retries: 2
+  parallel: true
+  sequential: true
+
+reflection:
+  enabled: false
+  threshold: 0.7
+  max_retries: 2
+
+consensus:
+  enabled: false
+  default_strategy: majority_vote
+  providers: [openai, anthropic, google]
+
+debate:
+  enabled: false
+  default_provider_a: openai
+  default_provider_b: anthropic
+
+workflow:
+  enabled: true
+
+tools:
+  enabled: true
+  builtin:
+    - search
+    - calculator
+    - database
+    - http

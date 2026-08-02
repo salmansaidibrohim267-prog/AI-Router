@@ -1,0 +1,143 @@
+from __future__ import annotations
+
+from .config import PluginConfig
+from .di import Container
+from .events import (
+    HOOK_DISPATCHED,
+    PLUGIN_DISABLED,
+    PLUGIN_ENABLED,
+    PLUGIN_EVENT,
+    PLUGIN_FAILED,
+    PLUGIN_INSTALLED,
+    PLUGIN_RELOADED,
+    PLUGIN_UNINSTALLED,
+    PLUGIN_UPGRADED,
+    PLUGIN_VERIFIED,
+    PluginEventBus,
+    create_plugin_event_bus,
+)
+from .exceptions import (
+    ContainerError,
+    ExtensionAlreadyRegisteredError,
+    ExtensionNotFoundError,
+    PluginAlreadyInstalledError,
+    PluginCompatibilityError,
+    PluginDependencyError,
+    PluginDisabledError,
+    PluginError,
+    PluginInstallError,
+    PluginInvalidError,
+    PluginLifecycleError,
+    PluginMarketplaceError,
+    PluginNotFoundError,
+    PluginPermissionDeniedError,
+    PluginRatingError,
+    PluginRollbackError,
+    PluginSandboxViolationError,
+    PluginSignatureError,
+    PluginTimeoutError,
+    PluginUninstallError,
+    PluginUpgradeError,
+    PluginVerificationError,
+)
+from .hooks import HookResult, HookSystem
+from .integration import PluginManagerSource
+from .lifecycle import PluginLifecycle
+from .logging import PluginLogger
+from .manager import PluginManager, create_plugin_manager
+from .marketplace import Marketplace, MarketplaceEntry
+from .metrics import PluginMetricsTracker
+from .models import (
+    Extension,
+    ExtensionKind,
+    PermissionResource,
+    PluginInfo,
+    PluginSpec,
+    PluginStatus,
+    Rating,
+    SchedulerSpec,
+    Signature,
+    generate_id,
+)
+from .permissions import PermissionManager
+from .registry import ExtensionRegistry
+from .sandbox import Sandbox
+from .sdk import Plugin, PluginContext, PluginSDK
+from .signing import compute_digest, hash_directory, sign_payload, verify_payload, verify_or_raise
+from .validation import CompatibilityChecker, ManifestValidator
+from .versioning import compare_versions, is_valid_version, parse_version, version_meets
+
+__all__ = [
+    "CompatibilityChecker",
+    "Container",
+    "ContainerError",
+    "Extension",
+    "ExtensionAlreadyRegisteredError",
+    "ExtensionKind",
+    "ExtensionNotFoundError",
+    "ExtensionRegistry",
+    "HOOK_DISPATCHED",
+    "HookResult",
+    "HookSystem",
+    "ManifestValidator",
+    "Marketplace",
+    "MarketplaceEntry",
+    "PermissionManager",
+    "PermissionResource",
+    "PLUGIN_DISABLED",
+    "PLUGIN_ENABLED",
+    "PLUGIN_EVENT",
+    "PLUGIN_FAILED",
+    "PLUGIN_INSTALLED",
+    "PLUGIN_RELOADED",
+    "PLUGIN_UNINSTALLED",
+    "PLUGIN_UPGRADED",
+    "PLUGIN_VERIFIED",
+    "Plugin",
+    "PluginAlreadyInstalledError",
+    "PluginCompatibilityError",
+    "PluginConfig",
+    "PluginContext",
+    "PluginDependencyError",
+    "PluginDisabledError",
+    "PluginError",
+    "PluginEventBus",
+    "PluginInfo",
+    "PluginInstallError",
+    "PluginInvalidError",
+    "PluginLifecycle",
+    "PluginLifecycleError",
+    "PluginLogger",
+    "PluginManager",
+    "PluginManagerSource",
+    "PluginMarketplaceError",
+    "PluginMetricsTracker",
+    "PluginNotFoundError",
+    "PluginPermissionDeniedError",
+    "PluginRatingError",
+    "PluginRollbackError",
+    "PluginSDK",
+    "PluginSandboxViolationError",
+    "PluginSignatureError",
+    "PluginSpec",
+    "PluginStatus",
+    "PluginTimeoutError",
+    "PluginUninstallError",
+    "PluginUpgradeError",
+    "PluginVerificationError",
+    "Rating",
+    "Sandbox",
+    "SchedulerSpec",
+    "Signature",
+    "compute_digest",
+    "create_plugin_event_bus",
+    "create_plugin_manager",
+    "generate_id",
+    "hash_directory",
+    "is_valid_version",
+    "parse_version",
+    "sign_payload",
+    "verify_or_raise",
+    "verify_payload",
+    "version_meets",
+]

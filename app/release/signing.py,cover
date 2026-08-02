@@ -1,0 +1,98 @@
+> """Release signing and artifact verification.
+  
+> Signatures are HMAC-SHA256 keyed by a configured secret over a canonical
+> payload (digest + version + name). ``verify`` replays the signature and
+> reports tampering; a public-key style adapter is provided for plugin
+> compatibility.
+> """
+  
+> from __future__ import annotations
+  
+> import hashlib
+> import hmac
+> import json
+> from dataclasses import dataclass
+> from typing import Any
+  
+> from .exceptions import SigningError, SignatureVerificationError
+  
+  
+> def canonical_json(payload: dict[str, Any]) -> str:
+>     return json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
+  
+  
+> @dataclass
+> class Signature:
+>     """A detached signature over a canonical payload."""
+  
+>     payload: dict[str, Any]
+>     signature: str
+>     algorithm: str = "hmac-sha256"
+  
+>     def to_dict(self) -> dict[str, Any]:
+>         return {
+>             "payload": dict(self.payload),
+>             "signature": self.signature,
+>             "algorithm": self.algorithm,
+>         }
+  
+  
+> class ReleaseSigner:
+>     """Creates and verifies HMAC-SHA256 signatures for release artifacts."""
+  
+>     def __init__(self, key: str = "release-signing-key") -> None:
+>         if not key:
+>             raise SigningError("signing key must not be empty")
+>         self.key = key
+  
+>     def _secret(self) -> bytes:
+>         return self.key.encode()
+  
+>     def sign(self, payload: dict[str, Any]) -> Signature:
+>         message = canonical_json(payload).encode()
+>         digest = hmac.new(self._secret(), message, hashlib.sha256).hexdigest()
+>         return Signature(payload=dict(payload), signature=digest)
+  
+>     def verify(self, signature: Signature) -> bool:
+>         expected = self.sign(signature.payload)
+>         return hmac.compare_digest(expected.signature, signature.signature)
+  
+>     def verify_or_raise(self, signature: Signature) -> bool:
+>         if not self.verify(signature):
+>             raise SignatureVerificationError("signature mismatch")
+>         return True
+  
+>     def sign_string(self, value: str) -> str:
+>         return hmac.new(self._secret(), value.encode(), hashlib.sha256).hexdigest()
+  
+>     def sign_artifact(self, name: str, version: str, digest: str) -> Signature:
+>         return self.sign({"name": name, "version": version, "digest": digest})
+  
+>     def verify_artifact(self, name: str, version: str, digest: str, signature: Signature) -> bool:
+>         payload = {"name": name, "version": version, "digest": digest}
+>         if signature.payload != payload:
+>             return False
+>         return self.verify(signature)
+  
+  
+> class Ed25519StyleSigner:
+>     """Key-pair adapter (two symmetric halves) for asymmetric-style workflows.
+  
+>     Simulates a public/private key split: ``private`` creates signatures,
+>     ``public`` verifies them. Exchange the public key to let other parties
+>     verify without the private half.
+>     """
+  
+>     def __init__(self, private: str = "private-key", public: str = "public-key") -> None:
+>         self._private = private
+>         self._public = public
+  
+>     def sign(self, payload: dict[str, Any]) -> Signature:
+>         message = canonical_json(payload).encode()
+>         digest = hmac.new(self._private.encode(), message, hashlib.sha256).hexdigest()
+>         return Signature(payload=dict(payload), signature=digest, algorithm="ed25519-style")
+  
+>     def verify(self, signature: Signature) -> bool:
+>         message = canonical_json(signature.payload).encode()
+>         expected = hmac.new(self._public.encode(), message, hashlib.sha256).hexdigest()
+>         return hmac.compare_digest(expected, signature.signature)

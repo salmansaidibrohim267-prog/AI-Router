@@ -1,0 +1,103 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump: patch | minor | major | rc | release"
+        required: true
+        default: "rc"
+        type: choice
+        options:
+          - rc
+          - patch
+          - minor
+          - major
+          - release
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Derive next version and changelog
+        id: release
+        run: |
+          PYTHONPATH=. python -c "
+          import json, pathlib
+          from app.release import ReleaseManager, ReleaseConfig
+          manager = ReleaseManager(ReleaseConfig(history_file='dist/release/history.json'))
+          version = manager.next_version('${{ github.event.inputs.bump }}')
+          entry = manager.create_release(str(version))
+          manager.write_changelog()
+          manager.save_history()
+          pathlib.Path('version.txt').write_text(str(version))
+          print(json.dumps({'version': str(version)}))
+          "
+          VERSION=$(cat version.txt)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build release artifacts
+        run: |
+          mkdir -p dist/release
+          cp -r app dist/release/app
+          cp requirements.txt pyproject.toml README.md dist/release/
+          cp deployment/Dockerfile.prod dist/release/Dockerfile
+          cp CHANGELOG.md dist/release/
+
+      - name: Stage artifact manifest and sign
+        run: |
+          PYTHONPATH=. python -c "
+          from app.release import ReleaseManager, ReleaseConfig
+          manager = ReleaseManager(ReleaseConfig(history_file='dist/release/history.json'))
+          manager.create_release('${{ steps.release.outputs.version }}')
+          manager.build_artifact_manifest('${{ steps.release.outputs.version }}', {
+              'ai-router-${{ steps.release.outputs.version }}.tar.gz': 'dist/release/app',
+          })
+          signature = manager.sign_manifest('${{ steps.release.outputs.version }}')
+          import json
+          json.dump(signature.to_dict(), open('dist/release/signature.json', 'w'), indent=2)
+          manager.save_history()
+          print('manifest signed:', signature.algorithm)
+          "
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release.outputs.tag }}
+          name: ${{ steps.release.outputs.version }}
+          body_path: CHANGELOG.md
+          files: |
+            dist/release/signature.json
+            dist/release/history.json
+            CHANGELOG.md
+          prerelease: ${{ contains(steps.release.outputs.version, '-') }}
+          generate_release_notes: true
+
+      - name: Push release tag back
+        run: |
+          git config user.name "CI Bot"
+          git config user.email "ci@anomalyco.dev"
+          git add CHANGELOG.md dist/release/history.json
+          git commit -m "chore(release): ${{ steps.release.outputs.version }}" || true
+          git push origin main

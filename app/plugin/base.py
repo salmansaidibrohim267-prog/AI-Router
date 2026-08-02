@@ -17,11 +17,47 @@ class AIPlugin:
     name: str = "base"
     version: str = "0.1.0"
     description: str = ""
+    _plugin_enabled: bool = True
 
     async def initialize(self) -> None:
         pass
 
     async def before_request(self, request: Any, context: dict[str, Any]) -> HookResult:
+        return HookResult()
+
+    async def before_route(self, request: Any, context: dict[str, Any]) -> HookResult:
+        return HookResult()
+
+    async def after_route(
+        self,
+        request: Any,
+        context: dict[str, Any],
+        routes: list[tuple[str, str]],
+    ) -> HookResult:
+        return HookResult()
+
+    async def before_provider(
+        self,
+        request: Any,
+        provider_name: str,
+        model: str,
+        context: dict[str, Any],
+    ) -> HookResult:
+        return HookResult()
+
+    async def after_provider(
+        self,
+        request: Any,
+        response: Any,
+        provider_name: str,
+        model: str,
+        context: dict[str, Any],
+    ) -> HookResult:
+        return HookResult()
+
+    async def before_response(
+        self, request: Any, response: Any, context: dict[str, Any]
+    ) -> HookResult:
         return HookResult()
 
     async def after_response(
@@ -31,6 +67,31 @@ class AIPlugin:
 
     async def on_error(
         self, request: Any, error: Exception, context: dict[str, Any]
+    ) -> HookResult:
+        return HookResult()
+
+    async def before_plan(
+        self, request: Any, context: dict[str, Any]
+    ) -> HookResult:
+        return HookResult()
+
+    async def after_agent(
+        self,
+        agent_result: Any,
+        agent_name: str,
+        context: dict[str, Any],
+    ) -> HookResult:
+        return HookResult()
+
+    async def before_reflection(
+        self,
+        agent_result: Any,
+        context: dict[str, Any],
+    ) -> HookResult:
+        return HookResult()
+
+    async def after_orchestrate(
+        self, response: Any, context: dict[str, Any]
     ) -> HookResult:
         return HookResult()
 

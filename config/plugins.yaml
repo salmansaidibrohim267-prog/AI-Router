@@ -3,3 +3,9 @@ plugins:
     enabled: false
   logging:
     enabled: true
+  cache:
+    enabled: false
+  guardrails:
+    enabled: false
+  translation:
+    enabled: false
