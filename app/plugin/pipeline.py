@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.event_bus import event_bus
 from app.plugin.base import HookResult
 from app.plugin.registry import PluginRegistry
-from app.event_bus import event_bus
 
 
 class MiddlewarePipeline:
@@ -29,6 +29,7 @@ class MiddlewarePipeline:
             return result
         except Exception:
             import traceback
+
             traceback.print_exc()
         return HookResult()
 
@@ -138,18 +139,14 @@ class MiddlewarePipeline:
         agent_name: str,
         context: dict[str, Any],
     ) -> HookResult:
-        return await self._execute_hook_chain(
-            "after_agent", "after_agent", agent_result, agent_name, context
-        )
+        return await self._execute_hook_chain("after_agent", "after_agent", agent_result, agent_name, context)
 
     async def execute_before_reflection(
         self,
         agent_result: Any,
         context: dict[str, Any],
     ) -> HookResult:
-        return await self._execute_hook_chain(
-            "before_reflection", "before_reflection", agent_result, context
-        )
+        return await self._execute_hook_chain("before_reflection", "before_reflection", agent_result, context)
 
     async def execute_after_orchestrate(
         self,
@@ -164,6 +161,7 @@ class MiddlewarePipeline:
                 await plugin.initialize()
             except Exception:
                 import traceback
+
                 traceback.print_exc()
 
         await event_bus.emit("plugins.initialized", count=len(self._registry.get_enabled()))

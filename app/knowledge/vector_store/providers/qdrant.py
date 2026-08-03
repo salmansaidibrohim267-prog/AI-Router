@@ -6,7 +6,6 @@ from typing import Any
 
 from app.knowledge.vector_store.exceptions import (
     CollectionAlreadyExistsError,
-    CollectionNotFoundError,
     VectorStoreError,
 )
 from app.knowledge.vector_store.models import (
@@ -22,7 +21,6 @@ from app.knowledge.vector_store.validation import VectorStoreValidator
 try:
     from qdrant_client import QdrantClient
     from qdrant_client.http import models as qmodels
-    from qdrant_client.http.exceptions import UnexpectedResponse
 
     HAS_QDRANT = True
 except ImportError:
@@ -183,13 +181,9 @@ class QdrantVectorStore:
         if filter or namespace != "default":
             conditions = []
             if namespace != "default":
-                conditions.append(qmodels.FieldCondition(
-                    key="_namespace", match=qmodels.MatchValue(value=namespace)
-                ))
+                conditions.append(qmodels.FieldCondition(key="_namespace", match=qmodels.MatchValue(value=namespace)))
             for k, v in (filter or {}).items():
-                conditions.append(qmodels.FieldCondition(
-                    key=k, match=qmodels.MatchValue(value=v)
-                ))
+                conditions.append(qmodels.FieldCondition(key=k, match=qmodels.MatchValue(value=v)))
             if conditions:
                 qfilter = qmodels.Filter(must=conditions)
         try:
@@ -234,7 +228,7 @@ class QdrantVectorStore:
                     points_ids.append(int(id))
                 except ValueError:
                     points_ids.append(id)
-            result = client.delete(
+            _ = client.delete(
                 collection_name=coll_name,
                 points_selector=qmodels.PointIdsList(points=points_ids),
             )
@@ -242,13 +236,9 @@ class QdrantVectorStore:
         elif filter or namespace != "default":
             conditions = []
             if namespace != "default":
-                conditions.append(qmodels.FieldCondition(
-                    key="_namespace", match=qmodels.MatchValue(value=namespace)
-                ))
+                conditions.append(qmodels.FieldCondition(key="_namespace", match=qmodels.MatchValue(value=namespace)))
             for k, v in (filter or {}).items():
-                conditions.append(qmodels.FieldCondition(
-                    key=k, match=qmodels.MatchValue(value=v)
-                ))
+                conditions.append(qmodels.FieldCondition(key=k, match=qmodels.MatchValue(value=v)))
             qfilter = qmodels.Filter(must=conditions) if conditions else None
             client.delete(
                 collection_name=coll_name,
@@ -266,10 +256,10 @@ class QdrantVectorStore:
             qfilter = qmodels.Filter(
                 must=[qmodels.FieldCondition(key="_namespace", match=qmodels.MatchValue(value=namespace))]
             )
-        result = client.delete(
+        _ = client.delete(
             collection_name=coll_name,
-            points_selector=qmodels.FilterSelector(filter=qfilter) if qfilter else qmodels.FilterSelector(
-                filter=qmodels.Filter()
+            points_selector=(
+                qmodels.FilterSelector(filter=qfilter) if qfilter else qmodels.FilterSelector(filter=qmodels.Filter())
             ),
         )
         return -1

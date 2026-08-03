@@ -11,11 +11,11 @@ import time
 from typing import Any
 
 from .config import ClusterConfig
+from .health import HealthMonitor
 from .logging import ClusterLogger
 from .metrics import ClusterMetricsTracker
-from .models import JobState, NodeInfo, NodeState, RebalanceReason
+from .models import NodeState, RebalanceReason
 from .repository import JobStore, NodeStore
-from .health import HealthMonitor
 
 FailoverRecord = dict[str, Any]
 

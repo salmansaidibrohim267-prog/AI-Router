@@ -7,7 +7,7 @@ chain and aggregates results; any failed gate blocks the pipeline.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Callable
 
 from .config import DeployConfig

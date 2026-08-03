@@ -18,9 +18,9 @@ import time
 from typing import Any, Awaitable, Callable
 
 from .config import ClusterConfig
-from .exceptions import ElectionError, LeadershipError
+from .exceptions import ElectionError
 from .logging import ClusterLogger
-from .models import NodeInfo, NodeState
+from .models import NodeInfo
 from .repository import LeaseStore, NodeStore
 
 Observer = Callable[[str | None, int], Awaitable[None]]
@@ -275,9 +275,7 @@ class KubernetesLeaseElection(Elector):
                 return False
             holder = self._holder()
             if holder == self.node.id:
-                await self.transport(
-                    self, "PUT", self._url, body=self._renewed_lease(self.node.id, self._epoch)
-                )
+                await self.transport(self, "PUT", self._url, body=self._renewed_lease(self.node.id, self._epoch))
                 await self._changed(self.node.id, self._epoch)
                 return True
             if holder is None:

@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import Callable
 
 from app.prompting.config import PromptingConfig
-from app.prompting.models import ContextItem, ContextSource
 from app.prompting.exceptions import PromptOptimizerError
+from app.prompting.models import ContextItem, ContextSource
 
 
 class ContextOptimizer:

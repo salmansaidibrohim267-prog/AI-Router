@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from app.citations.models import (
     Citation,
     CitationFormat,

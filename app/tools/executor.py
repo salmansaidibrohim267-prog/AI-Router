@@ -5,7 +5,6 @@ import logging
 import time
 from typing import Any
 
-from app.tools.base import Tool, ToolResult
 from app.tools.models import ToolCall, ToolResponse
 from app.tools.permission import PermissionManager
 from app.tools.registry import ToolRegistry

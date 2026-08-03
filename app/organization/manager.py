@@ -10,7 +10,6 @@ from .access import AccessGuard
 from .config import OrganizationConfig
 from .exceptions import (
     OrganizationAlreadyExistsError,
-    OrganizationArchivedError,
     OrganizationLimitError,
     OrganizationNotFoundError,
     OwnershipTransferError,
@@ -82,7 +81,9 @@ class OrganizationManager:
         if self._audit is None:
             return
         try:
-            self._audit.record(action=action, tenant_id=tenant_id, actor=actor, resource="organizations", details=details)
+            self._audit.record(
+                action=action, tenant_id=tenant_id, actor=actor, resource="organizations", details=details
+            )  # noqa: E501
         except Exception:
             pass
 
@@ -142,7 +143,7 @@ class OrganizationManager:
         return organization
 
     def delete(self, tenant_id: str, organization_id: str) -> bool:
-        organization = self.get(tenant_id, organization_id)
+        _ = self.get(tenant_id, organization_id)
         for workspace in self._workspaces.list_for_organization(organization_id):
             for project in self._projects.list_for_workspace(workspace.id):
                 self._projects.delete(project.id)
@@ -229,11 +230,28 @@ class OrganizationManager:
         organization.updated_at = time.time()
         self._organizations.update(organization)
         self._metrics.record("organization_transferred", organization_id)
-        self._logger.log_event("ownership_transferred", tenant_id=tenant_id, organization_id=organization_id, new_owner=new_owner_user_id)
-        self._audit_event("org.transferred", tenant_id, principal.user_id, organization_id=organization_id, new_owner=new_owner_user_id)
+        self._logger.log_event(
+            "ownership_transferred", tenant_id=tenant_id, organization_id=organization_id, new_owner=new_owner_user_id
+        )  # noqa: E501
+        self._audit_event(
+            "org.transferred",
+            tenant_id,
+            principal.user_id,
+            organization_id=organization_id,
+            new_owner=new_owner_user_id,
+        )  # noqa: E501
         return organization
 
-    async def create_async(self, tenant_id: str, name: str, owner_user_id: str, description: str = "", slug: str | None = None, plan: str = "free", metadata: dict[str, Any] | None = None) -> Organization:
+    async def create_async(
+        self,
+        tenant_id: str,
+        name: str,
+        owner_user_id: str,
+        description: str = "",
+        slug: str | None = None,
+        plan: str = "free",
+        metadata: dict[str, Any] | None = None,
+    ) -> Organization:  # noqa: E501
         return self.create(tenant_id, name, owner_user_id, description, slug, plan, metadata)
 
     async def update_async(self, tenant_id: str, organization_id: str, **fields: Any) -> Organization:
@@ -251,7 +269,9 @@ class OrganizationManager:
     async def list_async(self, tenant_id: str, status: str = "") -> list[Organization]:
         return self.list(tenant_id, status)
 
-    async def transfer_ownership_async(self, principal: Principal, organization_id: str, new_owner_user_id: str, tenant_id: str = "") -> Organization:
+    async def transfer_ownership_async(
+        self, principal: Principal, organization_id: str, new_owner_user_id: str, tenant_id: str = ""
+    ) -> Organization:  # noqa: E501
         return self.transfer_ownership(principal, organization_id, new_owner_user_id, tenant_id)
 
 

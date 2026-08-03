@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from .config import EvaluationConfig
 from .logging import EvaluationLogger
 from .models import EvaluationMetric, GateCheck, GateResult

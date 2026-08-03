@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import time
 from typing import Any
 
 from app.rag.config import RAGConfig
@@ -32,7 +31,6 @@ class RetrievalOrchestrator:
         if self._hybrid is None:
             raise RAGRetrievalError("Hybrid retriever not configured")
 
-        t0 = time.perf_counter()
         try:
             results = await self._hybrid.search_async(
                 query=query,
@@ -40,7 +38,6 @@ class RetrievalOrchestrator:
             )
         except Exception as e:
             raise RAGRetrievalError(f"Hybrid search failed: {e}") from e
-        retrieval_latency = (time.perf_counter() - t0) * 1000
 
         if not results:
             return []
@@ -57,14 +54,10 @@ class RetrievalOrchestrator:
         ]
 
         if self._reranker and rerank_top_k > 0:
-            t1 = time.perf_counter()
             try:
                 reranker_input = RerankerInput(
                     query=query,
-                    candidates=[
-                        {"id": c.chunk_id, "content": c.content, "score": c.score}
-                        for c in chunks
-                    ],
+                    candidates=[{"id": c.chunk_id, "content": c.content, "score": c.score} for c in chunks],
                 )
                 reranked = await self._reranker.rerank_async(reranker_input)
                 seen_ids: set[str] = set()

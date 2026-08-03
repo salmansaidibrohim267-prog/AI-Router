@@ -1,21 +1,18 @@
 from __future__ import annotations
 
-import time
-import uuid
 from typing import Any
 
 from app.knowledge.models import (
-    KnowledgeChunk,
     KnowledgeCollection,
     KnowledgeDocument,
     KnowledgeMetadata,
     KnowledgeStatus,
 )
 from app.knowledge.validation import (
+    ValidationError,
     validate_collection_name,
     validate_document_title,
     validate_tags,
-    ValidationError,
 )
 
 
@@ -132,18 +129,18 @@ class KnowledgeService:
     async def delete_document(self, document_id: str) -> bool:
         return await self._repo.delete_document(document_id)
 
-    async def list_documents(
-        self, collection_id: str = "", skip: int = 0, limit: int = 100
-    ) -> list[KnowledgeDocument]:
+    async def list_documents(self, collection_id: str = "", skip: int = 0, limit: int = 100) -> list[KnowledgeDocument]:
         return await self._repo.list_documents(
-            collection_id=collection_id, skip=skip, limit=limit,
+            collection_id=collection_id,
+            skip=skip,
+            limit=limit,
         )
 
-    async def search_documents(
-        self, query: str, collection_id: str = "", limit: int = 20
-    ) -> list[KnowledgeDocument]:
+    async def search_documents(self, query: str, collection_id: str = "", limit: int = 20) -> list[KnowledgeDocument]:
         return await self._repo.search_documents(
-            query=query, collection_id=collection_id, limit=limit,
+            query=query,
+            collection_id=collection_id,
+            limit=limit,
         )
 
     async def get_statistics(self, collection_id: str = "") -> dict[str, Any]:

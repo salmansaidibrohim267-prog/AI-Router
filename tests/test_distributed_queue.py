@@ -2,6 +2,7 @@ import asyncio
 import json
 import time
 import uuid
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -790,5 +791,7 @@ class TestTracing:
 
     def test_init_tracing_disabled(self):
         from app.distributed import tracing
+        tracing.TRACER = None
+        tracing.TRACER_PROVIDER = None
         tracing.init_tracing(enabled=False)
         assert tracing.TRACER is None

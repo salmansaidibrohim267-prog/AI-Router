@@ -33,9 +33,7 @@ class RAGMetricsTracker:
             self._metrics.cache_misses += 1
         if fallback:
             self._metrics.fallbacks += 1
-        self._metrics.average_latency_ms = (
-            self._metrics.total_latency_ms / self._metrics.total_requests
-        )
+        self._metrics.average_latency_ms = self._metrics.total_latency_ms / self._metrics.total_requests
 
     def record_error(self) -> None:
         self._metrics.errors += 1

@@ -6,7 +6,6 @@ import logging
 import os
 import socket
 import time
-from typing import Any
 
 from app.distributed.models import WorkerInfo, WorkerStatus
 from app.distributed.redis_client import AsyncRedisClient
@@ -142,6 +141,7 @@ class WorkerRegistry:
     def _get_version(self) -> str:
         try:
             from app import __version__
+
             return __version__
         except (ImportError, AttributeError):
             return "0.0.0"

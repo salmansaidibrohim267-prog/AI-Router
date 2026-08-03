@@ -154,7 +154,9 @@ class ReplicationManager:
         self.replicas = list(replicas or [])
         self._last_replication = 0.0
 
-    async def _default_transport(self, manager: "ReplicationManager", replica_id: str, snapshot: dict[str, Any]) -> None:
+    async def _default_transport(
+        self, manager: "ReplicationManager", replica_id: str, snapshot: dict[str, Any]
+    ) -> None:  # noqa: E501
         # In-memory default: nothing to ship; real deployments inject transport.
         return None
 
@@ -181,9 +183,7 @@ class ReplicationManager:
                 await self.transport(self, replica, snapshot)
             except Exception as exc:  # noqa: BLE001 - per-replica isolation
                 self.store.update_record(record.id, state=ReplicationState.FAILED, error=str(exc))
-                self.logger.log_event(
-                    "replication_failed", snapshot=snapshot_id, replica=replica, error=str(exc)
-                )
+                self.logger.log_event("replication_failed", snapshot=snapshot_id, replica=replica, error=str(exc))
                 records.append(record)
                 continue
             self.store.update_record(
@@ -264,11 +264,7 @@ class DisasterRecovery:
         if not nodes:
             raise DRFailoverError(f"no nodes found in region {region!r}")
         standby_region = standby_region or region
-        candidates = [
-            n
-            for n in self.store.all()
-            if n.region == standby_region and n.state != NodeState.FAILED
-        ]
+        candidates = [n for n in self.store.all() if n.region == standby_region and n.state != NodeState.FAILED]
         if not candidates:
             raise DRFailoverError(f"no candidates available in region {standby_region!r}")
         for node in nodes:

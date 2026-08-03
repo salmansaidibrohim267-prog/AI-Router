@@ -6,7 +6,7 @@
   become: true
   vars:
     ai_router_version: "1.0.0-rc.1"
-    ai_router_image: "ghcr.io/anomalyco/ai-router"
+    ai_router_image: "ghcr.io/salmansaidibrohim267-prog/AI-Router"
     ai_router_port: 8000
     ai_router_data_dir: "/opt/ai-router"
     ai_router_release_dir: "/opt/ai-router/releases/{{ ai_router_version }}"

@@ -20,7 +20,6 @@ from typing import Any, Callable
 from .config import SecurityConfig
 from .exceptions import (
     AuthenticationError,
-    AuthorizationError,
     PolicyEvaluationError,
     SessionValidationError,
     TenantValidationError,
@@ -199,9 +198,7 @@ class ZeroTrustEnforcer:
     ) -> PolicyResult:
         """Steps 2-5: policy, tenant, session and final decision."""
         if tenant is not None and tenant != context.subject.tenant:
-            raise TenantValidationError(
-                f"tenant mismatch: context {context.subject.tenant} != requested {tenant}"
-            )
+            raise TenantValidationError(f"tenant mismatch: context {context.subject.tenant} != requested {tenant}")
         if context.session is not None:
             self._validate_session(context.session)
         result = self._evaluate_policies(context.subject, action, resource)
@@ -228,9 +225,7 @@ class ZeroTrustEnforcer:
     ) -> PolicyResult:
         """Stateless convenience evaluation (no authentication)."""
         if tenant is not None and tenant != subject.tenant:
-            raise TenantValidationError(
-                f"tenant mismatch: subject {subject.tenant} != requested {tenant}"
-            )
+            raise TenantValidationError(f"tenant mismatch: subject {subject.tenant} != requested {tenant}")
         if session is not None:
             self._validate_session(session)
         return self._evaluate_policies(subject, action, resource)
@@ -315,9 +310,7 @@ class ZeroTrustEnforcer:
         }
 
 
-def create_zero_trust_enforcer(
-    config: SecurityConfig | None = None, **overrides: Any
-) -> ZeroTrustEnforcer:
+def create_zero_trust_enforcer(config: SecurityConfig | None = None, **overrides: Any) -> ZeroTrustEnforcer:
     config = config if config is not None else SecurityConfig()
     logger = overrides.pop("logger", None) or SecurityLogger(config)
     metrics = overrides.pop("metrics", None) or SecurityMetricsTracker(config)

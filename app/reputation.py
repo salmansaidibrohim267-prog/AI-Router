@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-import math
 import time
 from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any
-
-from app.routing import EWMA_ALPHA
 
 # Reputation weights
 REPUTATION_WEIGHTS = {
@@ -38,6 +35,7 @@ class Trend(str, Enum):
 @dataclass
 class TrendData:
     """Trend analysis result for a provider."""
+
     trend: Trend = Trend.STABLE
     short_window_error_rate: float = 0.0
     long_window_error_rate: float = 0.0
@@ -142,7 +140,7 @@ def apply_aging(stats: Any, decay_per_second: float = AGING_DECAY_PER_SECOND) ->
     if elapsed <= 0:
         return
 
-    factor = decay_per_second ** elapsed
+    factor = decay_per_second**elapsed
 
     stats.total_latency *= factor
     stats.ewma_latency *= factor

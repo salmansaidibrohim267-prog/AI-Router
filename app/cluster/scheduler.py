@@ -44,7 +44,7 @@ class CronExpression:
         if len(parts) != 5:
             raise ValueError(f"cron expression must have 5 fields, got {len(parts)}: {expression!r}")
         self._sets: list[set[int]] = []
-        for bounds, raw in zip(self._BOUNDS, parts):
+        for bounds, raw in zip(self._BOUNDS, parts, strict=False):
             self._sets.append(self._parse_field(bounds, raw))
 
     def _parse_field(self, bounds: tuple[int, int], raw: str) -> set[int]:
@@ -105,7 +105,7 @@ class CronExpression:
                     if minute == 59:
                         break
                     candidate = candidate.replace(minute=minute + 1)
-            candidate = (candidate.replace(minute=0) + timedelta(hours=1))
+            candidate = candidate.replace(minute=0) + timedelta(hours=1)
         raise ValueError(f"no future cron match for {self.expression!r}")
 
     def _day_matches(self, dt: datetime) -> bool:
@@ -223,9 +223,7 @@ class DistributedScheduler:
         else:
             spec.next_run = now + spec.interval
         self.store.add(spec)
-        self.logger.log_event(
-            "job_added", job=spec.id, name=spec.name, type=spec.type.value, next_run=spec.next_run
-        )
+        self.logger.log_event("job_added", job=spec.id, name=spec.name, type=spec.type.value, next_run=spec.next_run)
         self.metrics.record("jobs_added", component="scheduler")
         return spec
 

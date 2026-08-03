@@ -3,6 +3,7 @@ from app.mcp.client import MCPClient
 from app.mcp.config import MCPConfig
 from app.mcp.manager import ConnectionManager
 from app.mcp.models import (
+    MCPAuthType,
     MCPCallResult,
     MCPCapabilities,
     MCPConnectionHealth,
@@ -12,11 +13,10 @@ from app.mcp.models import (
     MCPPrompt,
     MCPRenderedPrompt,
     MCPResource,
-    MCPStreamEvent,
     MCPServerInfo,
+    MCPStreamEvent,
     MCPTool,
     MCPTransportType,
-    MCPAuthType,
 )
 from app.mcp.transports import (
     HTTPTransport,

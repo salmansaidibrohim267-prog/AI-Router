@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import time
 from typing import Any
 
 
@@ -28,24 +27,14 @@ class EmbeddingStatistics:
         self._batch_count += 1
         self._batch_sizes.append(batch_size)
         if provider:
-            self._provider_usage[provider] = (
-                self._provider_usage.get(provider, 0) + count
-            )
+            self._provider_usage[provider] = self._provider_usage.get(provider, 0) + count
 
     def record_error(self) -> None:
         self._errors += 1
 
     def snapshot(self) -> dict[str, Any]:
-        avg_latency = (
-            round(self._total_latency / self._total_embeddings, 4)
-            if self._total_embeddings > 0
-            else 0.0
-        )
-        avg_batch = (
-            round(sum(self._batch_sizes) / len(self._batch_sizes), 1)
-            if self._batch_sizes
-            else 0.0
-        )
+        avg_latency = round(self._total_latency / self._total_embeddings, 4) if self._total_embeddings > 0 else 0.0
+        avg_batch = round(sum(self._batch_sizes) / len(self._batch_sizes), 1) if self._batch_sizes else 0.0
         return {
             "total_embeddings": self._total_embeddings,
             "total_tokens": self._total_tokens,

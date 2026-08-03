@@ -44,9 +44,7 @@ class SourceResolver:
     def _from_dict(self, data: dict[str, Any]) -> CitationSource:
         source = CitationSource.from_dict(data)
         source.content = str(data.get("content", "")) or source.content
-        source.retrieval_score = float(
-            data.get("retrieval_score", data.get("score", source.retrieval_score))
-        )
+        source.retrieval_score = float(data.get("retrieval_score", data.get("score", source.retrieval_score)))
         return source
 
     def _from_retrieved(self, obj: Any) -> CitationSource:
@@ -57,12 +55,8 @@ class SourceResolver:
             source_id=chunk_id or fallback_id or metadata.get("source_id", ""),
             chunk_id=chunk_id,
             content=str(getattr(obj, "content", "")),
-            retrieval_score=float(
-                getattr(obj, "score", metadata.get("retrieval_score", 0.0)) or 0.0
-            ),
-            rerank_score=float(
-                getattr(obj, "rerank_score", metadata.get("rerank_score", 0.0)) or 0.0
-            ),
+            retrieval_score=float(getattr(obj, "score", metadata.get("retrieval_score", 0.0)) or 0.0),
+            rerank_score=float(getattr(obj, "rerank_score", metadata.get("rerank_score", 0.0)) or 0.0),
             metadata=metadata,
         )
         self._apply_metadata(source, metadata)
@@ -111,9 +105,7 @@ class SourceResolver:
             return self._from_retrieved(raw)
         if hasattr(raw, "content"):
             return self._from_generic(raw)
-        raise CitationResolutionError(
-            f"Unsupported source type: {type(raw).__name__}"
-        )
+        raise CitationResolutionError(f"Unsupported source type: {type(raw).__name__}")
 
     def resolve(self, raw_sources: list[Any]) -> list[CitationSource]:
         resolved: list[CitationSource] = []
@@ -124,9 +116,7 @@ class SourceResolver:
             except CitationResolutionError:
                 raise
             except Exception as e:
-                raise CitationResolutionError(
-                    f"Failed to resolve source: {e}"
-                ) from e
+                raise CitationResolutionError(f"Failed to resolve source: {e}") from e
             if self._config.dedupe_sources:
                 key = source.source_id or f"{source.document_id}:{source.chunk_id}"
                 if key and key in seen:

@@ -9,16 +9,13 @@ from app.reranker.models import RerankerResult
 class BaseReranker(ABC):
     @property
     @abstractmethod
-    def model_name(self) -> str:
-        ...
+    def model_name(self) -> str: ...
 
     @abstractmethod
-    async def warmup(self) -> None:
-        ...
+    async def warmup(self) -> None: ...
 
     @abstractmethod
-    async def shutdown(self) -> None:
-        ...
+    async def shutdown(self) -> None: ...
 
     @abstractmethod
     async def score(
@@ -26,8 +23,7 @@ class BaseReranker(ABC):
         query: str,
         candidate: dict[str, Any],
         **kwargs: Any,
-    ) -> float:
-        ...
+    ) -> float: ...
 
     @abstractmethod
     async def batch_score(
@@ -35,8 +31,7 @@ class BaseReranker(ABC):
         query: str,
         candidates: list[dict[str, Any]],
         **kwargs: Any,
-    ) -> list[float]:
-        ...
+    ) -> list[float]: ...
 
     @abstractmethod
     async def rerank(
@@ -45,8 +40,7 @@ class BaseReranker(ABC):
         candidates: list[dict[str, Any]],
         top_k: int = 10,
         **kwargs: Any,
-    ) -> list[RerankerResult]:
-        ...
+    ) -> list[RerankerResult]: ...
 
     async def rerank_async(
         self,

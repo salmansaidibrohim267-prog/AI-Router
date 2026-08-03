@@ -72,16 +72,20 @@ class TaskWorker:
         payload = task.get("payload", {})
         task_type = task.get("type", "")
 
-        self._queue.add_timeline_event(task_id, {
-            "event": "task_started",
-            "timestamp": __import__("time").time(),
-            "worker": self._worker_id,
-        })
+        self._queue.add_timeline_event(
+            task_id,
+            {
+                "event": "task_started",
+                "timestamp": __import__("time").time(),
+                "worker": self._worker_id,
+            },
+        )
 
         try:
             async with asyncio.timeout(task.get("timeout", 300)):
                 if task_type in ("orchestrate", "chat"):
                     from app.orchestration.models import OrchestrationRequest
+
                     req = OrchestrationRequest(**payload)
                     result = await self._orchestrator.orchestrate(req)
                     self._queue.complete_task(task_id, result.model_dump())
@@ -95,11 +99,14 @@ class TaskWorker:
             self._queue.fail_task(task_id, str(e))
             return
 
-        self._queue.add_timeline_event(task_id, {
-            "event": "task_completed",
-            "timestamp": __import__("time").time(),
-            "worker": self._worker_id,
-        })
+        self._queue.add_timeline_event(
+            task_id,
+            {
+                "event": "task_completed",
+                "timestamp": __import__("time").time(),
+                "worker": self._worker_id,
+            },
+        )
 
     def get_status(self) -> dict[str, Any]:
         return {

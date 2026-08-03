@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from app.rag.config import RAGConfig
-from app.rag.exceptions import RAGContextError
 from app.rag.models import ContextAssembly, RetrievedChunk
 
 

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
 import threading
 import time
@@ -19,71 +18,53 @@ from app.knowledge.models import (
 
 
 class KnowledgeRepository(Protocol):
-    async def create_collection(self, collection: KnowledgeCollection) -> KnowledgeCollection:
-        ...
+    async def create_collection(self, collection: KnowledgeCollection) -> KnowledgeCollection: ...
 
-    async def get_collection(self, collection_id: str) -> KnowledgeCollection | None:
-        ...
+    async def get_collection(self, collection_id: str) -> KnowledgeCollection | None: ...
 
-    async def update_collection(self, collection: KnowledgeCollection) -> KnowledgeCollection | None:
-        ...
+    async def update_collection(self, collection: KnowledgeCollection) -> KnowledgeCollection | None: ...
 
-    async def delete_collection(self, collection_id: str) -> bool:
-        ...
+    async def delete_collection(self, collection_id: str) -> bool: ...
 
-    async def list_collections(self, skip: int = 0, limit: int = 100) -> list[KnowledgeCollection]:
-        ...
+    async def list_collections(self, skip: int = 0, limit: int = 100) -> list[KnowledgeCollection]: ...
 
-    async def count_collections(self) -> int:
-        ...
+    async def count_collections(self) -> int: ...
 
-    async def create_document(self, document: KnowledgeDocument) -> KnowledgeDocument:
-        ...
+    async def create_document(self, document: KnowledgeDocument) -> KnowledgeDocument: ...
 
-    async def get_document(self, document_id: str) -> KnowledgeDocument | None:
-        ...
+    async def get_document(self, document_id: str) -> KnowledgeDocument | None: ...
 
-    async def update_document(self, document: KnowledgeDocument) -> KnowledgeDocument | None:
-        ...
+    async def update_document(self, document: KnowledgeDocument) -> KnowledgeDocument | None: ...
 
-    async def delete_document(self, document_id: str) -> bool:
-        ...
+    async def delete_document(self, document_id: str) -> bool: ...
 
-    async def list_documents(self, collection_id: str = "", skip: int = 0, limit: int = 100) -> list[KnowledgeDocument]:
-        ...
+    async def list_documents(
+        self, collection_id: str = "", skip: int = 0, limit: int = 100
+    ) -> list[KnowledgeDocument]: ...
 
-    async def count_documents(self, collection_id: str = "") -> int:
-        ...
+    async def count_documents(self, collection_id: str = "") -> int: ...
 
-    async def search_documents(self, query: str, collection_id: str = "", limit: int = 20) -> list[KnowledgeDocument]:
-        ...
+    async def search_documents(
+        self, query: str, collection_id: str = "", limit: int = 20
+    ) -> list[KnowledgeDocument]: ...
 
-    async def get_statistics(self, collection_id: str = "") -> dict[str, Any]:
-        ...
+    async def get_statistics(self, collection_id: str = "") -> dict[str, Any]: ...
 
-    async def create_chunk(self, chunk: KnowledgeChunk) -> KnowledgeChunk:
-        ...
+    async def create_chunk(self, chunk: KnowledgeChunk) -> KnowledgeChunk: ...
 
-    async def list_chunks(self, document_id: str) -> list[KnowledgeChunk]:
-        ...
+    async def list_chunks(self, document_id: str) -> list[KnowledgeChunk]: ...
 
-    async def delete_chunks_by_document(self, document_id: str) -> None:
-        ...
+    async def delete_chunks_by_document(self, document_id: str) -> None: ...
 
-    async def save_embedding(self, record: EmbeddingRecord) -> EmbeddingRecord:
-        ...
+    async def save_embedding(self, record: EmbeddingRecord) -> EmbeddingRecord: ...
 
-    async def get_embedding(self, chunk_id: str) -> EmbeddingRecord | None:
-        ...
+    async def get_embedding(self, chunk_id: str) -> EmbeddingRecord | None: ...
 
-    async def delete_embedding(self, chunk_id: str) -> bool:
-        ...
+    async def delete_embedding(self, chunk_id: str) -> bool: ...
 
-    async def list_embeddings(self, document_id: str = "") -> list[EmbeddingRecord]:
-        ...
+    async def list_embeddings(self, document_id: str = "") -> list[EmbeddingRecord]: ...
 
-    async def close(self) -> None:
-        ...
+    async def close(self) -> None: ...
 
 
 class InMemoryKnowledgeRepository:
@@ -122,22 +103,16 @@ class InMemoryKnowledgeRepository:
         with self._lock:
             if collection_id not in self._collections:
                 return False
-            docs_to_delete = [
-                d.id for d in self._documents.values()
-                if d.collection_id == collection_id
-            ]
+            docs_to_delete = [d.id for d in self._documents.values() if d.collection_id == collection_id]
             for doc_id in docs_to_delete:
                 self._documents.pop(doc_id, None)
-                self._chunks = {
-                    k: v for k, v in self._chunks.items()
-                    if v.document_id != doc_id
-                }
+                self._chunks = {k: v for k, v in self._chunks.items() if v.document_id != doc_id}
             self._collections.pop(collection_id, None)
             return True
 
     async def list_collections(self, skip: int = 0, limit: int = 100) -> list[KnowledgeCollection]:
         all_items = list(self._collections.values())
-        return all_items[skip:skip + limit]
+        return all_items[skip : skip + limit]
 
     async def count_collections(self) -> int:
         return len(self._collections)
@@ -172,31 +147,24 @@ class InMemoryKnowledgeRepository:
             doc = self._documents.pop(document_id, None)
             if not doc:
                 return False
-            self._chunks = {
-                k: v for k, v in self._chunks.items()
-                if v.document_id != document_id
-            }
+            self._chunks = {k: v for k, v in self._chunks.items() if v.document_id != document_id}
             if doc.collection_id in self._collections:
                 coll = self._collections[doc.collection_id]
                 coll.document_count = max(0, coll.document_count - 1)
             return True
 
-    async def list_documents(
-        self, collection_id: str = "", skip: int = 0, limit: int = 100
-    ) -> list[KnowledgeDocument]:
+    async def list_documents(self, collection_id: str = "", skip: int = 0, limit: int = 100) -> list[KnowledgeDocument]:
         docs = list(self._documents.values())
         if collection_id:
             docs = [d for d in docs if d.collection_id == collection_id]
-        return docs[skip:skip + limit]
+        return docs[skip : skip + limit]
 
     async def count_documents(self, collection_id: str = "") -> int:
         if collection_id:
             return sum(1 for d in self._documents.values() if d.collection_id == collection_id)
         return len(self._documents)
 
-    async def search_documents(
-        self, query: str, collection_id: str = "", limit: int = 20
-    ) -> list[KnowledgeDocument]:
+    async def search_documents(self, query: str, collection_id: str = "", limit: int = 20) -> list[KnowledgeDocument]:
         q = query.lower()
         docs = list(self._documents.values())
         if collection_id:
@@ -233,8 +201,7 @@ class InMemoryKnowledgeRepository:
             "chunks": total_chunks,
             "total_chars": total_chars,
             "collections_list": [
-                {"id": c.id, "name": c.name, "documents": c.document_count}
-                for c in self._collections.values()
+                {"id": c.id, "name": c.name, "documents": c.document_count} for c in self._collections.values()
             ],
         }
 
@@ -255,10 +222,7 @@ class InMemoryKnowledgeRepository:
         )
 
     async def delete_chunks_by_document(self, document_id: str) -> None:
-        self._chunks = {
-            k: v for k, v in self._chunks.items()
-            if v.document_id != document_id
-        }
+        self._chunks = {k: v for k, v in self._chunks.items() if v.document_id != document_id}
 
     async def save_embedding(self, record: EmbeddingRecord) -> EmbeddingRecord:
         with self._lock:
@@ -276,10 +240,7 @@ class InMemoryKnowledgeRepository:
 
     async def list_embeddings(self, document_id: str = "") -> list[EmbeddingRecord]:
         if document_id:
-            return [
-                e for e in self._embeddings.values()
-                if e.document_id == document_id
-            ]
+            return [e for e in self._embeddings.values() if e.document_id == document_id]
         return list(self._embeddings.values())
 
     async def close(self) -> None:
@@ -371,8 +332,7 @@ class SQLiteKnowledgeRepository:
             except Exception:
                 pass
         try:
-            conn.execute(
-                """CREATE TABLE IF NOT EXISTS embeddings (
+            conn.execute("""CREATE TABLE IF NOT EXISTS embeddings (
                     id TEXT PRIMARY KEY,
                     document_id TEXT NOT NULL,
                     chunk_id TEXT NOT NULL UNIQUE,
@@ -383,14 +343,9 @@ class SQLiteKnowledgeRepository:
                     token_count INTEGER DEFAULT 0,
                     metadata TEXT DEFAULT '[]',
                     created_at REAL NOT NULL
-                )"""
-            )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_embeddings_document ON embeddings(document_id)"
-            )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_embeddings_chunk ON embeddings(chunk_id)"
-            )
+                )""")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_embeddings_document ON embeddings(document_id)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_embeddings_chunk ON embeddings(chunk_id)")
         except Exception:
             pass
         conn.commit()
@@ -457,13 +412,21 @@ class SQLiteKnowledgeRepository:
             collection.created_at = now
             collection.updated_at = now
             conn.execute(
-                """INSERT INTO collections (id, name, description, status, metadata, tags, version, document_count, created_at, updated_at)
+                """INSERT INTO collections (
+                   id, name, description, status, metadata, tags,
+                   version, document_count, created_at, updated_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
-                    collection.id, collection.name, collection.description,
-                    collection.status.value, self._serialize_meta(collection.metadata),
-                    json.dumps(collection.tags), collection.version,
-                    collection.document_count, collection.created_at, collection.updated_at,
+                    collection.id,
+                    collection.name,
+                    collection.description,
+                    collection.status.value,
+                    self._serialize_meta(collection.metadata),
+                    json.dumps(collection.tags),
+                    collection.version,
+                    collection.document_count,
+                    collection.created_at,
+                    collection.updated_at,
                 ),
             )
             conn.commit()
@@ -489,11 +452,16 @@ class SQLiteKnowledgeRepository:
             collection.version = existing["version"] + 1
             collection.document_count = existing["document_count"]
             conn.execute(
-                """UPDATE collections SET name=?, description=?, status=?, metadata=?, tags=?, version=?, updated_at=? WHERE id=?""",
+                """UPDATE collections SET name=?, description=?, status=?, metadata=?, tags=?, version=?, updated_at=? WHERE id=?""",  # noqa: E501
                 (
-                    collection.name, collection.description, collection.status.value,
-                    self._serialize_meta(collection.metadata), json.dumps(collection.tags),
-                    collection.version, collection.updated_at, collection.id,
+                    collection.name,
+                    collection.description,
+                    collection.status.value,
+                    self._serialize_meta(collection.metadata),
+                    json.dumps(collection.tags),
+                    collection.version,
+                    collection.updated_at,
+                    collection.id,
                 ),
             )
             conn.commit()
@@ -532,13 +500,23 @@ class SQLiteKnowledgeRepository:
             document.created_at = now
             document.updated_at = now
             conn.execute(
-                """INSERT INTO documents (id, collection_id, title, content, source, status, metadata, tags, version, chunk_count, created_at, updated_at)
+                """INSERT INTO documents (
+                   id, collection_id, title, content, source, status,
+                   metadata, tags, version, chunk_count, created_at,
+                   updated_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
-                    document.id, document.collection_id, document.title,
-                    document.content, document.source, document.status.value,
-                    self._serialize_meta(document.metadata), json.dumps(document.tags),
-                    document.version, document.chunk_count, document.created_at,
+                    document.id,
+                    document.collection_id,
+                    document.title,
+                    document.content,
+                    document.source,
+                    document.status.value,
+                    self._serialize_meta(document.metadata),
+                    json.dumps(document.tags),
+                    document.version,
+                    document.chunk_count,
+                    document.created_at,
                     document.updated_at,
                 ),
             )
@@ -568,12 +546,18 @@ class SQLiteKnowledgeRepository:
             document.updated_at = now
             document.version = existing["version"] + 1
             conn.execute(
-                """UPDATE documents SET collection_id=?, title=?, content=?, source=?, status=?, metadata=?, tags=?, version=?, updated_at=? WHERE id=?""",
+                """UPDATE documents SET collection_id=?, title=?, content=?, source=?, status=?, metadata=?, tags=?, version=?, updated_at=? WHERE id=?""",  # noqa: E501
                 (
-                    document.collection_id, document.title, document.content,
-                    document.source, document.status.value,
-                    self._serialize_meta(document.metadata), json.dumps(document.tags),
-                    document.version, document.updated_at, document.id,
+                    document.collection_id,
+                    document.title,
+                    document.content,
+                    document.source,
+                    document.status.value,
+                    self._serialize_meta(document.metadata),
+                    json.dumps(document.tags),
+                    document.version,
+                    document.updated_at,
+                    document.id,
                 ),
             )
             conn.commit()
@@ -596,9 +580,7 @@ class SQLiteKnowledgeRepository:
             conn.commit()
             return True
 
-    async def list_documents(
-        self, collection_id: str = "", skip: int = 0, limit: int = 100
-    ) -> list[KnowledgeDocument]:
+    async def list_documents(self, collection_id: str = "", skip: int = 0, limit: int = 100) -> list[KnowledgeDocument]:
         conn = await self._get_conn()
         if collection_id:
             cursor = conn.execute(
@@ -620,9 +602,7 @@ class SQLiteKnowledgeRepository:
             cursor = conn.execute("SELECT COUNT(*) FROM documents")
         return cursor.fetchone()[0]
 
-    async def search_documents(
-        self, query: str, collection_id: str = "", limit: int = 20
-    ) -> list[KnowledgeDocument]:
+    async def search_documents(self, query: str, collection_id: str = "", limit: int = 20) -> list[KnowledgeDocument]:
         conn = await self._get_conn()
         pattern = f"%{query}%"
         if collection_id:
@@ -655,7 +635,8 @@ class SQLiteKnowledgeRepository:
                 (collection_id,),
             ).fetchone()[0]
             tags_raw = conn.execute(
-                "SELECT tags FROM documents WHERE collection_id = ?", (collection_id,),
+                "SELECT tags FROM documents WHERE collection_id = ?",
+                (collection_id,),
             ).fetchall()
             all_tags: set[str] = set()
             for row in tags_raw:
@@ -675,17 +656,14 @@ class SQLiteKnowledgeRepository:
         total_documents = await self.count_documents()
         total_chunks = conn.execute("SELECT COUNT(*) FROM chunks").fetchone()[0]
         total_chars = conn.execute("SELECT COALESCE(SUM(LENGTH(content)), 0) FROM documents").fetchone()[0]
-        coll_rows = conn.execute(
-            "SELECT id, name, document_count FROM collections ORDER BY created_at DESC"
-        ).fetchall()
+        coll_rows = conn.execute("SELECT id, name, document_count FROM collections ORDER BY created_at DESC").fetchall()
         return {
             "collections": total_collections,
             "documents": total_documents,
             "chunks": total_chunks,
             "total_chars": total_chars,
             "collections_list": [
-                {"id": r["id"], "name": r["name"], "documents": r["document_count"]}
-                for r in coll_rows
+                {"id": r["id"], "name": r["name"], "documents": r["document_count"]} for r in coll_rows
             ],
         }
 
@@ -696,13 +674,23 @@ class SQLiteKnowledgeRepository:
             chunk.id = chunk.id or uuid.uuid4().hex[:16]
             chunk.created_at = now
             conn.execute(
-                """INSERT INTO chunks (id, document_id, collection_id, content, chunk_index, start_offset, end_offset, token_estimate, character_count, metadata, created_at)
+                """INSERT INTO chunks (
+                   id, document_id, collection_id, content, chunk_index,
+                   start_offset, end_offset, token_estimate,
+                   character_count, metadata, created_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
-                    chunk.id, chunk.document_id, chunk.collection_id,
-                    chunk.content, chunk.chunk_index, chunk.start_offset,
-                    chunk.end_offset, chunk.token_estimate, chunk.character_count,
-                    self._serialize_meta(chunk.metadata), chunk.created_at,
+                    chunk.id,
+                    chunk.document_id,
+                    chunk.collection_id,
+                    chunk.content,
+                    chunk.chunk_index,
+                    chunk.start_offset,
+                    chunk.end_offset,
+                    chunk.token_estimate,
+                    chunk.character_count,
+                    self._serialize_meta(chunk.metadata),
+                    chunk.created_at,
                 ),
             )
             chunk_count = conn.execute(
@@ -734,14 +722,20 @@ class SQLiteKnowledgeRepository:
             record.id = record.id or uuid.uuid4().hex[:16]
             record.created_at = now
             import json as _json
+
             conn.execute(
                 """INSERT OR REPLACE INTO embeddings
                    (id, document_id, chunk_id, model, provider, dimensions, vector, token_count, metadata, created_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
-                    record.id, record.document_id, record.chunk_id,
-                    record.model, record.provider, record.dimensions,
-                    _json.dumps(record.vector), record.token_count,
+                    record.id,
+                    record.document_id,
+                    record.chunk_id,
+                    record.model,
+                    record.provider,
+                    record.dimensions,
+                    _json.dumps(record.vector),
+                    record.token_count,
                     _json.dumps(record.metadata) if record.metadata else "[]",
                     record.created_at,
                 ),
@@ -751,9 +745,7 @@ class SQLiteKnowledgeRepository:
 
     async def get_embedding(self, chunk_id: str) -> EmbeddingRecord | None:
         conn = await self._get_conn()
-        cursor = conn.execute(
-            "SELECT * FROM embeddings WHERE chunk_id = ?", (chunk_id,)
-        )
+        cursor = conn.execute("SELECT * FROM embeddings WHERE chunk_id = ?", (chunk_id,))
         row = cursor.fetchone()
         if not row:
             return None
@@ -762,9 +754,7 @@ class SQLiteKnowledgeRepository:
     async def delete_embedding(self, chunk_id: str) -> bool:
         conn = await self._get_conn()
         with self._lock:
-            cursor = conn.execute(
-                "SELECT id FROM embeddings WHERE chunk_id = ?", (chunk_id,)
-            )
+            cursor = conn.execute("SELECT id FROM embeddings WHERE chunk_id = ?", (chunk_id,))
             if not cursor.fetchone():
                 return False
             conn.execute("DELETE FROM embeddings WHERE chunk_id = ?", (chunk_id,))
@@ -779,13 +769,12 @@ class SQLiteKnowledgeRepository:
                 (document_id,),
             )
         else:
-            cursor = conn.execute(
-                "SELECT * FROM embeddings ORDER BY created_at"
-            )
+            cursor = conn.execute("SELECT * FROM embeddings ORDER BY created_at")
         return [self._row_to_embedding(row) for row in cursor.fetchall()]
 
     def _row_to_embedding(self, row) -> EmbeddingRecord:
         import json as _json
+
         vector_raw = row["vector"]
         if isinstance(vector_raw, str):
             vector = _json.loads(vector_raw)
@@ -815,9 +804,7 @@ class SQLiteKnowledgeRepository:
             self._conn = None
 
 
-def create_knowledge_repository(
-    backend: str = "inmemory", **kwargs: Any
-) -> KnowledgeRepository:
+def create_knowledge_repository(backend: str = "inmemory", **kwargs: Any) -> KnowledgeRepository:
     if backend == "sqlite":
         return SQLiteKnowledgeRepository(db_path=kwargs.get("db_path", ":memory:"))
     return InMemoryKnowledgeRepository()

@@ -13,7 +13,7 @@ variable "desired_count" {
 variable "image_uri" {
   description = "AI Router container image URI (immutable tag)"
   type        = string
-  default     = "ghcr.io/anomalyco/ai-router:1.0.0-rc.1"
+  default     = "ghcr.io/salmansaidibrohim267-prog/AI-Router:1.0.0-rc.1"
 }
 
 variable "log_level" {

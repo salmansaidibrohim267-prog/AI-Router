@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import asyncio
-import time
 from typing import Any
 
-from app.orchestration.models import DebateResult
-from app.orchestration.metrics import debate_count_total
-from app.router import AIRouter
 from app.models import ChatRequest, Message, MessageRole
+from app.orchestration.metrics import debate_count_total
+from app.orchestration.models import DebateResult
+from app.router import AIRouter
 
 
 class DebateEngine:
@@ -19,6 +18,7 @@ class DebateEngine:
     def _parse_review(text: str) -> tuple[str, str]:
         import json
         import re
+
         stripped = text.strip()
         match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", stripped, re.DOTALL)
         if match:
@@ -62,14 +62,11 @@ class DebateEngine:
     ) -> DebateResult:
         debate_count_total.inc()
 
-        debate_start = time.perf_counter()
-
         async def get_argument(provider: str) -> tuple[str, str, str] | None:
             try:
                 req = request.model_copy()
                 req.metadata = req.metadata or {}
                 req.metadata["preferred_provider"] = provider
-                start = time.perf_counter()
                 response = await router.chat(req)
                 content = response.choices[0].message.content if response.choices else ""
                 model = getattr(response, "model", "")
@@ -131,7 +128,7 @@ class DebateEngine:
             f"Response B ({arg_b[0]}):\n{arg_b[2]}\n\n"
             "Evaluate both responses on:\n"
             "1. Accuracy\n2. Completeness\n3. Clarity\n\n"
-            "Return JSON: {\"winner\": \"A\" or \"B\", \"reason\": \"...\"}"
+            'Return JSON: {"winner": "A" or "B", "reason": "..."}'
         )
 
         try:

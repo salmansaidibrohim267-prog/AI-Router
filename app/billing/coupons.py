@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import time
-from typing import Any
 
-from .exceptions import CouponExpiredError, CouponExhaustedError, CouponInvalidError, CouponNotFoundError
+from .exceptions import CouponExhaustedError, CouponExpiredError, CouponInvalidError
 from .models import Coupon, CouponType
 from .repository import CouponRepository
 

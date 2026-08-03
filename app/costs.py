@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 import threading
-import time
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
-
 
 # Estimated cost per 1K tokens (USD)
 PROVIDER_COST_PER_1K = {
@@ -34,6 +32,7 @@ MODEL_COST_OVERRIDES = {
 @dataclass
 class TokenUsage:
     """Token usage for a single request."""
+
     prompt_tokens: int = 0
     completion_tokens: int = 0
     total_tokens: int = 0
@@ -47,6 +46,7 @@ class TokenUsage:
 @dataclass
 class ProviderCostStats:
     """Cost statistics per provider."""
+
     total_prompt_tokens: int = 0
     total_completion_tokens: int = 0
     total_cache_tokens: int = 0
@@ -69,7 +69,9 @@ class TokenAccounting:
         self._total_tokens: int = 0
         self._total_cost: float = 0.0
 
-    def estimate_cost(self, provider: str, model: str, prompt_tokens: int, completion_tokens: int, cache_tokens: int = 0) -> float:
+    def estimate_cost(
+        self, provider: str, model: str, prompt_tokens: int, completion_tokens: int, cache_tokens: int = 0
+    ) -> float:  # noqa: E501
         """Estimate cost for a request."""
         # Check model-specific pricing first
         model_key = model.split("/")[-1] if "/" in model else model

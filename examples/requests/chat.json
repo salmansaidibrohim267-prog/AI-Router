@@ -1,0 +1,9 @@
+{
+  "model": "gpt-4o-mini",
+  "messages": [
+    {"role": "system", "content": "You are a helpful assistant. Answer concisely."},
+    {"role": "user", "content": "Explain what an AI gateway does in one sentence."}
+  ],
+  "temperature": 0.7,
+  "max_tokens": 128
+}

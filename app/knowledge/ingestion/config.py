@@ -7,16 +7,26 @@ from dataclasses import dataclass, field
 @dataclass
 class IngestionConfig:
     document_max_size: int = 10 * 1024 * 1024
-    supported_document_types: list[str] = field(default_factory=lambda: [
-        ".txt", ".md", ".mdx", ".pdf", ".html", ".htm", ".json",
-    ])
-    supported_mime_types: list[str] = field(default_factory=lambda: [
-        "text/plain",
-        "text/markdown",
-        "application/pdf",
-        "text/html",
-        "application/json",
-    ])
+    supported_document_types: list[str] = field(
+        default_factory=lambda: [
+            ".txt",
+            ".md",
+            ".mdx",
+            ".pdf",
+            ".html",
+            ".htm",
+            ".json",
+        ]
+    )
+    supported_mime_types: list[str] = field(
+        default_factory=lambda: [
+            "text/plain",
+            "text/markdown",
+            "application/pdf",
+            "text/html",
+            "application/json",
+        ]
+    )
     allow_duplicate_document: bool = False
     default_language: str = "en"
     max_filename_length: int = 255

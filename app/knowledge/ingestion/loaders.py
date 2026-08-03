@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import mimetypes
 import os
 from typing import Protocol
@@ -9,11 +8,9 @@ from app.knowledge.ingestion.models import LoadedDocument
 
 
 class DocumentLoader(Protocol):
-    async def load(self, path: str, **kwargs) -> LoadedDocument:
-        ...
+    async def load(self, path: str, **kwargs) -> LoadedDocument: ...
 
-    async def load_bytes(self, data: bytes, filename: str, **kwargs) -> LoadedDocument:
-        ...
+    async def load_bytes(self, data: bytes, filename: str, **kwargs) -> LoadedDocument: ...
 
 
 class TextLoader:

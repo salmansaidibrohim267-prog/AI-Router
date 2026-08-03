@@ -148,7 +148,7 @@ class HealthCheckRegistry:
 
     def run(self, component: str = "") -> list[ComponentHealth]:
         results: list[ComponentHealth] = []
-        for name, check in list(self._checks.items()):
+        for _, check in list(self._checks.items()):
             if component and check.component != component:
                 continue
             results.append(check.check())
@@ -160,7 +160,11 @@ class HealthCheckRegistry:
             raise ComponentUnavailableError(component)
         results = [check.check() for check in matches]
         statuses = [result.status for result in results]
-        worst = HealthStatus.DOWN if HealthStatus.DOWN in statuses else (HealthStatus.DEGRADED if HealthStatus.DEGRADED in statuses else HealthStatus.OK)
+        worst = (
+            HealthStatus.DOWN
+            if HealthStatus.DOWN in statuses
+            else (HealthStatus.DEGRADED if HealthStatus.DEGRADED in statuses else HealthStatus.OK)
+        )  # noqa: E501
         failed = [result for result in results if result.status == worst]
         return ComponentHealth(
             name=component,

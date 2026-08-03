@@ -1,27 +1,30 @@
 x-logging: &default-logging
-  driver: json-file
-  options:
-    max-size: "10m"
-    max-file: "3"
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
 
 x-restart: &restart-policy
   restart: unless-stopped
 
 x-resources-ai: &resources-ai
-  resources:
-    limits:
-      cpus: "1.0"
-      memory: 512M
-    reservations:
-      cpus: "0.5"
-      memory: 256M
+  deploy:
+    resources:
+      limits:
+        cpus: "1.0"
+        memory: 512M
+      reservations:
+        cpus: "0.5"
+        memory: 256M
 
 x-healthcheck-ai: &healthcheck-ai
-  test: ["CMD", "python", "-c", "import http.client; http.client.HTTPConnection('localhost', 8000).request('GET', '/health')"]
-  interval: 30s
-  timeout: 5s
-  retries: 3
-  start_period: 15s
+  healthcheck:
+    test: ["CMD", "python", "-c", "import http.client; http.client.HTTPConnection('localhost', 8000).request('GET', '/health')"]
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 15s
 
 services:
   ai-router:

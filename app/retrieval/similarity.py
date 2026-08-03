@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import math
 from abc import ABC, abstractmethod
-from typing import Any
 
 from app.retrieval.exceptions import InvalidSimilarityMetricError
 from app.retrieval.models import SimilarityMetric
@@ -10,13 +9,11 @@ from app.retrieval.models import SimilarityMetric
 
 class SimilarityStrategy(ABC):
     @abstractmethod
-    def compute(self, query: list[float], candidate: list[float]) -> float:
-        ...
+    def compute(self, query: list[float], candidate: list[float]) -> float: ...
 
     @property
     @abstractmethod
-    def name(self) -> str:
-        ...
+    def name(self) -> str: ...
 
 
 class CosineSimilarity(SimilarityStrategy):
@@ -25,7 +22,7 @@ class CosineSimilarity(SimilarityStrategy):
         return "cosine"
 
     def compute(self, query: list[float], candidate: list[float]) -> float:
-        dot = sum(a * b for a, b in zip(query, candidate))
+        dot = sum(a * b for a, b in zip(query, candidate, strict=False))
         nq = math.sqrt(sum(a * a for a in query))
         nc = math.sqrt(sum(b * b for b in candidate))
         if nq == 0 or nc == 0:
@@ -39,7 +36,7 @@ class DotProductSimilarity(SimilarityStrategy):
         return "dot_product"
 
     def compute(self, query: list[float], candidate: list[float]) -> float:
-        return sum(a * b for a, b in zip(query, candidate))
+        return sum(a * b for a, b in zip(query, candidate, strict=False))
 
 
 class EuclideanSimilarity(SimilarityStrategy):
@@ -48,7 +45,7 @@ class EuclideanSimilarity(SimilarityStrategy):
         return "euclidean"
 
     def compute(self, query: list[float], candidate: list[float]) -> float:
-        dist = math.sqrt(sum((a - b) ** 2 for a, b in zip(query, candidate)))
+        dist = math.sqrt(sum((a - b) ** 2 for a, b in zip(query, candidate, strict=False)))
         return 1.0 / (1.0 + dist)
 
 

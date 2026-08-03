@@ -43,11 +43,7 @@ class RAGEvaluator(BaseEvaluator):
                 MetricScore("groundedness", 1.0),
                 MetricScore("hallucination_rate", 0.0),
             ]
-        supported = [
-            c
-            for c in claims
-            if sentence_support(c, contexts, self._config.token_overlap_threshold)
-        ]
+        supported = [c for c in claims if sentence_support(c, contexts, self._config.token_overlap_threshold)]
         faithfulness = round(len(supported) / len(claims), 4)
         relevance = round(
             min(1.0, _token_overlap(answer, sample.query) / self._config.relevance_threshold),
@@ -60,9 +56,7 @@ class RAGEvaluator(BaseEvaluator):
             MetricScore("hallucination_rate", round(1.0 - faithfulness, 4)),
         ]
 
-    def _judged_scores(
-        self, sample: EvaluationSample, claims: list[str], contexts: list[str]
-    ) -> list[MetricScore]:
+    def _judged_scores(self, sample: EvaluationSample, claims: list[str], contexts: list[str]) -> list[MetricScore]:
         judge = self._judge
         judge_relevance = _judge_call(judge, "relevance", sample.query, sample.actual.get("answer", ""))
         if not claims:

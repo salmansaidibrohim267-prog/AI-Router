@@ -24,11 +24,14 @@ class RerankerCache:
         candidate_ids: list[str],
         model_version: str = "",
     ) -> str:
-        raw = json.dumps({
-            "q": query.strip().lower(),
-            "ids": sorted(candidate_ids),
-            "mv": model_version,
-        }, sort_keys=True)
+        raw = json.dumps(
+            {
+                "q": query.strip().lower(),
+                "ids": sorted(candidate_ids),
+                "mv": model_version,
+            },
+            sort_keys=True,
+        )
         return hashlib.sha256(raw.encode()).hexdigest()
 
     def get(

@@ -1,0 +1,6 @@
+{
+  "collection": "default",
+  "query": "circuit breaker",
+  "top_k": 3,
+  "include_metadata": true
+}

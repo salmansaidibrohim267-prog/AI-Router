@@ -13,10 +13,10 @@ import hmac
 import json
 import threading
 import time
-from typing import Any, Iterable
+from typing import Any
 
 from .config import SecurityConfig
-from .exceptions import AuditIntegrityError, AuditError
+from .exceptions import AuditError, AuditIntegrityError  # noqa: F401
 from .logging import SecurityLogger
 from .metrics import SecurityMetricsTracker
 from .models import AuditEventType, AuditRecord, AuditSeverity
@@ -121,10 +121,15 @@ class AuditRepository:
         """Replay the chain; return a list of tampered/missing record findings."""
         violations: list[dict[str, Any]] = []
         previous_hash = "genesis"
-        for index, record in enumerate(self._records):
+        for _, record in enumerate(self._records):
             if record.previous_hash != previous_hash:
                 violations.append(
-                    {"seq": record.seq, "reason": "broken link", "expected": previous_hash, "actual": record.previous_hash}
+                    {
+                        "seq": record.seq,
+                        "reason": "broken link",
+                        "expected": previous_hash,
+                        "actual": record.previous_hash,
+                    }  # noqa: E501
                 )
             expected = self._chain_hash(record)
             if record.signature != expected:
@@ -207,19 +212,27 @@ class AuditService:
             return None
         return self.repository.append(event, actor, action, resource, outcome, severity, event_type, metadata)
 
-    def log_authentication(self, actor: str, outcome: str, metadata: dict[str, Any] | None = None) -> AuditRecord | None:
+    def log_authentication(
+        self, actor: str, outcome: str, metadata: dict[str, Any] | None = None
+    ) -> AuditRecord | None:  # noqa: E501
         severity = AuditSeverity.INFO if outcome == "success" else AuditSeverity.WARNING
-        return self.log("authentication", actor, "authenticate", "auth", outcome, severity, AuditEventType.AUTHENTICATION, metadata)
+        return self.log(
+            "authentication", actor, "authenticate", "auth", outcome, severity, AuditEventType.AUTHENTICATION, metadata
+        )  # noqa: E501
 
     def log_authorization(self, actor: str, outcome: str, metadata: dict[str, Any] | None = None) -> AuditRecord | None:
         severity = AuditSeverity.INFO if outcome == "success" else AuditSeverity.CRITICAL
-        return self.log("authorization", actor, "authorize", "authz", outcome, severity, AuditEventType.AUTHORIZATION, metadata)
+        return self.log(
+            "authorization", actor, "authorize", "authz", outcome, severity, AuditEventType.AUTHORIZATION, metadata
+        )  # noqa: E501
 
     def log_secret(self, actor: str, action: str, secret_name: str, outcome: str = "success") -> AuditRecord | None:
         severity = AuditSeverity.CRITICAL if action in ("delete", "rotate") else AuditSeverity.INFO
         return self.log("secret", actor, action, f"secret:{secret_name}", outcome, severity, AuditEventType.SECRET)
 
-    def log_admin(self, actor: str, action: str, resource: str = "system", outcome: str = "success") -> AuditRecord | None:
+    def log_admin(
+        self, actor: str, action: str, resource: str = "system", outcome: str = "success"
+    ) -> AuditRecord | None:  # noqa: E501
         return self.log("admin", actor, action, resource, outcome, AuditSeverity.WARNING, AuditEventType.ADMIN)
 
     def verify(self) -> list[dict[str, Any]]:

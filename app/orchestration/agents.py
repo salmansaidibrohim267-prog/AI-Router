@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-import time
-import uuid
 from abc import ABC, abstractmethod
 from typing import Any
 
-from app.orchestration.models import AgentResult, PlanStep
+from app.models import ChatRequest, Message, MessageRole
 from app.orchestration.memory import ExecutionMemory
+from app.orchestration.models import AgentResult, PlanStep
 from app.router import AIRouter
-from app.models import ChatRequest, ChatResponse, Message, MessageRole
 
 
 class BaseAgent(ABC):
@@ -27,8 +25,7 @@ class BaseAgent(ABC):
         memory: ExecutionMemory,
         router: AIRouter,
         request: ChatRequest | None = None,
-    ) -> AgentResult:
-        ...
+    ) -> AgentResult: ...
 
     def build_prompt(self, step: PlanStep, memory: ExecutionMemory) -> str:
         prompt = step.prompt_template

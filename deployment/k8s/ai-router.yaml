@@ -40,7 +40,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: ai-router
-          image: ghcr.io/anomalyco/ai-router:1.0.0-rc.1
+          image: ghcr.io/salmansaidibrohim267-prog/AI-Router:1.0.0-rc.1
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

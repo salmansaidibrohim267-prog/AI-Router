@@ -7,17 +7,13 @@ from typing import Any, Protocol
 
 
 class EmbeddingCache(Protocol):
-    async def get(self, key: str) -> list[float] | None:
-        ...
+    async def get(self, key: str) -> list[float] | None: ...
 
-    async def set(self, key: str, vector: list[float]) -> None:
-        ...
+    async def set(self, key: str, vector: list[float]) -> None: ...
 
-    async def clear(self) -> None:
-        ...
+    async def clear(self) -> None: ...
 
-    async def stats(self) -> dict[str, Any]:
-        ...
+    async def stats(self) -> dict[str, Any]: ...
 
 
 def _cache_key(text: str, model: str) -> str:
@@ -93,9 +89,7 @@ class RedisEmbeddingCache:
     async def _get_redis(self):
         if self._redis is None:
             if not HAS_REDIS:
-                raise RuntimeError(
-                    "redis package is required. Install with: pip install redis"
-                )
+                raise RuntimeError("redis package is required. Install with: pip install redis")
             self._redis = aioredis.from_url(self._redis_url)
         return self._redis
 

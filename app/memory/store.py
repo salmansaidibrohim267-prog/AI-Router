@@ -12,32 +12,25 @@ from typing import Any
 
 class MemoryStore(ABC):
     @abstractmethod
-    def get(self, key: str) -> dict[str, Any] | None:
-        ...
+    def get(self, key: str) -> dict[str, Any] | None: ...
 
     @abstractmethod
-    def set(self, key: str, value: dict[str, Any], ttl: float = 0) -> None:
-        ...
+    def set(self, key: str, value: dict[str, Any], ttl: float = 0) -> None: ...
 
     @abstractmethod
-    def delete(self, key: str) -> None:
-        ...
+    def delete(self, key: str) -> None: ...
 
     @abstractmethod
-    def exists(self, key: str) -> bool:
-        ...
+    def exists(self, key: str) -> bool: ...
 
     @abstractmethod
-    def keys(self, pattern: str = "") -> list[str]:
-        ...
+    def keys(self, pattern: str = "") -> list[str]: ...
 
     @abstractmethod
-    def clear(self) -> None:
-        ...
+    def clear(self) -> None: ...
 
     @abstractmethod
-    def close(self) -> None:
-        ...
+    def close(self) -> None: ...
 
 
 class SQLiteStore(MemoryStore):
@@ -51,19 +44,14 @@ class SQLiteStore(MemoryStore):
     def _init_db(self) -> None:
         with self._lock:
             self._conn.execute(
-                "CREATE TABLE IF NOT EXISTS memory_store ("
-                "key TEXT PRIMARY KEY, value TEXT, expires_at REAL)"
+                "CREATE TABLE IF NOT EXISTS memory_store (key TEXT PRIMARY KEY, value TEXT, expires_at REAL)"
             )
-            self._conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_expires ON memory_store(expires_at)"
-            )
+            self._conn.execute("CREATE INDEX IF NOT EXISTS idx_expires ON memory_store(expires_at)")
             self._conn.commit()
 
     def get(self, key: str) -> dict[str, Any] | None:
         with self._lock:
-            cur = self._conn.execute(
-                "SELECT value, expires_at FROM memory_store WHERE key = ?", (key,)
-            )
+            cur = self._conn.execute("SELECT value, expires_at FROM memory_store WHERE key = ?", (key,))
             row = cur.fetchone()
             if row is None:
                 return None
@@ -95,9 +83,7 @@ class SQLiteStore(MemoryStore):
         with self._lock:
             if pattern:
                 sql_pattern = pattern.replace("*", "%")
-                cur = self._conn.execute(
-                    "SELECT key FROM memory_store WHERE key LIKE ?", (sql_pattern,)
-                )
+                cur = self._conn.execute("SELECT key FROM memory_store WHERE key LIKE ?", (sql_pattern,))
             else:
                 cur = self._conn.execute("SELECT key FROM memory_store")
             return [row[0] for row in cur.fetchall()]
@@ -113,9 +99,7 @@ class SQLiteStore(MemoryStore):
     def prune_expired(self) -> int:
         now = time.time()
         with self._lock:
-            cur = self._conn.execute(
-                "DELETE FROM memory_store WHERE expires_at > 0 AND expires_at <= ?", (now,)
-            )
+            cur = self._conn.execute("DELETE FROM memory_store WHERE expires_at > 0 AND expires_at <= ?", (now,))
             self._conn.commit()
             return cur.rowcount
 
@@ -129,13 +113,15 @@ class RedisStore(MemoryStore):
     def _connect(self) -> None:
         try:
             import redis.asyncio as aioredis
+
             self._redis = aioredis.from_url(self._url)
         except ImportError:
             try:
                 import redis
+
                 self._redis = redis.from_url(self._url)
             except ImportError:
-                raise ImportError("redis package not installed. Install with: pip install redis")
+                raise ImportError("redis package not installed. Install with: pip install redis") from None
 
     def _ensure_sync(self) -> Any:
         if hasattr(self._redis, "get"):

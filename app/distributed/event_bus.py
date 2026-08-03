@@ -48,9 +48,7 @@ class DistributedEventBus:
 
     def unsubscribe(self, event_type: str, handler: EventHandler) -> None:
         if event_type in self._local_handlers:
-            self._local_handlers[event_type] = [
-                h for h in self._local_handlers[event_type] if h is not handler
-            ]
+            self._local_handlers[event_type] = [h for h in self._local_handlers[event_type] if h is not handler]
 
     async def publish(self, event_type: str, payload: dict[str, Any] = None, metadata: dict[str, Any] = None) -> None:
         event = EventMessage(

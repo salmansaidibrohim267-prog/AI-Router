@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import math
 from abc import ABC, abstractmethod
-from typing import Any
 
 
 class FusionStrategy(ABC):
@@ -13,13 +11,11 @@ class FusionStrategy(ABC):
         keyword_scores: dict[str, float],
         semantic_weight: float = 0.5,
         keyword_weight: float = 0.5,
-    ) -> list[tuple[str, float]]:
-        ...
+    ) -> list[tuple[str, float]]: ...
 
     @property
     @abstractmethod
-    def name(self) -> str:
-        ...
+    def name(self) -> str: ...
 
 
 class WeightedSumFusion(FusionStrategy):

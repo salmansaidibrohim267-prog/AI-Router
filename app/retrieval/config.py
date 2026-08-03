@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 
 @dataclass
@@ -36,9 +35,7 @@ class RetrievalConfig:
         return cls(
             top_k_default=int(os.getenv("RETRIEVAL_TOP_K_DEFAULT", "10")),
             top_k_max=int(os.getenv("RETRIEVAL_TOP_K_MAX", "100")),
-            score_threshold_default=(
-                float(v) if (v := os.getenv("RETRIEVAL_SCORE_THRESHOLD")) else None
-            ),
+            score_threshold_default=(float(v) if (v := os.getenv("RETRIEVAL_SCORE_THRESHOLD")) else None),
             default_similarity=os.getenv("RETRIEVAL_SIMILARITY", "cosine"),
             enable_recency_boost=os.getenv("RETRIEVAL_RECENCY_BOOST", "1") == "1",
             enable_quality_boost=os.getenv("RETRIEVAL_QUALITY_BOOST", "1") == "1",

@@ -55,19 +55,38 @@ class OrganizationService:
     def create_organization(self, tenant_id: str, name: str, owner_user_id: str, **kwargs: Any) -> Organization:
         return self.organizations.create(tenant_id, name, owner_user_id, **kwargs)
 
-    def create_workspace(self, organization_id: str, name: str, owner_user_id: str, tenant_id: str = "", **kwargs: Any) -> Workspace:
+    def create_workspace(
+        self, organization_id: str, name: str, owner_user_id: str, tenant_id: str = "", **kwargs: Any
+    ) -> Workspace:  # noqa: E501
         return self.workspaces.create(organization_id, name, owner_user_id, tenant_id, **kwargs)
 
-    def add_member(self, organization_id: str, user_id: str, tenant_id: str = "", role: str = "member", actor: Principal | None = None) -> Member:
+    def add_member(
+        self,
+        organization_id: str,
+        user_id: str,
+        tenant_id: str = "",
+        role: str = "member",
+        actor: Principal | None = None,
+    ) -> Member:  # noqa: E501
         return self.members.add_member(organization_id, user_id, tenant_id, role, actor)
 
-    def invite_member(self, organization_id: str, email: str, role: str = "member", tenant_id: str = "", invited_by: str = "") -> Invitation:
+    def invite_member(
+        self, organization_id: str, email: str, role: str = "member", tenant_id: str = "", invited_by: str = ""
+    ) -> Invitation:  # noqa: E501
         return self.invitations.create(organization_id, email, role, tenant_id, invited_by)
 
     def create_team(self, organization_id: str, name: str, tenant_id: str = "", description: str = "") -> Team:
         return self.teams.create(organization_id, name, tenant_id, description)
 
-    def create_project(self, organization_id: str, workspace_id: str, name: str, tenant_id: str = "", description: str = "", metadata: dict[str, Any] | None = None) -> Project:
+    def create_project(
+        self,
+        organization_id: str,
+        workspace_id: str,
+        name: str,
+        tenant_id: str = "",
+        description: str = "",
+        metadata: dict[str, Any] | None = None,
+    ) -> Project:  # noqa: E501
         return self.projects.create(organization_id, workspace_id, name, tenant_id, description, metadata)
 
     def get_metrics(self) -> dict[str, Any]:

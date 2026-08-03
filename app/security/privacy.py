@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable
 
 from .config import SecurityConfig
-from .exceptions import DataSubjectRequestError, PrivacyError
+from .exceptions import DataSubjectRequestError
 from .logging import SecurityLogger
 from .metrics import SecurityMetricsTracker
 from .models import DataSubjectRequest, DataSubjectRequestStatus, DataSubjectRequestType, PIIField, PIIKind
@@ -27,7 +27,10 @@ _PII_PATTERNS: dict[PIIKind, re.Pattern[str]] = {
     PIIKind.IP_ADDRESS: re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b"),
     PIIKind.DATE_OF_BIRTH: re.compile(r"\b\d{4}-\d{2}-\d{2}\b"),
     PIIKind.NAME: re.compile(r"(?:name|full name)\s*[:=]\s*[A-Z][A-Za-z' -]+", re.IGNORECASE),
-    PIIKind.ADDRESS: re.compile(r"\b\d{1,5}\s+[A-Za-z0-9.' -]+\b(?:street|ave|ave\.|avenue|road|rd|blvd|way|lane|ln|dr|drive|court|ct)\b", re.IGNORECASE),
+    PIIKind.ADDRESS: re.compile(
+        r"\b\d{1,5}\s+[A-Za-z0-9.' -]+\b(?:street|ave|ave\.|avenue|road|rd|blvd|way|lane|ln|dr|drive|court|ct)\b",
+        re.IGNORECASE,
+    ),  # noqa: E501
 }
 
 
@@ -67,10 +70,10 @@ class PIIDetector:
         chunks: list[str] = []
         cursor = 0
         masked_count = 0
-        for field in fields:
-            start, end = field.location
+        for fld in fields:
+            start, end = fld.location
             chunks.append(text[cursor:start])
-            chunks.append(self._mask_value(field.value, mode))
+            chunks.append(self._mask_value(fld.value, mode))
             masked_count += 1
             cursor = end
         chunks.append(text[cursor:])

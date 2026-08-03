@@ -63,7 +63,7 @@ from .permissions import PermissionManager
 from .registry import ExtensionRegistry
 from .sandbox import Sandbox
 from .sdk import Plugin, PluginContext, PluginSDK
-from .signing import compute_digest, hash_directory, sign_payload, verify_payload, verify_or_raise
+from .signing import compute_digest, hash_directory, sign_payload, verify_or_raise, verify_payload
 from .validation import CompatibilityChecker, ManifestValidator
 from .versioning import compare_versions, is_valid_version, parse_version, version_meets
 
@@ -129,6 +129,7 @@ __all__ = [
     "Sandbox",
     "SchedulerSpec",
     "Signature",
+    "compare_versions",
     "compute_digest",
     "create_plugin_event_bus",
     "create_plugin_manager",

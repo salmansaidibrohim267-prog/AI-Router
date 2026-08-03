@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from app.citations.config import CitationConfig
 from app.citations.exceptions import CitationScoringError
 from app.citations.models import Citation, CitationSource

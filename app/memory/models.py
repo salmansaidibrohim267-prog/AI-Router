@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import Any
 from enum import Enum
+from typing import Any
 
 
 class MemoryType(str, Enum):
@@ -101,6 +101,7 @@ class MemoryItem:
             self.last_updated_at = now
         if not self.id:
             import uuid
+
             self.id = uuid.uuid4().hex[:16]
 
     def touch(self) -> None:

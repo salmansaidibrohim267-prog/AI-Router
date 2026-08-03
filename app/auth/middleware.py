@@ -5,10 +5,11 @@ from typing import Any
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
+from app.tenancy.context import get_tenant_context_manager
+
 from .config import AuthConfig
 from .exceptions import (
     APIKeyError,
-    AuthError,
     InvalidCredentialsError,
     InvalidTokenError,
     PermissionDeniedError,
@@ -19,7 +20,6 @@ from .logging import AuthLogger
 from .manager import AuthenticationManager
 from .rbac import PermissionPolicy, Principal
 from .statistics import AuthMetricsTracker
-from app.tenancy.context import get_tenant_context_manager
 
 
 class AuthMiddleware:
@@ -129,9 +129,7 @@ class AuthMiddleware:
         except TokenExpiredError:
             return JSONResponse(status_code=401, content=self._error_body("token expired"))
         except PermissionDeniedError as exc:
-            return JSONResponse(
-                status_code=403, content=self._error_body(f"permission denied: {exc.permission}")
-            )
+            return JSONResponse(status_code=403, content=self._error_body(f"permission denied: {exc.permission}"))
         except (InvalidTokenError, InvalidCredentialsError, APIKeyError, ServiceAccountError):
             return JSONResponse(status_code=401, content=self._error_body("unauthorized"))
         except Exception:

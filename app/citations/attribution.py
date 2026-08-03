@@ -4,7 +4,6 @@ import inspect
 import re
 from typing import Any, Callable, Protocol
 
-from app.citations.config import CitationConfig
 from app.citations.exceptions import CitationAttributionError
 from app.citations.models import CitationMapping, CitationSource
 
@@ -78,7 +77,7 @@ class EmbeddingAttributionStrategy:
     def _cosine(self, a: list[float], b: list[float]) -> float:
         if not a or not b or len(a) != len(b):
             return 0.0
-        dot = sum(x * y for x, y in zip(a, b))
+        dot = sum(x * y for x, y in zip(a, b, strict=False))
         na = sum(x * x for x in a) ** 0.5
         nb = sum(y * y for y in b) ** 0.5
         if na == 0.0 or nb == 0.0:
@@ -87,9 +86,7 @@ class EmbeddingAttributionStrategy:
 
     def score(self, sentence: str, source: CitationSource) -> float:
         if self._embedder_is_async:
-            raise CitationAttributionError(
-                "Async embedder requires generate_async; use async scoring"
-            )
+            raise CitationAttributionError("Async embedder requires generate_async; use async scoring")
         s_vec = self._vector(self._embedder(sentence))
         c_vec = self._vector(self._embedder(source.content))
         return self._cosine(s_vec, c_vec)

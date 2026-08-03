@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
-import time
 import threading
+import time
 from collections import defaultdict, deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 
 @dataclass
 class RateLimitConfig:
     """Rate limit configuration."""
+
     requests: int = 100
     window_seconds: int = 60
     burst: int = 10

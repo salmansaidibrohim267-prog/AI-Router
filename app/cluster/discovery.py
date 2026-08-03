@@ -23,9 +23,9 @@ Transport = Callable[["DiscoveryBackend", str, str], Awaitable[Any]]
 
 async def _default_transport(backend: "DiscoveryBackend", method: str, url: str) -> Any:
     try:
-        import httpx
+        import httpx  # noqa: F401 - availability gate
     except ImportError:  # pragma: no cover - httpx is a project dependency
-        raise DiscoveryError("httpx is required for HTTP discovery backends")
+        raise DiscoveryError("httpx is required for HTTP discovery backends") from None
     client = backend.client
     response = await client.request(method, url)
     if response.status_code >= 400:
@@ -197,10 +197,7 @@ class KubernetesDiscovery(DiscoveryBackend):
         namespace = cfg.get("namespace", "default")
         label_selector = cfg.get("label_selector", "app=ai-router")
         port = int(cfg.get("port", 8000))
-        url = (
-            f"{api_server}/api/v1/namespaces/{namespace}/pods"
-            f"?labelSelector={label_selector}"
-        )
+        url = f"{api_server}/api/v1/namespaces/{namespace}/pods?labelSelector={label_selector}"
         try:
             body = await self.transport(self, "GET", url)
         except Exception as exc:
@@ -329,7 +326,6 @@ class EtcdDiscovery(DiscoveryBackend):
         nodes: list[NodeInfo] = []
         for endpoint in endpoints:
             url = f"{endpoint}/v3/kv/range"
-            key = base64.b64encode(prefix.encode()).decode()
             try:
                 body = await self.transport(self, "POST", url)
             except Exception as exc:
@@ -372,8 +368,6 @@ class EtcdDiscovery(DiscoveryBackend):
         await self.start()
         cfg = self.config.discovery_config
         endpoints = cfg.get("endpoints") or ["http://127.0.0.1:2379"]
-        prefix = cfg.get("prefix", "/ai-router/nodes/")
-        key = base64.b64encode(f"{prefix}{node_id}".encode()).decode()
         for endpoint in endpoints:
             url = f"{endpoint}/v3/kv/deleterange"
             try:

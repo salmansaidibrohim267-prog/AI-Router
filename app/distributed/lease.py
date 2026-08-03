@@ -4,7 +4,6 @@ import json
 import logging
 import time
 import uuid
-from typing import Any
 
 from app.distributed.models import LeaseInfo
 from app.distributed.redis_client import AsyncRedisClient
@@ -35,7 +34,7 @@ class LeaseManager:
         lease_key = f"{LEASE_PREFIX}{task_id}"
         lease_json = json.dumps(lease.to_dict())
         acquired = await self._redis.eval_script(
-            """local lease_key = KEYS[1]; local lease_data = ARGV[1]; local timeout = tonumber(ARGV[2]); local now = tonumber(ARGV[3]); local existing = redis.call('get', lease_key); if not existing then redis.call('setex', lease_key, timeout + 10, lease_data); return 1; end; local el = cjson.decode(existing); if el.expires_at < now then redis.call('del', lease_key); redis.call('setex', lease_key, timeout + 10, lease_data); return 1; end; return 0;""",
+            """local lease_key = KEYS[1]; local lease_data = ARGV[1]; local timeout = tonumber(ARGV[2]); local now = tonumber(ARGV[3]); local existing = redis.call('get', lease_key); if not existing then redis.call('setex', lease_key, timeout + 10, lease_data); return 1; end; local el = cjson.decode(existing); if el.expires_at < now then redis.call('del', lease_key); redis.call('setex', lease_key, timeout + 10, lease_data); return 1; end; return 0;""",  # noqa: E501
             keys=[lease_key],
             args=[lease_json, str(int(timeout) + 10), str(now)],
         )

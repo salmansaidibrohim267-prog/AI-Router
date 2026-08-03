@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import base64
 import json
-from typing import Any
 
 from app.retrieval.exceptions import PaginationError
 from app.retrieval.models import SearchQuery, SearchResultItem
@@ -25,7 +24,7 @@ class Paginator:
         if offset >= len(all_results):
             return []
 
-        return all_results[offset:offset + limit]
+        return all_results[offset : offset + limit]
 
     def compute_next_cursor(self, query: SearchQuery, results: list[SearchResultItem], total: int) -> str | None:
         new_offset = query.offset + len(results)

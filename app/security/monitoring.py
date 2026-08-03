@@ -8,7 +8,6 @@ transports for tests.
 from __future__ import annotations
 
 import json
-import time
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -27,10 +26,10 @@ class SiemSink(ABC):
     def __init__(self, config: SecurityConfig) -> None:
         self.config = config
 
-    async def start(self) -> None:
+    async def start(self) -> None:  # noqa: B027
         pass
 
-    async def close(self) -> None:
+    async def close(self) -> None:  # noqa: B027
         pass
 
     @abstractmethod
@@ -130,7 +129,11 @@ class DatadogSink(SiemSink):
         self.api_key = cfg.get("api_key", "")
 
     async def emit(self, payload: dict[str, Any]) -> bool:
-        body = {"ddsource": "ai-router-security", "ddtags": payload.get("tags", ""), "message": json.dumps(payload, default=str)}
+        body = {
+            "ddsource": "ai-router-security",
+            "ddtags": payload.get("tags", ""),
+            "message": json.dumps(payload, default=str),
+        }  # noqa: E501
         headers = {"Content-Type": "application/json"}
         if self.api_key:
             headers["DD-API-KEY"] = self.api_key

@@ -2,18 +2,15 @@ from __future__ import annotations
 
 import math
 from abc import ABC, abstractmethod
-from typing import Any
 
 
 class NormalizationStrategy(ABC):
     @abstractmethod
-    def normalize(self, scores: list[float]) -> list[float]:
-        ...
+    def normalize(self, scores: list[float]) -> list[float]: ...
 
     @property
     @abstractmethod
-    def name(self) -> str:
-        ...
+    def name(self) -> str: ...
 
 
 class MinMaxNormalization(NormalizationStrategy):

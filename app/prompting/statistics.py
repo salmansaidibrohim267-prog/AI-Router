@@ -22,12 +22,8 @@ class PromptMetricsTracker:
         self._metrics.total_latency_ms += latency_ms
         if truncated:
             self._metrics.truncations += 1
-        self._metrics.average_latency_ms = (
-            self._metrics.total_latency_ms / self._metrics.total_builds
-        )
-        self._metrics.average_tokens_per_build = (
-            self._metrics.total_tokens_built / self._metrics.total_builds
-        )
+        self._metrics.average_latency_ms = self._metrics.total_latency_ms / self._metrics.total_builds
+        self._metrics.average_tokens_per_build = self._metrics.total_tokens_built / self._metrics.total_builds
 
     def record_validation_failure(self) -> None:
         self._metrics.validation_failures += 1

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 import random
 import threading
 import time
@@ -125,7 +124,7 @@ class TrafficDistribution:
         else:
             normalized = [(s - min_s) / score_range for s in scores]
 
-        for pw, norm in zip(raw, normalized):
+        for pw, norm in zip(raw, normalized, strict=False):
             pw.weight = norm
 
         self._apply_starvation_floor(raw)
@@ -233,7 +232,10 @@ class TrafficDistribution:
             )
             if not selected:
                 selected = ProviderWeight(
-                    provider=best[1], model=best[2], score=best[0], weight=1.0,
+                    provider=best[1],
+                    model=best[2],
+                    score=best[0],
+                    weight=1.0,
                 )
 
         if not selected:
@@ -359,9 +361,7 @@ class TrafficDistribution:
             selection_pct = {}
             if total > 0:
                 for pw in self._weights.values():
-                    selection_pct[pw.provider] = round(
-                        self._selection_history.get(pw.provider, 0) / total * 100, 2
-                    )
+                    selection_pct[pw.provider] = round(self._selection_history.get(pw.provider, 0) / total * 100, 2)
             return {
                 "enabled": self._config.enabled,
                 "rebalance_interval_seconds": self._config.rebalance_interval_seconds,
@@ -371,11 +371,15 @@ class TrafficDistribution:
                 "weights": weights,
                 "canary": {
                     "active": self._config.canary is not None,
-                    "config": {
-                        "provider": self._config.canary.provider,
-                        "model": self._config.canary.model,
-                        "max_traffic_share": self._config.canary.max_traffic_share,
-                    } if self._config.canary else None,
+                    "config": (
+                        {
+                            "provider": self._config.canary.provider,
+                            "model": self._config.canary.model,
+                            "max_traffic_share": self._config.canary.max_traffic_share,
+                        }
+                        if self._config.canary
+                        else None
+                    ),
                 },
                 "ab_tests": [
                     {

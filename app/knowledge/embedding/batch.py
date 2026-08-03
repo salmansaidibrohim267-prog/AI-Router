@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import time
 from typing import Any
 
 from app.knowledge.embedding.models import EmbeddingResult
@@ -31,7 +30,6 @@ class BatchProcessor:
 
         batches = self._make_batches(texts, self._batch_size)
         all_results: list[EmbeddingResult] = []
-        total = len(texts)
         processed = 0
 
         for batch in batches:
@@ -42,7 +40,7 @@ class BatchProcessor:
         return all_results
 
     def _make_batches(self, texts: list[str], size: int) -> list[list[str]]:
-        return [texts[i:i + size] for i in range(0, len(texts), size)]
+        return [texts[i : i + size] for i in range(0, len(texts), size)]
 
     async def _process_batch_with_retry(
         self,
@@ -59,14 +57,10 @@ class BatchProcessor:
                     timeout=timeout,
                 )
                 if len(results) != len(texts):
-                    raise ValueError(
-                        f"Expected {len(texts)} results, got {len(results)}"
-                    )
+                    raise ValueError(f"Expected {len(texts)} results, got {len(results)}")
                 return results
             except asyncio.TimeoutError:
-                last_error = asyncio.TimeoutError(
-                    f"Embedding timed out after {timeout}s"
-                )
+                last_error = asyncio.TimeoutError(f"Embedding timed out after {timeout}s")
             except Exception as e:
                 last_error = e
                 if not self._is_retryable(e):
@@ -75,9 +69,7 @@ class BatchProcessor:
             if attempt < self._max_retry:
                 await asyncio.sleep(self._backoff(attempt))
 
-        raise RuntimeError(
-            f"Embedding failed after {self._max_retry + 1} attempts"
-        ) from last_error
+        raise RuntimeError(f"Embedding failed after {self._max_retry + 1} attempts") from last_error
 
     def _is_retryable(self, error: Exception) -> bool:
         msg = str(error).lower()
@@ -92,4 +84,4 @@ class BatchProcessor:
         return False
 
     def _backoff(self, attempt: int) -> float:
-        return min(2 ** attempt * 0.5, 10.0)
+        return min(2**attempt * 0.5, 10.0)

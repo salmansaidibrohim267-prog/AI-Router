@@ -74,16 +74,12 @@ class MCPMemoryAdapter:
             raise MCPMemoryAdapterError(f"MCP memory store failed: {exc}") from exc
         if getattr(result, "is_error", False):
             self._metrics.record_error()
-            raise MCPMemoryAdapterError(
-                f"Memory tool {self._config.memory_store_tool!r} returned an error"
-            )
+            raise MCPMemoryAdapterError(f"Memory tool {self._config.memory_store_tool!r} returned an error")
         structured = getattr(result, "structured_content", None)
         if isinstance(structured, dict) and structured.get("item"):
             item = self._memory_item_from_dict(structured["item"])
         else:
-            item = self._memory_item_from_dict(
-                {"id": "", "content": content, "memory_type": memory_type}
-            )
+            item = self._memory_item_from_dict({"id": "", "content": content, "memory_type": memory_type})
         self._metrics.record_memory_store()
         self._logger.log_event(
             "memory_store",
@@ -117,9 +113,7 @@ class MCPMemoryAdapter:
             raise MCPMemoryAdapterError(f"MCP memory search failed: {exc}") from exc
         if getattr(result, "is_error", False):
             self._metrics.record_error()
-            raise MCPMemoryAdapterError(
-                f"Memory tool {self._config.memory_search_tool!r} returned an error"
-            )
+            raise MCPMemoryAdapterError(f"Memory tool {self._config.memory_search_tool!r} returned an error")
         items = self._parse_memory_items(result)
         self._metrics.record_memory_retrieve(len(items))
         self._logger.log_event(
@@ -134,11 +128,7 @@ class MCPMemoryAdapter:
         items: list[dict[str, Any]] = []
         structured = getattr(result, "structured_content", None)
         if isinstance(structured, dict):
-            raw = (
-                structured.get("items")
-                or structured.get("results")
-                or structured.get("memories")
-            )
+            raw = structured.get("items") or structured.get("results") or structured.get("memories")
             if isinstance(raw, list):
                 items = [self._memory_item_from_dict(i) for i in raw if isinstance(i, dict)]
         for block in getattr(result, "content", None) or []:
@@ -171,9 +161,7 @@ class MCPMemoryAdapter:
             raise MCPMemoryAdapterError(f"MCP memory delete failed: {exc}") from exc
         if getattr(result, "is_error", False):
             self._metrics.record_error()
-            raise MCPMemoryAdapterError(
-                f"Memory tool {self._config.memory_delete_tool!r} returned an error"
-            )
+            raise MCPMemoryAdapterError(f"Memory tool {self._config.memory_delete_tool!r} returned an error")
         self._logger.log_event("memory_delete", item_id=item_id)
         return True
 

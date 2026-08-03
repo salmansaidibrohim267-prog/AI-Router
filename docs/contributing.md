@@ -5,7 +5,7 @@ Guidelines for contributing to AI Router.
 ## Development setup
 
 ```bash
-git clone https://github.com/anomalyco/ai-router
+git clone https://github.com/salmansaidibrohim267-prog/AI-Router
 cd ai-router
 pip install -r requirements.txt
 PYTHONPATH=. pytest tests/ -q

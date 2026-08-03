@@ -13,7 +13,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Protocol
 
-from .exceptions import MigrationConflictError, MigrationLockedError
+from .exceptions import MigrationConflictError
 
 StepFn = Callable[[dict[str, Any]], None]
 
@@ -66,9 +66,7 @@ class MemoryMigrationStore:
     """In-memory store (falsy-safe: uses `is None`, never `or`)."""
 
     def __init__(self, applied: list[AppliedMigration] | None = None) -> None:
-        self._applied: list[AppliedMigration] = (
-            list(applied) if applied is not None else []
-        )
+        self._applied: list[AppliedMigration] = list(applied) if applied is not None else []
         self._lock = threading.RLock()
 
     def applied_versions(self) -> list[str]:

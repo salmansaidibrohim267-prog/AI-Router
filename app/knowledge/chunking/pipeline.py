@@ -2,16 +2,15 @@ from __future__ import annotations
 
 import json
 import time
-import uuid
 from typing import Any
 
 from app.knowledge.chunking.config import ChunkingConfig
 from app.knowledge.chunking.metadata import ChunkMetadataBuilder
-from app.knowledge.chunking.models import ChunkPreview, ChunkingResult
+from app.knowledge.chunking.models import ChunkingResult, ChunkPreview
 from app.knowledge.chunking.statistics import ChunkStatistics
 from app.knowledge.chunking.strategies import ChunkStrategy, create_strategy
 from app.knowledge.chunking.tokenizer import HeuristicTokenEstimator, TokenEstimator
-from app.knowledge.chunking.validator import ChunkValidator, ChunkValidationError
+from app.knowledge.chunking.validator import ChunkValidationError, ChunkValidator
 from app.knowledge.models import KnowledgeChunk, KnowledgeDocument, KnowledgeMetadata
 from app.knowledge.service import KnowledgeService
 
@@ -81,16 +80,22 @@ class ChunkingPipeline:
                 section=preview.section,
                 page_number=preview.page_number,
             )
-            meta_objects = [
-                KnowledgeMetadata(key=k, value=str(v)) for k, v in meta_dict.items()
-            ]
-            meta_objects.insert(0, KnowledgeMetadata(
-                key="section", value=section_str,
-            ))
+            meta_objects = [KnowledgeMetadata(key=k, value=str(v)) for k, v in meta_dict.items()]
+            meta_objects.insert(
+                0,
+                KnowledgeMetadata(
+                    key="section",
+                    value=section_str,
+                ),
+            )
             if preview.page_number is not None:
-                meta_objects.insert(0, KnowledgeMetadata(
-                    key="page_number", value=str(preview.page_number),
-                ))
+                meta_objects.insert(
+                    0,
+                    KnowledgeMetadata(
+                        key="page_number",
+                        value=str(preview.page_number),
+                    ),
+                )
 
             chunk = KnowledgeChunk(
                 document_id=document.id,
@@ -107,9 +112,7 @@ class ChunkingPipeline:
             chunks.append(chunk)
 
         stats = ChunkStatistics.compute(validated)
-        stats["overlap_percentage"] = ChunkStatistics.overlap_percentage(
-            validated, len(document.content)
-        )
+        stats["overlap_percentage"] = ChunkStatistics.overlap_percentage(validated, len(document.content))
 
         return ChunkingResult(
             document_id=document.id,
@@ -129,9 +132,7 @@ class ChunkingPipeline:
         previews = await strat.split(document, **kwargs)
 
         stats = ChunkStatistics.compute(previews)
-        stats["overlap_percentage"] = ChunkStatistics.overlap_percentage(
-            previews, len(document.content)
-        )
+        stats["overlap_percentage"] = ChunkStatistics.overlap_percentage(previews, len(document.content))
 
         return ChunkingResult(
             document_id=document.id,

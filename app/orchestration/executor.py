@@ -4,24 +4,24 @@ import asyncio
 import time
 from typing import Any
 
-from app.orchestration.agents import AgentRegistry, BaseAgent, ChatAgent
-from app.orchestration.dag import DAGExecutor, WorkflowDAG
+from app.models import ChatRequest
+from app.orchestration.agents import AgentRegistry
+from app.orchestration.dag import DAGExecutor
 from app.orchestration.memory import ExecutionMemory
+from app.orchestration.metrics import (
+    agent_latency_seconds,
+    execution_latency_seconds,
+)
 from app.orchestration.models import (
     AgentResult,
     ExecutionPlan,
     PlanStep,
     WorkflowDefinition,
+    WorkflowNodeType,
     WorkflowResult,
     WorkflowStep,
-    WorkflowNodeType,
-)
-from app.orchestration.metrics import (
-    execution_latency_seconds,
-    agent_latency_seconds,
 )
 from app.router import AIRouter
-from app.models import ChatRequest
 
 
 class ExecutionError(Exception):
@@ -95,13 +95,15 @@ class ExecutionEngine:
         final: list[AgentResult] = []
         for i, result in enumerate(results):
             if isinstance(result, Exception):
-                final.append(AgentResult(
-                    agent=steps[i].agent,
-                    step=steps[i].step,
-                    content="",
-                    success=False,
-                    error=str(result),
-                ))
+                final.append(
+                    AgentResult(
+                        agent=steps[i].agent,
+                        step=steps[i].step,
+                        content="",
+                        success=False,
+                        error=str(result),
+                    )
+                )
             else:
                 final.append(result)
                 memory.set("last_output", result.content)
@@ -178,9 +180,7 @@ class ExecutionEngine:
         start = time.perf_counter()
 
         try:
-            await self._execute_workflow_steps(
-                workflow.steps, router, request, memory, outputs
-            )
+            await self._execute_workflow_steps(workflow.steps, router, request, memory, outputs)
         except Exception as e:
             return WorkflowResult(
                 workflow_id=workflow.id,
@@ -204,11 +204,9 @@ class ExecutionEngine:
         i = 0
         while i < len(steps):
             step = steps[i]
-            wf_step = WorkflowStep(id=step.id, type=WorkflowNodeType.TASK)
-
             if step.type == WorkflowNodeType.TASK:
                 result = await self._execute_workflow_task(step, router, request, memory)
-                outputs[step.id] = result.content if hasattr(result, 'content') else str(result)
+                outputs[step.id] = result.content if hasattr(result, "content") else str(result)
 
             elif step.type == WorkflowNodeType.IF:
                 condition_met = self._evaluate_condition(step.condition, memory)
@@ -232,8 +230,7 @@ class ExecutionEngine:
 
             elif step.type == WorkflowNodeType.PARALLEL:
                 tasks = [
-                    self._execute_workflow_steps([sub], router, request, memory, outputs)
-                    for sub in (step.steps or [])
+                    self._execute_workflow_steps([sub], router, request, memory, outputs) for sub in (step.steps or [])
                 ]
                 await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -248,9 +245,7 @@ class ExecutionEngine:
                 max_attempts = max(step.retry_count, 1)
                 for attempt in range(max_attempts):
                     try:
-                        sub_result = await self._execute_workflow_steps(
-                            step.steps or [], router, request, memory, outputs
-                        )
+                        _ = await self._execute_workflow_steps(step.steps or [], router, request, memory, outputs)
                         break
                     except Exception:
                         if attempt == max_attempts - 1:
@@ -304,7 +299,22 @@ class ExecutionEngine:
             return True
         resolved = memory.resolve_refs(condition)
         try:
-            return bool(eval(resolved, {"__builtins__": {}}, {"memory": memory, "len": len, "str": str, "int": int, "float": float, "bool": bool, "dict": dict, "list": list}))
+            return bool(
+                eval(
+                    resolved,
+                    {"__builtins__": {}},
+                    {
+                        "memory": memory,
+                        "len": len,
+                        "str": str,
+                        "int": int,
+                        "float": float,
+                        "bool": bool,
+                        "dict": dict,
+                        "list": list,
+                    },
+                )
+            )  # noqa: E501
         except Exception:
             return bool(resolved) if resolved else False
 

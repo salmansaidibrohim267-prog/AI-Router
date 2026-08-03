@@ -90,7 +90,9 @@ class ReleaseEntry:
         return sections
 
     def markdown(self) -> str:
-        lines = [f"## [{self.version}](https://github.com/anomalyco/ai-router/releases/tag/v{self.version}) - {self.date}"]
+        lines = [
+            f"## [{self.version}](https://github.com/salmansaidibrohim267-prog/AI-Router/releases/tag/v{self.version}) - {self.date}"  # noqa: E501
+        ]  # noqa: E501
         sections = self.sections()
         breaking = [c for c in self.commits if c.breaking]
         if breaking:

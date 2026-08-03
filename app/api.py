@@ -11,60 +11,53 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import uvicorn
-from fastapi import FastAPI, File, Form, HTTPException, Request, Response, UploadFile, status
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse, PlainTextResponse
-from pydantic import BaseModel, Field
+from fastapi.openapi.models import Contact, License
+from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
+from pydantic import BaseModel
 
+from app.cache import cache_manager
 from app.config import config_manager
+from app.costs import token_accounting
+from app.event_bus import event_bus
 from app.exceptions import (
     AIRouterError,
     AllProvidersFailedError,
-    ConfigurationError,
     NoHealthyProviderError,
     ProviderError,
-    RateLimitError,
-    ValidationError,
+)
+from app.logger import logger
+from app.metrics import (
+    dec_active_requests,
+    get_metrics,
+    inc_active_requests,
+    record_cache_hit,
+    record_cache_miss,
+    record_rate_limit,
 )
 from app.models import (
-    BenchmarkRequest,
     BenchmarkResponse,
     ChatRequest,
-    ChatResponse,
     EmbeddingRequest,
     EmbeddingResponse,
     HealthCheckResponse,
     LogEntry,
     ModelInfo,
-    ProviderConfig,
     ProviderStatus,
     ReloadConfigResponse,
     StatsSummary,
-    StreamChunk,
-    TaskType,
 )
-from app.providers.manager import provider_manager
-from app.router import router
-from app.stats import stats
-from app.logger import logger
-from app.cache import cache_manager
-from app.rate_limit import rate_limiter, RateLimitConfig
-from app.costs import token_accounting
-from app.metrics import (
-    get_metrics,
-    inc_active_requests,
-    dec_active_requests,
-    record_cache_hit,
-    record_cache_miss,
-    record_rate_limit,
-)
-from app.event_bus import event_bus
 from app.orchestration.models import (
     OrchestrationRequest,
     OrchestrationResponse,
     WorkflowDefinition,
 )
+from app.providers.manager import provider_manager
+from app.rate_limit import RateLimitConfig, rate_limiter
+from app.router import router
+from app.stats import stats
 
 
 @asynccontextmanager
@@ -78,11 +71,8 @@ async def lifespan(app: FastAPI):
     _distributed_resources = []
 
     if _distributed_mode:
-        from app.distributed.distributed_queue import DistributedTaskQueue
         from app.distributed.distributed_scheduler import DistributedScheduler
         from app.distributed.event_bus import DistributedEventBus, EventTypes
-        from app.distributed.idempotency import IdempotencyGuard
-        from app.distributed.lease import LeaseManager
         from app.distributed.redis_client import AsyncRedisClient
         from app.distributed.tracing import init_tracing
         from app.distributed.worker_registry import WorkerRegistry
@@ -100,19 +90,19 @@ async def lifespan(app: FastAPI):
         await redis_client.connect()
         _distributed_resources.append(redis_client)
 
-        task_queue = DistributedTaskQueue(redis_client)
-        lease_manager = LeaseManager(redis_client)
         worker_registry = WorkerRegistry(redis_client)
         scheduler = DistributedScheduler(redis_client)
         event_bus = DistributedEventBus(redis_client)
-        idempotency = IdempotencyGuard(redis_client)
 
         await worker_registry.start_heartbeat_loop()
         await scheduler.start()
         await event_bus.start_listener()
-        await event_bus.publish(EventTypes.WORKER_STARTED, {
-            "instance": scheduler._instance_id,
-        })
+        await event_bus.publish(
+            EventTypes.WORKER_STARTED,
+            {
+                "instance": scheduler._instance_id,
+            },
+        )
 
         logger.info("Distributed services started")
 
@@ -120,9 +110,12 @@ async def lifespan(app: FastAPI):
 
     if _distributed_mode:
         try:
-            await event_bus.publish(EventTypes.WORKER_STOPPED, {
-                "instance": scheduler._instance_id,
-            })
+            await event_bus.publish(
+                EventTypes.WORKER_STOPPED,
+                {
+                    "instance": scheduler._instance_id,
+                },
+            )
         except Exception:
             pass
         await scheduler.stop()
@@ -142,6 +135,7 @@ async def lifespan(app: FastAPI):
 def _get_build_metadata() -> dict:
     try:
         import json
+
         meta_file = os.path.join(os.path.dirname(__file__), ".meta", "build.json")
         if os.path.isfile(meta_file):
             with open(meta_file) as f:
@@ -161,6 +155,14 @@ app = FastAPI(
     title="AI Router Gateway",
     description="Production-ready AI Gateway with intelligent routing, health checks, and fallback",
     version=_get_app_version(),
+    contact=Contact(
+        name="salmansaidibrohim267-prog",
+        url="https://github.com/salmansaidibrohim267-prog/AI-Router",
+    ),
+    license=License(
+        name="MIT",
+        url="https://github.com/salmansaidibrohim267-prog/AI-Router/blob/main/LICENSE",
+    ),
     lifespan=lifespan,
 )
 
@@ -304,6 +306,7 @@ def _get_cpu_usage() -> dict:
 
 def _get_uptime() -> float:
     from app.metrics import _start_time
+
     return time.time() - _start_time
 
 
@@ -355,10 +358,7 @@ async def readiness_check() -> dict[str, Any]:
     loaded and at least one provider is available."""
     config_loaded = config_manager.config is not None
     provider_health = await provider_manager.check_health()
-    available = any(
-        h.status in (ProviderStatus.HEALTHY, ProviderStatus.DEGRADED)
-        for h in provider_health.values()
-    )
+    available = any(h.status in (ProviderStatus.HEALTHY, ProviderStatus.DEGRADED) for h in provider_health.values())
     ready = config_loaded and available
     status_code = status.HTTP_200_OK if ready else status.HTTP_503_SERVICE_UNAVAILABLE
     return JSONResponse(
@@ -383,6 +383,7 @@ async def provider_health(provider_name: str) -> HealthCheckResponse:
 
 # ==================== Prometheus Metrics ====================
 
+
 @app.get("/metrics")
 async def prometheus_metrics():
     """Prometheus metrics endpoint."""
@@ -392,6 +393,7 @@ async def prometheus_metrics():
 
 # ==================== Provider & Model Endpoints ====================
 
+
 @app.get("/providers")
 async def list_providers() -> dict[str, Any]:
     providers = provider_manager.get_all()
@@ -399,14 +401,20 @@ async def list_providers() -> dict[str, Any]:
     result = []
     for name, provider in providers.items():
         h = health.get(name) if isinstance(health, dict) else None
-        result.append({
-            "name": name,
-            "display_name": provider.display_name,
-            "status": h.status.value if h else ProviderStatus.UNKNOWN.value,
-            "latency_ms": h.latency_ms if h else None,
-            "last_check": h.checked_at.isoformat() if h and h.checked_at else None,
-        })
-    return {"providers": result, "total": len(result), "healthy_count": sum(1 for p in result if p["status"] == ProviderStatus.HEALTHY.value)}
+        result.append(
+            {
+                "name": name,
+                "display_name": provider.display_name,
+                "status": h.status.value if h else ProviderStatus.UNKNOWN.value,
+                "latency_ms": h.latency_ms if h else None,
+                "last_check": h.checked_at.isoformat() if h and h.checked_at else None,
+            }
+        )
+    return {
+        "providers": result,
+        "total": len(result),
+        "healthy_count": sum(1 for p in result if p["status"] == ProviderStatus.HEALTHY.value),
+    }  # noqa: E501
 
 
 @app.get("/providers/{provider_name}/models")
@@ -430,7 +438,9 @@ async def list_models_for_task(task: str) -> list[ModelInfo]:
     if not candidates:
         raise HTTPException(status_code=404, detail=f"Task {task} not configured")
     models = []
-    for provider_name, model_name in [(candidates.primary.name, candidates.primary.model)] + [(f.name, f.model) for f in candidates.fallback]:
+    for provider_name, model_name in [(candidates.primary.name, candidates.primary.model)] + [
+        (f.name, f.model) for f in candidates.fallback
+    ]:  # noqa: E501
         provider = provider_manager.get(provider_name)
         if provider:
             all_models = await provider.list_models()
@@ -442,10 +452,12 @@ async def list_models_for_task(task: str) -> list[ModelInfo]:
 
 # ==================== Chat Completion ====================
 
+
 @app.post("/v1/chat/completions")
 async def chat_completion(request: ChatRequest):
     """OpenAI-compatible chat completion with streaming support."""
     if request.stream:
+
         async def generate():
             try:
                 timeout = request.max_tokens * 0.1 if request.max_tokens else 120.0
@@ -454,18 +466,24 @@ async def chat_completion(request: ChatRequest):
                         yield f"data: {chunk.model_dump_json(exclude_none=True)}\n\n"
                 yield "data: [DONE]\n\n"
             except asyncio.TimeoutError:
-                yield "data: {\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"timeout\"}]}\n\n"
+                yield 'data: {"choices":[{"index":0,"delta":{},"finish_reason":"timeout"}]}\n\n'
                 yield "data: [DONE]\n\n"
             except asyncio.CancelledError:
-                yield "data: {\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"cancelled\"}]}\n\n"
+                yield 'data: {"choices":[{"index":0,"delta":{},"finish_reason":"cancelled"}]}\n\n'
                 yield "data: [DONE]\n\n"
+
         return StreamingResponse(
             generate(),
             media_type="text/event-stream",
             headers={"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"},
         )
 
-    cache_key = {"model": request.model, "messages": [m.model_dump() for m in request.messages], "temperature": request.temperature, "max_tokens": request.max_tokens}
+    cache_key = {
+        "model": request.model,
+        "messages": [m.model_dump() for m in request.messages],
+        "temperature": request.temperature,
+        "max_tokens": request.max_tokens,
+    }  # noqa: E501
     cached = cache_manager.get_cache("responses").get(cache_key)
     if cached:
         record_cache_hit()
@@ -480,26 +498,28 @@ async def chat_completion(request: ChatRequest):
             cache_manager.get_cache("responses").set(cache_key, response, ttl=300)
         return response
     except NoHealthyProviderError as e:
-        raise HTTPException(status_code=503, detail=str(e))
+        raise HTTPException(status_code=503, detail=str(e)) from e
     except AllProvidersFailedError as e:
-        raise HTTPException(status_code=502, detail=str(e))
+        raise HTTPException(status_code=502, detail=str(e)) from e
     except ProviderError as e:
-        raise HTTPException(status_code=e.status_code, detail=e.to_dict())
+        raise HTTPException(status_code=e.status_code, detail=e.to_dict()) from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 # ==================== Embeddings ====================
+
 
 @app.post("/v1/embeddings", response_model=EmbeddingResponse)
 async def create_embeddings(request: EmbeddingRequest) -> EmbeddingResponse:
     try:
         return await router.embeddings(request)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 # ==================== Statistics ====================
+
 
 @app.get("/stats", response_model=StatsSummary)
 async def get_stats() -> StatsSummary:
@@ -546,6 +566,7 @@ async def reset_stats() -> dict[str, str]:
 
 # ==================== Logs ====================
 
+
 @app.get("/logs")
 async def get_logs(limit: int = 100, provider: str | None = None, success: bool | None = None) -> list[LogEntry]:
     return logger.get_logs(limit=limit, provider=provider, success=success)
@@ -564,10 +585,12 @@ async def clear_logs() -> dict[str, str]:
 
 # ==================== Live Benchmark ====================
 
+
 @app.get("/benchmark/live")
 async def get_live_benchmark() -> dict[str, Any]:
     """Live benchmark data with rolling windows for all providers."""
     from app.benchmark.live import live_benchmark
+
     snapshot = live_benchmark.get_snapshot()
     ranking = live_benchmark.get_ranking()
     fastest = live_benchmark.get_fastest()
@@ -583,6 +606,7 @@ async def get_live_benchmark() -> dict[str, Any]:
 async def get_provider_benchmark(provider_name: str) -> dict[str, Any]:
     """Live benchmark data for a specific provider."""
     from app.benchmark.live import live_benchmark
+
     snapshot = live_benchmark.get_provider_snapshot(provider_name)
     if not snapshot or not any(w.get("requests", 0) > 0 for w in snapshot.values()):
         raise HTTPException(status_code=404, detail=f"No benchmark data for provider {provider_name}")
@@ -593,11 +617,13 @@ async def get_provider_benchmark(provider_name: str) -> dict[str, Any]:
 async def reset_benchmark() -> dict[str, str]:
     """Reset all live benchmark data."""
     from app.benchmark.live import live_benchmark
+
     live_benchmark.reset()
     return {"message": "Live benchmark data reset successfully"}
 
 
 # ==================== Benchmark ====================
+
 
 @app.get("/benchmark", response_model=BenchmarkResponse)
 async def run_benchmark(
@@ -619,11 +645,14 @@ async def run_benchmark(
         stream=stream,
         prompt=prompt,
     )
-    await event_bus.emit("benchmark.completed", model=model, provider=provider, num_requests=num_requests, result=result.to_dict())
+    await event_bus.emit(
+        "benchmark.completed", model=model, provider=provider, num_requests=num_requests, result=result.to_dict()
+    )  # noqa: E501
     return BenchmarkResponse(**result.to_dict())
 
 
 # ==================== Configuration ====================
+
 
 @app.get("/config")
 async def get_config() -> dict[str, Any]:
@@ -634,11 +663,26 @@ async def get_config() -> dict[str, Any]:
     return {
         "version": app.version,
         "config_hash": config_manager.config_hash,
-        "tasks": {name: {"primary": {"provider": t.primary.name, "model": t.primary.model}, "fallback": [{"provider": f.name, "model": f.model} for f in t.fallback]} for name, t in config.tasks.items()},
+        "tasks": {
+            name: {
+                "primary": {"provider": t.primary.name, "model": t.primary.model},
+                "fallback": [{"provider": f.name, "model": f.model} for f in t.fallback],
+            }
+            for name, t in config.tasks.items()
+        },  # noqa: E501
         "task_names": list(config.tasks.keys()),
         "default_task": config.default_task,
         "scoring": config.scoring,
-        "providers": [{"name": p.name, "model": p.model, "display_name": p.display_name, "enabled": p.enabled, "priority": p.priority} for p in provider_configs],
+        "providers": [
+            {
+                "name": p.name,
+                "model": p.model,
+                "display_name": p.display_name,
+                "enabled": p.enabled,
+                "priority": p.priority,
+            }
+            for p in provider_configs
+        ],  # noqa: E501
         "cache_ttl": config.cache_ttl,
         "rate_limit": config.rate_limit,
         "rate_limit_window": config.rate_limit_window,
@@ -657,10 +701,10 @@ async def reload_config() -> ReloadConfigResponse:
 
 # ==================== Analytics ====================
 
+
 @app.get("/analytics/providers")
 async def analytics_providers() -> dict[str, Any]:
     """Historical analytics for all providers with reputation, trend, uptime."""
-    from app.reputation import compute_reputation, compute_trend
 
     provider_stats = router.get_provider_stats()
     health = router.get_health_summary()
@@ -692,6 +736,7 @@ async def analytics_provider(provider_name: str) -> dict[str, Any]:
 
 # ==================== Cache ====================
 
+
 @app.get("/cache/stats")
 async def get_cache_stats() -> dict[str, Any]:
     return cache_manager.get_all_stats()
@@ -708,12 +753,21 @@ async def clear_cache(cache_name: str | None = None) -> dict[str, str]:
 
 # ==================== Dashboard API ====================
 
+
 @app.get("/dashboard")
 async def dashboard() -> dict[str, Any]:
     """Unified dashboard endpoint."""
     provider_health = provider_manager.get_health_status()
     if isinstance(provider_health, dict):
-        providers_data = {name: {"status": h.status.value, "latency_ms": h.latency_ms, "checked_at": h.checked_at.isoformat() if h.checked_at else None, "error": h.error} for name, h in provider_health.items()}
+        providers_data = {
+            name: {
+                "status": h.status.value,
+                "latency_ms": h.latency_ms,
+                "checked_at": h.checked_at.isoformat() if h.checked_at else None,
+                "error": h.error,
+            }
+            for name, h in provider_health.items()
+        }  # noqa: E501
     else:
         providers_data = {}
 
@@ -732,13 +786,25 @@ async def dashboard() -> dict[str, Any]:
 
     latency_data = {
         "average_latency_ms": s.average_latency_ms,
-        "provider_latency": {name: m.avg_latency_ms for name, m in stats._get_provider_latency().items()} if hasattr(stats, '_get_provider_latency') else {},
+        "provider_latency": (
+            {name: m.avg_latency_ms for name, m in stats._get_provider_latency().items()}
+            if hasattr(stats, "_get_provider_latency")
+            else {}
+        ),  # noqa: E501
     }
 
     uptime_data = {"uptime_seconds": stats.get_uptime_seconds()}
 
     cache_stats = cache_manager.get_all_stats()
-    cache_data = {name: {"hits": cs.get("hits", 0), "misses": cs.get("misses", 0), "hit_rate": cs.get("hit_rate", 0.0), "size": cs.get("size", 0)} for name, cs in cache_stats.items()}
+    cache_data = {
+        name: {
+            "hits": cs.get("hits", 0),
+            "misses": cs.get("misses", 0),
+            "hit_rate": cs.get("hit_rate", 0.0),
+            "size": cs.get("size", 0),
+        }
+        for name, cs in cache_stats.items()
+    }  # noqa: E501
 
     cost_data = token_accounting.get_summary()
 
@@ -755,6 +821,7 @@ async def dashboard() -> dict[str, Any]:
 
 
 # ==================== Token Accounting ====================
+
 
 @app.get("/costs")
 async def get_costs() -> dict[str, Any]:
@@ -773,15 +840,18 @@ async def get_provider_cost(provider: str) -> dict[str, Any]:
 
 # ==================== Traffic Distribution ====================
 
+
 @app.get("/distribution")
 async def get_distribution() -> dict[str, Any]:
     from app.traffic_distribution import traffic_distribution
+
     return traffic_distribution.get_distribution_report()
 
 
 @app.post("/distribution/rebalance")
 async def force_rebalance() -> dict[str, str]:
     from app.traffic_distribution import traffic_distribution
+
     traffic_distribution.force_rebalance()
     return {"message": "Distribution weights rebalanced"}
 
@@ -789,13 +859,15 @@ async def force_rebalance() -> dict[str, str]:
 @app.post("/distribution/reset")
 async def reset_distribution_stats() -> dict[str, str]:
     from app.traffic_distribution import traffic_distribution
+
     traffic_distribution.reset_stats()
     return {"message": "Distribution statistics reset"}
 
 
 @app.post("/distribution/config")
 async def set_distribution_config(enabled: bool = True, min_weight: float = 0.01) -> dict[str, str]:
-    from app.traffic_distribution import TrafficDistributionConfig, traffic_distribution
+    from app.traffic_distribution import traffic_distribution
+
     cfg = traffic_distribution.config
     cfg.enabled = enabled
     cfg.min_weight = min_weight
@@ -806,10 +878,12 @@ async def set_distribution_config(enabled: bool = True, min_weight: float = 0.01
 
 # ==================== Capability Registry ====================
 
+
 @app.get("/capabilities")
 async def list_capabilities() -> dict[str, Any]:
     """List all models and their capabilities from the registry."""
     from app.capability_registry import capability_registry
+
     return {
         "total_models": len(capability_registry),
         "providers": capability_registry.get_providers(),
@@ -821,6 +895,7 @@ async def list_capabilities() -> dict[str, Any]:
 async def get_provider_capabilities(provider_name: str) -> dict[str, Any]:
     """List capabilities for all models of a provider."""
     from app.capability_registry import capability_registry
+
     models = capability_registry.get_models_by_provider(provider_name)
     if not models:
         raise HTTPException(status_code=404, detail=f"No registry entries for provider {provider_name}")
@@ -833,10 +908,12 @@ async def get_provider_capabilities(provider_name: str) -> dict[str, Any]:
 
 # ==================== Token Intelligence ====================
 
+
 @app.get("/tokens")
 async def get_token_intelligence(model: str | None = None) -> dict[str, Any]:
     """Token intelligence statistics and estimates."""
     from app.token_intelligence import token_intelligence
+
     summary = token_intelligence.get_summary()
     if model:
         stats = token_intelligence.get_stats(model)
@@ -849,6 +926,7 @@ async def get_token_intelligence(model: str | None = None) -> dict[str, Any]:
 async def estimate_tokens(text: str = "", model: str = "gpt-4o", provider: str = "") -> dict[str, Any]:
     """Estimate tokens for a text string."""
     from app.token_intelligence import token_intelligence
+
     count = token_intelligence.estimate(text, model, provider)
     cost = token_intelligence.estimate_request_cost(provider or "openai", model, count)
     return {
@@ -862,10 +940,12 @@ async def estimate_tokens(text: str = "", model: str = "gpt-4o", provider: str =
 
 # ==================== Capability Registry ====================
 
+
 @app.get("/capabilities/{provider_name}/{model_name}")
 async def get_model_capability(provider_name: str, model_name: str) -> dict[str, Any]:
     """Get capability for a specific model."""
     from app.capability_registry import capability_registry
+
     cap = capability_registry.get(provider_name, model_name)
     if not cap:
         raise HTTPException(status_code=404, detail=f"No registry entry for {provider_name}/{model_name}")
@@ -873,6 +953,7 @@ async def get_model_capability(provider_name: str, model_name: str) -> dict[str,
 
 
 # ==================== Version ====================
+
 
 @app.get("/version")
 async def version_info() -> dict:
@@ -951,6 +1032,7 @@ async def list_plugin_events(limit: int = 50) -> dict[str, Any]:
 async def get_classifier_info() -> dict[str, Any]:
     """Get current classifier information."""
     from app.classifier import classifier
+
     return classifier.get_info()
 
 
@@ -961,6 +1043,7 @@ async def get_classifier_info() -> dict[str, Any]:
 async def list_custom_providers() -> dict[str, Any]:
     """List discovered custom providers in providers/ directory."""
     from app.providers.discovery import discover_custom_providers
+
     discovered = discover_custom_providers()
     return {
         "total": len(discovered),
@@ -977,16 +1060,17 @@ async def orchestrate(request: OrchestrationRequest):
     from app.orchestration import orchestrator
 
     if request.stream:
+
         async def generate():
             try:
                 async for chunk in orchestrator.orchestrate_stream(request):
                     yield f"data: {chunk.model_dump_json(exclude_none=True)}\n\n"
                 yield "data: [DONE]\n\n"
             except asyncio.TimeoutError:
-                yield "data: {\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"timeout\"}]}\n\n"
+                yield 'data: {"choices":[{"index":0,"delta":{},"finish_reason":"timeout"}]}\n\n'
                 yield "data: [DONE]\n\n"
             except asyncio.CancelledError:
-                yield "data: {\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"cancelled\"}]}\n\n"
+                yield 'data: {"choices":[{"index":0,"delta":{},"finish_reason":"cancelled"}]}\n\n'
                 yield "data: [DONE]\n\n"
 
         return StreamingResponse(
@@ -1001,12 +1085,15 @@ async def orchestrate(request: OrchestrationRequest):
 @app.post("/v1/agents")
 async def run_agents(
     prompt: str = "",
-    agents: list[str] = ["chat"],
+    agents: list[str] | None = None,
     parallel: bool = False,
     reflection: bool = False,
 ) -> OrchestrationResponse:
     """Execute a set of agents on a prompt."""
     from app.orchestration import orchestrator
+
+    if agents is None:
+        agents = ["chat"]
     req = OrchestrationRequest(
         prompt=prompt,
         agents=agents,
@@ -1021,6 +1108,7 @@ async def run_agents(
 async def run_workflow(workflow: WorkflowDefinition) -> OrchestrationResponse:
     """Execute a defined workflow."""
     from app.orchestration import orchestrator
+
     req = OrchestrationRequest(
         mode="workflow",
         workflow=workflow,
@@ -1031,11 +1119,14 @@ async def run_workflow(workflow: WorkflowDefinition) -> OrchestrationResponse:
 @app.post("/v1/consensus")
 async def run_consensus(
     prompt: str = "",
-    providers: list[str] = ["openai", "anthropic", "google"],
+    providers: list[str] | None = None,
     strategy: str = "majority_vote",
 ) -> OrchestrationResponse:
     """Run consensus across multiple providers."""
     from app.orchestration import orchestrator
+
+    if providers is None:
+        providers = ["openai", "anthropic", "google"]
     req = OrchestrationRequest(
         prompt=prompt,
         mode="consensus",
@@ -1054,6 +1145,7 @@ async def run_debate(
 ) -> OrchestrationResponse:
     """Run a debate between two providers."""
     from app.orchestration import orchestrator
+
     req = OrchestrationRequest(
         prompt=prompt,
         mode="debate",
@@ -1073,6 +1165,7 @@ def _get_task_queue():
     global _task_queue
     if _task_queue is None:
         from app.tasks.queue import TaskQueue
+
         _task_queue = TaskQueue()
     return _task_queue
 
@@ -1196,6 +1289,7 @@ def _get_approval_manager():
     global _approval_manager
     if _approval_manager is None:
         from app.orchestration.approval import ApprovalManager
+
         _approval_manager = ApprovalManager()
     return _approval_manager
 
@@ -1219,30 +1313,22 @@ async def create_approval_checkpoint(
 
 
 @app.post("/approval/checkpoints/{checkpoint_id}/approve")
-async def approve_checkpoint(
-    checkpoint_id: str, user: str = "", notes: str = ""
-) -> dict:
+async def approve_checkpoint(checkpoint_id: str, user: str = "", notes: str = "") -> dict:
     """Approve a pending checkpoint."""
     mgr = _get_approval_manager()
     success = mgr.approve(checkpoint_id, user=user, notes=notes)
     if not success:
-        raise HTTPException(
-            status_code=400, detail="Checkpoint not found or already decided"
-        )
+        raise HTTPException(status_code=400, detail="Checkpoint not found or already decided")
     return {"status": "approved", "checkpoint_id": checkpoint_id}
 
 
 @app.post("/approval/checkpoints/{checkpoint_id}/reject")
-async def reject_checkpoint(
-    checkpoint_id: str, user: str = "", notes: str = ""
-) -> dict:
+async def reject_checkpoint(checkpoint_id: str, user: str = "", notes: str = "") -> dict:
     """Reject a pending checkpoint."""
     mgr = _get_approval_manager()
     success = mgr.reject(checkpoint_id, user=user, notes=notes)
     if not success:
-        raise HTTPException(
-            status_code=400, detail="Checkpoint not found or already decided"
-        )
+        raise HTTPException(status_code=400, detail="Checkpoint not found or already decided")
     return {"status": "rejected", "checkpoint_id": checkpoint_id}
 
 
@@ -1284,13 +1370,13 @@ async def _get_health() -> Any:
     async with _health_init_lock:
         if _health_checker is not None:
             return _health_checker
-        from app.distributed.health import RuntimeHealth
         from app.distributed.distributed_queue import DistributedTaskQueue
-        from app.distributed.event_bus import DistributedEventBus
-        from app.distributed.redis_client import AsyncRedisClient
         from app.distributed.distributed_scheduler import DistributedScheduler
-        from app.distributed.worker_registry import WorkerRegistry
+        from app.distributed.event_bus import DistributedEventBus
+        from app.distributed.health import RuntimeHealth
         from app.distributed.lease import LeaseManager
+        from app.distributed.redis_client import AsyncRedisClient
+        from app.distributed.worker_registry import WorkerRegistry
 
         redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
         redis = AsyncRedisClient(url=redis_url)
@@ -1351,8 +1437,8 @@ async def runtime_events() -> dict:
 # Knowledge Foundation (Stage 9.1)
 # ---------------------------------------------------------------------------
 
-from app.knowledge.service import KnowledgeService
-from app.knowledge.validation import ValidationError
+from app.knowledge.service import KnowledgeService  # noqa: E402
+from app.knowledge.validation import ValidationError  # noqa: E402
 
 _knowledge_repo: Any = None
 _knowledge_lock = asyncio.Lock()
@@ -1364,6 +1450,7 @@ async def _get_knowledge_service() -> KnowledgeService:
         async with _knowledge_lock:
             if _knowledge_repo is None:
                 from app.knowledge.repository import create_knowledge_repository
+
                 backend = os.getenv("KNOWLEDGE_STORAGE_BACKEND", "sqlite")
                 db_path = os.getenv("KNOWLEDGE_DATABASE_PATH", "knowledge.db")
                 _knowledge_repo = create_knowledge_repository(backend=backend, db_path=db_path)
@@ -1382,7 +1469,7 @@ async def create_collection(body: dict) -> dict:
         )
         return coll.to_dict()
     except ValidationError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
 
 
 @app.get("/knowledge/collections")
@@ -1417,7 +1504,7 @@ async def update_collection(collection_id: str, body: dict) -> dict:
             raise HTTPException(status_code=404, detail="Collection not found")
         return coll.to_dict()
     except ValidationError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
 
 
 @app.delete("/knowledge/collections/{collection_id}")
@@ -1443,7 +1530,7 @@ async def create_document(body: dict) -> dict:
         )
         return doc.to_dict()
     except ValidationError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
 
 
 @app.get("/knowledge/documents")
@@ -1487,7 +1574,7 @@ async def update_document(document_id: str, body: dict) -> dict:
             raise HTTPException(status_code=404, detail="Document not found")
         return doc.to_dict()
     except ValidationError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
 
 
 @app.delete("/knowledge/documents/{document_id}")
@@ -1514,7 +1601,7 @@ async def add_document_tags(document_id: str, body: dict) -> dict:
             raise HTTPException(status_code=404, detail="Document not found")
         return doc.to_dict()
     except ValidationError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
 
 
 @app.delete("/knowledge/documents/{document_id}/tags")
@@ -1530,8 +1617,8 @@ async def remove_document_tags(document_id: str, body: dict) -> dict:
 # Knowledge Ingestion (Stage 9.2)
 # ---------------------------------------------------------------------------
 
-from app.knowledge.ingestion import IngestionPipeline, IngestionConfig
-from app.knowledge.ingestion.validation import IngestionValidationError
+from app.knowledge.ingestion import IngestionConfig, IngestionPipeline  # noqa: E402
+from app.knowledge.ingestion.validation import IngestionValidationError  # noqa: E402
 
 _pipeline: IngestionPipeline | None = None
 _pipeline_lock = asyncio.Lock()
@@ -1552,7 +1639,7 @@ async def _get_ingestion_pipeline() -> IngestionPipeline:
 async def upload_document(
     collection_id: str = Form(...),
     title: str = Form(""),
-    file: UploadFile = File(...),
+    file: UploadFile = File(...),  # noqa: B008
 ) -> dict:
     pipeline = await _get_ingestion_pipeline()
     data = await file.read()
@@ -1564,13 +1651,16 @@ async def upload_document(
             title=title or None,
         )
     except IngestionValidationError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
     if result.is_duplicate:
-        raise HTTPException(status_code=409, detail={
-            "message": "Duplicate document",
-            "document_id": result.document_id,
-            "checksum": result.checksum,
-        })
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message": "Duplicate document",
+                "document_id": result.document_id,
+                "checksum": result.checksum,
+            },
+        )
     return result.to_dict()
 
 
@@ -1594,13 +1684,16 @@ async def import_document(body: dict) -> dict:
             title=title or None,
         )
     except IngestionValidationError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
     if result.is_duplicate:
-        raise HTTPException(status_code=409, detail={
-            "message": "Duplicate document",
-            "document_id": result.document_id,
-            "checksum": result.checksum,
-        })
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message": "Duplicate document",
+                "document_id": result.document_id,
+                "checksum": result.checksum,
+            },
+        )
     return result.to_dict()
 
 
@@ -1631,7 +1724,7 @@ async def get_document_metadata(document_id: str) -> dict:
 # Knowledge Chunking (Stage 9.3)
 # ---------------------------------------------------------------------------
 
-from app.knowledge.chunking import ChunkingPipeline, ChunkingConfig, create_strategy, ChunkStatistics
+from app.knowledge.chunking import ChunkingConfig, ChunkingPipeline, create_strategy  # noqa: E402
 
 _chunking_pipeline: ChunkingPipeline | None = None
 _chunking_lock = asyncio.Lock()
@@ -1658,7 +1751,7 @@ async def chunk_document(body: dict) -> dict:
     try:
         result = await pipeline.chunk_document(document_id=document_id)
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
     saved = await pipeline.save_chunks(document_id, result.chunks)
 
@@ -1725,10 +1818,9 @@ async def delete_chunk(chunk_id: str) -> dict:
 # Knowledge Embedding (Stage 9.4)
 # ---------------------------------------------------------------------------
 
-from app.knowledge.embedding import (
-    EmbeddingService,
+from app.knowledge.embedding import (  # noqa: E402
     EmbeddingConfig,
-    EmbeddingValidator,
+    EmbeddingService,
     EmbeddingValidationError,
     create_embedding_provider,
 )
@@ -1746,7 +1838,9 @@ async def _get_embedding_service() -> EmbeddingService:
                 config = EmbeddingConfig.from_env()
                 provider = create_embedding_provider(config.provider, config=config)
                 _embedding_service = EmbeddingService(
-                    knowledge_service=svc, config=config, provider=provider,
+                    knowledge_service=svc,
+                    config=config,
+                    provider=provider,
                 )
     return _embedding_service
 
@@ -1761,7 +1855,7 @@ async def embed_text(body: dict) -> dict:
     try:
         result = await svc.embed_text(text)
     except EmbeddingValidationError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
     return result.to_dict()
 
 
@@ -1775,7 +1869,7 @@ async def embed_texts(body: dict) -> list[dict]:
     try:
         results = await svc.embed_texts(texts)
     except EmbeddingValidationError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
     return [r.to_dict() for r in results]
 
 
@@ -1815,13 +1909,12 @@ async def delete_embedding_endpoint(chunk_id: str) -> dict:
 # Knowledge Vector Store (Stage 9.5)
 # ---------------------------------------------------------------------------
 
-from app.knowledge.vector_store import (
-    VectorCollection,
+from app.knowledge.vector_store import (  # noqa: E402
+    DistanceMetric,
     VectorRecord,
     VectorStoreConfig,
     VectorStoreService,
     create_vector_store,
-    DistanceMetric,
 )
 
 _vector_store_service: VectorStoreService | None = None
@@ -1888,7 +1981,7 @@ async def create_vector_collection(body: CreateCollectionRequest) -> dict:
             metadata=body.metadata,
         )
     except Exception as e:
-        raise HTTPException(status_code=409, detail=str(e))
+        raise HTTPException(status_code=409, detail=str(e)) from e
     return coll.to_dict()
 
 
@@ -1912,26 +2005,27 @@ async def delete_vector_collection(name: str) -> dict:
 async def upsert_vector(body: UpsertVectorRequest) -> dict:
     svc = await _get_vector_store_service()
     try:
-        record = await svc.upsert(VectorRecord(
-            id=body.id, vector=body.vector,
-            metadata=body.metadata, namespace=body.namespace,
-        ))
+        record = await svc.upsert(
+            VectorRecord(
+                id=body.id,
+                vector=body.vector,
+                metadata=body.metadata,
+                namespace=body.namespace,
+            )
+        )
     except Exception as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
     return record.to_dict()
 
 
 @app.post("/vector/upsert/batch")
 async def upsert_vectors_batch(body: BatchUpsertRequest) -> list[dict]:
     svc = await _get_vector_store_service()
-    records = [
-        VectorRecord(id=r.id, vector=r.vector, metadata=r.metadata, namespace=r.namespace)
-        for r in body.records
-    ]
+    records = [VectorRecord(id=r.id, vector=r.vector, metadata=r.metadata, namespace=r.namespace) for r in body.records]
     try:
         results = await svc.upsert_batch(records)
     except Exception as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
     return [r.to_dict() for r in results]
 
 
@@ -1950,7 +2044,7 @@ async def search_vectors(body: SearchVectorsRequest) -> list[dict]:
             include_vector=body.include_vector,
         )
     except Exception as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
     return [r.to_dict(include_vector=body.include_vector) for r in results]
 
 
@@ -1969,5 +2063,4 @@ async def vector_store_statistics() -> dict:
 
 
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

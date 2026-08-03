@@ -59,14 +59,21 @@ class TokenBucketLimiter(RateLimitStrategy):
             if tokens >= cost:
                 self._tokens[key] = tokens - cost
                 return RateLimitDecision(
-                    allowed=True, strategy=self.name, key=key, limit=self.burst,
+                    allowed=True,
+                    strategy=self.name,
+                    key=key,
+                    limit=self.burst,
                     remaining=int(min(self.burst, self._tokens[key])),
                     reset_at=now + (self.burst - tokens + cost) / self.rate_per_second,
                 )
             deficit = cost - tokens
             return RateLimitDecision(
-                allowed=False, strategy=self.name, key=key, limit=self.burst,
-                remaining=0, retry_after=deficit / self.rate_per_second,
+                allowed=False,
+                strategy=self.name,
+                key=key,
+                limit=self.burst,
+                remaining=0,
+                retry_after=deficit / self.rate_per_second,
                 reset_at=now + deficit / self.rate_per_second,
             )
 
@@ -120,15 +127,22 @@ class LeakyBucketLimiter(RateLimitStrategy):
                 for _ in range(cost):
                     queue.append(now)
                 return RateLimitDecision(
-                    allowed=True, strategy=self.name, key=key, limit=self.capacity,
+                    allowed=True,
+                    strategy=self.name,
+                    key=key,
+                    limit=self.capacity,
                     remaining=self.capacity - len(queue),
                     reset_at=now + len(queue) / self.rate_per_second,
                 )
             oldest = queue[0] if queue else now
             retry_after = (len(queue) + cost - self.capacity) / self.rate_per_second
             return RateLimitDecision(
-                allowed=False, strategy=self.name, key=key, limit=self.capacity,
-                remaining=0, retry_after=retry_after,
+                allowed=False,
+                strategy=self.name,
+                key=key,
+                limit=self.capacity,
+                remaining=0,
+                retry_after=retry_after,
                 reset_at=oldest + (len(queue) + cost - self.capacity) / self.rate_per_second,
             )
 
@@ -180,13 +194,21 @@ class SlidingWindowLimiter(RateLimitStrategy):
                     window.append(now)
                 reset_at = (window[0] + self.window_seconds) if window else (now + self.window_seconds)
                 return RateLimitDecision(
-                    allowed=True, strategy=self.name, key=key, limit=self.limit,
-                    remaining=self.limit - len(window), reset_at=reset_at,
+                    allowed=True,
+                    strategy=self.name,
+                    key=key,
+                    limit=self.limit,
+                    remaining=self.limit - len(window),
+                    reset_at=reset_at,
                 )
             oldest = window[0] if window else now
             return RateLimitDecision(
-                allowed=False, strategy=self.name, key=key, limit=self.limit,
-                remaining=0, retry_after=oldest + self.window_seconds - now,
+                allowed=False,
+                strategy=self.name,
+                key=key,
+                limit=self.limit,
+                remaining=0,
+                retry_after=oldest + self.window_seconds - now,
                 reset_at=oldest + self.window_seconds,
             )
 
@@ -235,13 +257,22 @@ class FixedWindowLimiter(RateLimitStrategy):
                 counts[bucket] += cost
                 reset_at = (bucket + 1) * self.window_seconds
                 return RateLimitDecision(
-                    allowed=True, strategy=self.name, key=key, limit=self.limit,
-                    remaining=self.limit - counts[bucket], reset_at=reset_at,
+                    allowed=True,
+                    strategy=self.name,
+                    key=key,
+                    limit=self.limit,
+                    remaining=self.limit - counts[bucket],
+                    reset_at=reset_at,
                 )
             reset_at = (bucket + 1) * self.window_seconds
             return RateLimitDecision(
-                allowed=False, strategy=self.name, key=key, limit=self.limit,
-                remaining=0, retry_after=reset_at - now, reset_at=reset_at,
+                allowed=False,
+                strategy=self.name,
+                key=key,
+                limit=self.limit,
+                remaining=0,
+                retry_after=reset_at - now,
+                reset_at=reset_at,
             )
 
     def reset(self, key: str) -> None:
@@ -306,7 +337,14 @@ class RateLimiter:
     def config(self) -> GatewayConfig:
         return self._config
 
-    def set_policy(self, key: str, strategy: str | None = None, limit: int | None = None, window_seconds: float | None = None, **overrides: Any) -> None:
+    def set_policy(
+        self,
+        key: str,
+        strategy: str | None = None,
+        limit: int | None = None,
+        window_seconds: float | None = None,
+        **overrides: Any,
+    ) -> None:  # noqa: E501
         """Configure the policy for a limiter key."""
         with self._lock:
             self._policies[key] = {
@@ -350,8 +388,10 @@ class RateLimiter:
         decision = self.check(key, cost=cost)
         if not decision.allowed:
             raise RateLimitExceededError(
-                key=key, strategy=decision.strategy,
-                retry_after=decision.retry_after, limit=decision.limit,
+                key=key,
+                strategy=decision.strategy,
+                retry_after=decision.retry_after,
+                limit=decision.limit,
             )
         return decision
 

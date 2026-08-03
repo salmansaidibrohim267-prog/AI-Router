@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import Any, AsyncIterator
+from typing import AsyncIterator
 
+from app.models import ChatRequest, Message
+from app.providers.manager import provider_manager
 from app.rag.caching import RAGCache
 from app.rag.config import RAGConfig
 from app.rag.context_builder import ContextBuilder
@@ -12,7 +14,6 @@ from app.rag.fallback import FallbackHandler
 from app.rag.logging import RAGLogger
 from app.rag.models import (
     ContextAssembly,
-    ConversationTurn,
     RAGMetrics,
     RAGRequest,
     RAGResponse,
@@ -21,8 +22,6 @@ from app.rag.prompt_builder import PromptBuilder
 from app.rag.query_processor import QueryProcessor
 from app.rag.retrieval_orchestrator import RetrievalOrchestrator
 from app.rag.statistics import RAGMetricsTracker
-from app.models import ChatRequest, Message
-from app.providers.manager import provider_manager
 
 
 class RAGPipeline:
@@ -60,7 +59,6 @@ class RAGPipeline:
         if cache_hit is not None:
             return cache_hit
 
-        t_qa = time.perf_counter()
         query_analysis = await self._query_processor.process(query)
         t_ret_start = time.perf_counter()
         retrieval_latency = 0.0
@@ -317,9 +315,8 @@ class RAGPipeline:
 
     def _compute_context_hash(self, context: ContextAssembly) -> str:
         import hashlib
-        raw = "|".join(
-            f"{c.chunk_id}:{c.score}:{c.rerank_score}" for c in context.chunks
-        )
+
+        raw = "|".join(f"{c.chunk_id}:{c.score}:{c.rerank_score}" for c in context.chunks)
         return hashlib.md5(raw.encode()).hexdigest()
 
     def _log_and_metrics(

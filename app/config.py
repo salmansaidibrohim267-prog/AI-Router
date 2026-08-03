@@ -15,7 +15,6 @@ from pydantic import ValidationError as PydanticValidationError
 from app.exceptions import ConfigurationError, ValidationError
 from app.models import ProviderConfig, ReloadConfigResponse, RouterConfig, TaskConfig
 
-
 CONFIG_DIR = Path(__file__).resolve().parent.parent / "config"
 MODELS_CONFIG = CONFIG_DIR / "models.yaml"
 PROVIDERS_CONFIG = CONFIG_DIR / "providers.yaml"

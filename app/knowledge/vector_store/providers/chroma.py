@@ -5,8 +5,6 @@ import uuid
 from typing import Any
 
 from app.knowledge.vector_store.exceptions import (
-    CollectionAlreadyExistsError,
-    CollectionNotFoundError,
     VectorStoreError,
 )
 from app.knowledge.vector_store.models import (
@@ -81,15 +79,18 @@ class ChromaVectorStore:
         client = self._get_client()
         dist = distance or self._distance
         try:
-            existing = client.get_or_create_collection(
+            _ = client.get_or_create_collection(
                 name=name,
                 metadata={"hnsw:space": _DISTANCE_MAP.get(dist, "cosine")},
             )
         except Exception as e:
             raise VectorStoreError(f"Failed to create collection: {e}") from e
         coll = VectorCollection(
-            name=name, dimensions=dimensions or self._dimensions,
-            distance=dist, namespace=namespace, metadata=metadata or {},
+            name=name,
+            dimensions=dimensions or self._dimensions,
+            distance=dist,
+            namespace=namespace,
+            metadata=metadata or {},
         )
         return coll
 
@@ -107,11 +108,13 @@ class ChromaVectorStore:
         results: list[VectorCollection] = []
         for c in colls:
             meta = getattr(c, "metadata", None) or {}
-            results.append(VectorCollection(
-                name=c.name,
-                dimensions=self._dimensions,
-                metadata=meta,
-            ))
+            results.append(
+                VectorCollection(
+                    name=c.name,
+                    dimensions=self._dimensions,
+                    metadata=meta,
+                )
+            )
         return results
 
     async def collection_exists(self, name: str) -> bool:
@@ -192,13 +195,15 @@ class ChromaVectorStore:
                     continue
                 meta = result["metadatas"][0][i] if result.get("metadatas") else {}
                 vec = result["embeddings"][0][i] if include_vector and result.get("embeddings") else None
-                results.append(SearchResult(
-                    id=id,
-                    score=score,
-                    vector=vec,
-                    metadata=meta or {},
-                    namespace=(meta or {}).get("_namespace", "default"),
-                ))
+                results.append(
+                    SearchResult(
+                        id=id,
+                        score=score,
+                        vector=vec,
+                        metadata=meta or {},
+                        namespace=(meta or {}).get("_namespace", "default"),
+                    )
+                )
         self._stats.record_search(time.time() - start)
         return results
 

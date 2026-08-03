@@ -13,9 +13,9 @@ Please do **not** open a public issue for security vulnerabilities.
 
 Report vulnerabilities privately to the maintainers:
 
-- **Email:** `security@anomalyco.example` (replace with the maintainer's real address)
 - **GitHub Security Advisory:** use the repository's *Security → Report a vulnerability*
   flow, which guarantees a private, maintainer-only thread.
+- **Email:** `salmansaidibrohim267-prog@users.noreply.github.com` (maintainer contact)
 
 ### What to include
 

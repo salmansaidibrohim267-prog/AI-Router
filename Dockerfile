@@ -24,12 +24,12 @@ LABEL org.opencontainers.image.description="Production-ready AI Gateway with int
 LABEL org.opencontainers.image.version="${VERSION}"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
 LABEL org.opencontainers.image.revision="${GIT_COMMIT}"
-LABEL org.opencontainers.image.url="https://github.com/anomalyco/ai-router"
-LABEL org.opencontainers.image.source="https://github.com/anomalyco/ai-router"
-LABEL org.opencontainers.image.documentation="https://github.com/anomalyco/ai-router#readme"
+LABEL org.opencontainers.image.url="https://github.com/salmansaidibrohim267-prog/AI-Router"
+LABEL org.opencontainers.image.source="https://github.com/salmansaidibrohim267-prog/AI-Router"
+LABEL org.opencontainers.image.documentation="https://github.com/salmansaidibrohim267-prog/AI-Router#readme"
 LABEL org.opencontainers.image.vendor="AI Router"
 LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.authors="anomalyco"
+LABEL org.opencontainers.image.authors="salmansaidibrohim267-prog"
 LABEL org.opencontainers.image.base.name="python:${PYTHON_VERSION}-slim"
 
 # Create non-root user

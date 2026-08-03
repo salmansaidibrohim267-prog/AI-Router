@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from app.memory.config import MemoryVectorConfig
 from app.memory.exceptions import MemoryDuplicateError
 from app.memory.models import MemoryItem
@@ -45,9 +43,7 @@ class MemoryDeduplicator:
             dup = self.find_duplicate(item.content, unique)
             if dup is not None:
                 if enforce:
-                    raise MemoryDuplicateError(
-                        f"Duplicate of existing memory {dup.id}"
-                    )
+                    raise MemoryDuplicateError(f"Duplicate of existing memory {dup.id}")
                 continue
             unique.append(item)
         return unique

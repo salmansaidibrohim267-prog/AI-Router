@@ -332,7 +332,7 @@ class MemoryManager:
     ) -> dict[str, Any]:
         try:
             return await self._lifecycle.run_maintenance(scope, now)
-        except MemoryLifecycleError as e:
+        except MemoryLifecycleError:
             self._metrics.record_error()
             raise
 

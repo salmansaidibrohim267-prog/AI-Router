@@ -19,7 +19,6 @@ from app.models import (
     ChatChoice,
     ChatRequest,
     ChatResponse,
-    EmbeddingData,
     EmbeddingRequest,
     EmbeddingResponse,
     HealthCheckResponse,
@@ -74,11 +73,11 @@ class GroqProvider(BaseProvider):
         client = await self._get_client()
         last_error = None
 
-        for attempt in range(self.max_retries):
+        for _ in range(self.max_retries):
             try:
                 response = await client.request(method, path, **kwargs)
                 return response
-            except httpx.TimeoutException as e:
+            except httpx.TimeoutException:
                 last_error = ProviderTimeoutError(
                     f"Request timeout after {self.timeout}s",
                     provider=self.name,

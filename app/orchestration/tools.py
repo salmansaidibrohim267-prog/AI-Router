@@ -23,8 +23,7 @@ class BaseTool(ABC):
     timeout: int = 30
 
     @abstractmethod
-    async def execute(self, input_data: str, **kwargs: Any) -> ToolResult:
-        ...
+    async def execute(self, input_data: str, **kwargs: Any) -> ToolResult: ...
 
     def get_definition(self) -> ToolDefinition:
         return ToolDefinition(
@@ -72,6 +71,7 @@ class HTTPTool(BaseTool):
 
     async def execute(self, input_data: str, **kwargs: Any) -> ToolResult:
         import httpx
+
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 resp = await client.get(input_data)

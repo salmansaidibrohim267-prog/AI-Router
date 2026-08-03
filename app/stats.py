@@ -14,11 +14,12 @@ from app.models import StatsSummary, TaskType
 @dataclass
 class ModelStats:
     """Statistics for a specific model."""
+
     total_requests: int = 0
     successful_requests: int = 0
     failed_requests: int = 0
     total_latency_ms: float = 0.0
-    min_latency_ms: float = float('inf')
+    min_latency_ms: float = float("inf")
     max_latency_ms: float = 0.0
     total_prompt_tokens: int = 0
     total_completion_tokens: int = 0
@@ -46,6 +47,7 @@ class ModelStats:
 @dataclass
 class ProviderStats:
     """Statistics for a provider."""
+
     models: dict[str, ModelStats] = field(default_factory=lambda: defaultdict(ModelStats))
     total_requests: int = 0
     successful_requests: int = 0
@@ -130,10 +132,7 @@ class RouterStats:
             if self.total_requests > 0:
                 success_rate = self.successful_requests / self.total_requests
 
-            provider_usage = {
-                name: stats.total_requests
-                for name, stats in self.providers.items()
-            }
+            provider_usage = {name: stats.total_requests for name, stats in self.providers.items()}
 
             model_usage = {}
             for pstats in self.providers.values():
@@ -149,7 +148,9 @@ class RouterStats:
                         "provider": name,
                         "requests": stats.total_requests,
                         "success_rate": stats.success_rate,
-                        "avg_latency_ms": stats.total_latency_ms / stats.successful_requests if stats.successful_requests > 0 else 0,
+                        "avg_latency_ms": (
+                            stats.total_latency_ms / stats.successful_requests if stats.successful_requests > 0 else 0
+                        ),  # noqa: E501
                     }
                     for name, stats in self.providers.items()
                 ],
@@ -200,13 +201,15 @@ class RouterStats:
                 "successful_requests": pstats.successful_requests,
                 "failed_requests": pstats.failed_requests,
                 "success_rate": pstats.success_rate,
-                "avg_latency_ms": pstats.total_latency_ms / pstats.successful_requests if pstats.successful_requests > 0 else 0,
+                "avg_latency_ms": (
+                    pstats.total_latency_ms / pstats.successful_requests if pstats.successful_requests > 0 else 0
+                ),  # noqa: E501
                 "models": {
                     model: {
                         "requests": mstats.total_requests,
                         "success_rate": mstats.success_rate,
                         "avg_latency_ms": mstats.avg_latency_ms,
-                        "min_latency_ms": mstats.min_latency_ms if mstats.min_latency_ms != float('inf') else 0,
+                        "min_latency_ms": mstats.min_latency_ms if mstats.min_latency_ms != float("inf") else 0,
                         "max_latency_ms": mstats.max_latency_ms,
                         "total_tokens": mstats.total_tokens,
                     }
@@ -227,7 +230,7 @@ class RouterStats:
                 "requests": mstats.total_requests,
                 "success_rate": mstats.success_rate,
                 "avg_latency_ms": mstats.avg_latency_ms,
-                "min_latency_ms": mstats.min_latency_ms if mstats.min_latency_ms != float('inf') else 0,
+                "min_latency_ms": mstats.min_latency_ms if mstats.min_latency_ms != float("inf") else 0,
                 "max_latency_ms": mstats.max_latency_ms,
                 "total_prompt_tokens": mstats.total_prompt_tokens,
                 "total_completion_tokens": mstats.total_completion_tokens,
@@ -256,7 +259,6 @@ class RouterStats:
                 "success_rate": self.successful_requests / self.total_requests if self.total_requests > 0 else 1.0,
             }
 
-
     def _get_provider_latency(self):
         """Get provider latency for dashboard."""
         with self._lock:
@@ -266,6 +268,7 @@ class RouterStats:
                 obj = type("obj", (object,), {"avg_latency_ms": latency})()
                 result[name] = obj
             return result
+
     def reset(self) -> None:
         """Reset all statistics."""
         with self._lock:

@@ -4,7 +4,10 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from .logging import BillingLogger
 
 
 def generate_id(prefix: str) -> str:

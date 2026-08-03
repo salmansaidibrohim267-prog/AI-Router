@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import threading
-from typing import Any
 
 from .exceptions import PluginLifecycleError
 from .logging import PluginLogger
@@ -12,13 +11,34 @@ _VALID_TRANSITIONS: dict[PluginStatus, set[PluginStatus]] = {
     PluginStatus.INSTALLING: {PluginStatus.INSTALLED, PluginStatus.FAILED},
     PluginStatus.INSTALLED: {PluginStatus.VERIFYING, PluginStatus.UNINSTALLING, PluginStatus.FAILED},
     PluginStatus.VERIFYING: {PluginStatus.VERIFIED, PluginStatus.FAILED},
-    PluginStatus.VERIFIED: {PluginStatus.ENABLING, PluginStatus.DISABLED, PluginStatus.UPDATING, PluginStatus.UNINSTALLING, PluginStatus.FAILED},
+    PluginStatus.VERIFIED: {
+        PluginStatus.ENABLING,
+        PluginStatus.DISABLED,
+        PluginStatus.UPDATING,
+        PluginStatus.UNINSTALLING,
+        PluginStatus.FAILED,
+    },  # noqa: E501
     PluginStatus.ENABLING: {PluginStatus.ENABLED, PluginStatus.FAILED},
     PluginStatus.ENABLED: {PluginStatus.DISABLED, PluginStatus.UPDATING, PluginStatus.UNINSTALLING},
     PluginStatus.DISABLED: {PluginStatus.ENABLING, PluginStatus.UPDATING, PluginStatus.UNINSTALLING},
-    PluginStatus.UPDATING: {PluginStatus.ENABLED, PluginStatus.DISABLED, PluginStatus.ROLLING_BACK, PluginStatus.FAILED},
-    PluginStatus.ROLLING_BACK: {PluginStatus.ENABLED, PluginStatus.DISABLED, PluginStatus.ROLLED_BACK, PluginStatus.FAILED},
-    PluginStatus.ROLLED_BACK: {PluginStatus.ENABLING, PluginStatus.DISABLED, PluginStatus.UNINSTALLING, PluginStatus.UPDATING},
+    PluginStatus.UPDATING: {
+        PluginStatus.ENABLED,
+        PluginStatus.DISABLED,
+        PluginStatus.ROLLING_BACK,
+        PluginStatus.FAILED,
+    },  # noqa: E501
+    PluginStatus.ROLLING_BACK: {
+        PluginStatus.ENABLED,
+        PluginStatus.DISABLED,
+        PluginStatus.ROLLED_BACK,
+        PluginStatus.FAILED,
+    },  # noqa: E501
+    PluginStatus.ROLLED_BACK: {
+        PluginStatus.ENABLING,
+        PluginStatus.DISABLED,
+        PluginStatus.UNINSTALLING,
+        PluginStatus.UPDATING,
+    },  # noqa: E501
     PluginStatus.UNINSTALLING: {PluginStatus.UNINSTALLED, PluginStatus.FAILED},
     PluginStatus.UNINSTALLED: set(),
     PluginStatus.FAILED: {PluginStatus.UNINSTALLING, PluginStatus.INSTALLING},
@@ -46,7 +66,13 @@ class PluginLifecycle:
             return self._states.get(name, PluginStatus.DRAFT)
 
     def is_installed(self, name: str) -> bool:
-        return self.state(name) in (PluginStatus.INSTALLED, PluginStatus.ENABLED, PluginStatus.DISABLED, PluginStatus.VERIFIED, PluginStatus.ROLLED_BACK)
+        return self.state(name) in (
+            PluginStatus.INSTALLED,
+            PluginStatus.ENABLED,
+            PluginStatus.DISABLED,
+            PluginStatus.VERIFIED,
+            PluginStatus.ROLLED_BACK,
+        )  # noqa: E501
 
     def is_enabled(self, name: str) -> bool:
         return self.state(name) == PluginStatus.ENABLED

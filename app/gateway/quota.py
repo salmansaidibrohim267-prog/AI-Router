@@ -7,7 +7,6 @@ embeddings, and MCP calls. Quotas are namespaced per scope (client id).
 from __future__ import annotations
 
 import threading
-import time
 from typing import Any
 
 from .config import GatewayConfig

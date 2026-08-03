@@ -9,7 +9,17 @@ from typing import Any
 
 from .config import PluginConfig
 from .di import Container
-from .events import PLUGIN_DISABLED, PLUGIN_ENABLED, PLUGIN_FAILED, PLUGIN_INSTALLED, PLUGIN_RELOADED, PLUGIN_UNINSTALLED, PLUGIN_UPGRADED, PLUGIN_VERIFIED, PluginEventBus
+from .events import (
+    PLUGIN_DISABLED,
+    PLUGIN_ENABLED,
+    PLUGIN_FAILED,
+    PLUGIN_INSTALLED,
+    PLUGIN_RELOADED,
+    PLUGIN_UNINSTALLED,
+    PLUGIN_UPGRADED,
+    PLUGIN_VERIFIED,
+    PluginEventBus,
+)
 from .exceptions import (
     PluginAlreadyInstalledError,
     PluginInstallError,
@@ -29,7 +39,7 @@ from .models import PluginInfo, PluginSpec, PluginStatus
 from .permissions import PermissionManager
 from .registry import ExtensionRegistry
 from .sandbox import Sandbox
-from .sdk import PluginSDK, _maybe_await
+from .sdk import Plugin, PluginSDK, _maybe_await
 from .signing import verify_payload
 from .validation import CompatibilityChecker, ManifestValidator
 from .versioning import compare_versions
@@ -143,7 +153,9 @@ class PluginManager:
         if name in self._plugins:  # pragma: no cover - materialize raises first when the dir exists
             raise PluginAlreadyInstalledError(f"plugin {name!r} is already installed", plugin=name)
         if len(self._plugins) >= self._config.max_plugins:
-            raise PluginInstallError(f"plugin limit of {self._config.max_plugins} reached", limit=self._config.max_plugins)
+            raise PluginInstallError(
+                f"plugin limit of {self._config.max_plugins} reached", limit=self._config.max_plugins
+            )  # noqa: E501
 
         self._lifecycle.initialize(name)
         try:
@@ -160,7 +172,17 @@ class PluginManager:
             self._plugins[name] = plugin
             self._sdks[name] = sdk
             self._dirs[name] = plugin_dir
-            self._specs[name] = PluginSpec(name=name, version=resolved_spec["version"], entry=resolved_spec.get("entry", "create_plugin"), description=resolved_spec.get("description", ""), author=resolved_spec.get("author", ""), tags=resolved_spec.get("tags", []), requires_router=resolved_spec.get("requires_router", ""), permissions=resolved_spec.get("permissions", []), signature=resolved_spec.get("signature", ""))
+            self._specs[name] = PluginSpec(
+                name=name,
+                version=resolved_spec["version"],
+                entry=resolved_spec.get("entry", "create_plugin"),
+                description=resolved_spec.get("description", ""),
+                author=resolved_spec.get("author", ""),
+                tags=resolved_spec.get("tags", []),
+                requires_router=resolved_spec.get("requires_router", ""),
+                permissions=resolved_spec.get("permissions", []),
+                signature=resolved_spec.get("signature", ""),
+            )  # noqa: E501
             plugin.set_context(self._build_context(name, plugin))
             self._permissions.grant_from_manifest(name, resolved_spec.get("permissions", []))
             await self._run_hook(name, "on_install")
@@ -178,7 +200,9 @@ class PluginManager:
             await self.enable(name)
         return self.info(name)
 
-    def _materialize(self, spec: dict[str, Any] | None, source_dir: str | None, entry_id: str | None) -> tuple[str, dict[str, Any]]:
+    def _materialize(
+        self, spec: dict[str, Any] | None, source_dir: str | None, entry_id: str | None
+    ) -> tuple[str, dict[str, Any]]:  # noqa: E501
         plugins_dir = Path(self._config.plugins_dir)
         if entry_id is not None:
             result = self._marketplace.install_entry(entry_id, self._config.plugins_dir)
@@ -290,7 +314,9 @@ class PluginManager:
                     break
         if not isinstance(plugin, Plugin):
             sys.modules.pop(module_name, None)
-            raise PluginInstallError(f"plugin module must expose create_plugin(sdk) or a Plugin subclass in {plugin_file!r}")
+            raise PluginInstallError(
+                f"plugin module must expose create_plugin(sdk) or a Plugin subclass in {plugin_file!r}"
+            )  # noqa: E501
         return plugin
 
     async def _run_hook(self, name: str, hook: str, *args: Any) -> None:
@@ -344,8 +370,16 @@ class PluginManager:
 
     async def reload(self, name: str) -> PluginInfo:
         self._require(name)
-        if self._lifecycle.state(name) in (PluginStatus.INSTALLING, PluginStatus.UPDATING, PluginStatus.UNINSTALLING, PluginStatus.FAILED, PluginStatus.UNINSTALLED):
-            raise PluginInstallError(f"cannot reload plugin {name!r} in state {self._lifecycle.state(name).value}", plugin=name)
+        if self._lifecycle.state(name) in (
+            PluginStatus.INSTALLING,
+            PluginStatus.UPDATING,
+            PluginStatus.UNINSTALLING,
+            PluginStatus.FAILED,
+            PluginStatus.UNINSTALLED,
+        ):  # noqa: E501
+            raise PluginInstallError(
+                f"cannot reload plugin {name!r} in state {self._lifecycle.state(name).value}", plugin=name
+            )  # noqa: E501
         was_enabled = self._lifecycle.is_enabled(name)
         plugin_dir = self._dirs[name]
         spec = self._read_manifest(plugin_dir)
@@ -392,7 +426,6 @@ class PluginManager:
         self._lifecycle.transition(name, PluginStatus.UPDATING)
         try:
             self._replace_files(plugin_dir, spec)
-            old_plugin = self._plugins[name]
             old_sdk = self._sdks[name]
             self._extensions.unregister_plugin(name)
             old_sdk.cleanup()
@@ -403,7 +436,17 @@ class PluginManager:
             plugin.set_context(self._build_context(name, plugin))
             self._permissions.grant_from_manifest(name, spec.get("permissions", []))
             await self._run_hook(name, "on_upgrade", current.version)
-            self._specs[name] = PluginSpec(name=name, version=new_version, entry=spec.get("entry", "create_plugin"), description=spec.get("description", ""), author=spec.get("author", ""), tags=spec.get("tags", []), requires_router=spec.get("requires_router", ""), permissions=spec.get("permissions", []), signature=spec.get("signature", ""))
+            self._specs[name] = PluginSpec(
+                name=name,
+                version=new_version,
+                entry=spec.get("entry", "create_plugin"),
+                description=spec.get("description", ""),
+                author=spec.get("author", ""),
+                tags=spec.get("tags", []),
+                requires_router=spec.get("requires_router", ""),
+                permissions=spec.get("permissions", []),
+                signature=spec.get("signature", ""),
+            )  # noqa: E501
         except Exception as exc:
             await self._rollback(name, backup_dir, was_enabled, exc)
         finally:
@@ -427,7 +470,6 @@ class PluginManager:
             shutil.rmtree(plugin_dir, ignore_errors=True)
             shutil.copytree(backup_dir, plugin_dir)
             spec = self._read_manifest(plugin_dir)
-            old_plugin = self._plugins[name]
             old_sdk = self._sdks[name]
             self._extensions.unregister_plugin(name)
             old_sdk.cleanup()
@@ -543,7 +585,6 @@ class PluginManager:
     # ------------------------------------------------------- hooks & events
 
     async def dispatch_hook(self, hook_name: str, *args: Any, **kwargs: Any) -> Any:
-        from .hooks import HookResult
 
         enabled = {name for name in self._plugins if self._lifecycle.is_enabled(name)}
         plugins = kwargs.pop("plugins", enabled)

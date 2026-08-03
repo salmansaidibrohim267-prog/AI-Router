@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-from typing import Any
 
 from app.knowledge.ingestion.models import LoadedDocument
 

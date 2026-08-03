@@ -1,0 +1,2267 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_source": "ai-router:release-assets",
+  "__export_date": "2026-08-02T00:00:00.000Z",
+  "__export_version": "1.0.0",
+  "_resources": [
+    {
+      "_type": "workspace",
+      "_id": "wrk_ai_router_01",
+      "parentId": null,
+      "name": "AI Router",
+      "description": "AI Router v1.0.0 \u2014 generated from the live OpenAPI schema."
+    },
+    {
+      "_type": "environment",
+      "_id": "491dce1fdecd",
+      "parentId": "wrk_ai_router_01",
+      "name": "Base Environment",
+      "data": {
+        "baseUrl": "http://localhost:8000",
+        "apiKey": "test-key",
+        "model": "gpt-4o-mini"
+      }
+    },
+    {
+      "_type": "request_group",
+      "_id": "3fa1bd1d2336",
+      "parentId": "wrk_ai_router_01",
+      "name": "Analytics & Stats"
+    },
+    {
+      "_type": "request",
+      "_id": "9be85b95bef5",
+      "parentId": "3fa1bd1d2336",
+      "name": "GET /analytics/providers",
+      "method": "GET",
+      "url": "{{baseUrl}}/analytics/providers",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Analytics Providers"
+    },
+    {
+      "_type": "request",
+      "_id": "c058302bb07e",
+      "parentId": "3fa1bd1d2336",
+      "name": "GET /analytics/providers/{provider_name}",
+      "method": "GET",
+      "url": "{{baseUrl}}/analytics/providers/{provider_name}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Analytics Provider"
+    },
+    {
+      "_type": "request",
+      "_id": "1e5a71c94620",
+      "parentId": "3fa1bd1d2336",
+      "name": "GET /cache/stats",
+      "method": "GET",
+      "url": "{{baseUrl}}/cache/stats",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Cache Stats"
+    },
+    {
+      "_type": "request",
+      "_id": "440d7408cace",
+      "parentId": "3fa1bd1d2336",
+      "name": "GET /costs",
+      "method": "GET",
+      "url": "{{baseUrl}}/costs",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Costs"
+    },
+    {
+      "_type": "request",
+      "_id": "e77d34274c75",
+      "parentId": "3fa1bd1d2336",
+      "name": "GET /costs/{provider}",
+      "method": "GET",
+      "url": "{{baseUrl}}/costs/{provider}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Provider Cost"
+    },
+    {
+      "_type": "request",
+      "_id": "67b41ed87d3c",
+      "parentId": "3fa1bd1d2336",
+      "name": "GET /distribution",
+      "method": "GET",
+      "url": "{{baseUrl}}/distribution",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Distribution"
+    },
+    {
+      "_type": "request",
+      "_id": "b9a989877826",
+      "parentId": "3fa1bd1d2336",
+      "name": "POST /distribution/config",
+      "method": "POST",
+      "url": "{{baseUrl}}/distribution/config",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Set Distribution Config"
+    },
+    {
+      "_type": "request",
+      "_id": "961493f82b41",
+      "parentId": "3fa1bd1d2336",
+      "name": "POST /distribution/rebalance",
+      "method": "POST",
+      "url": "{{baseUrl}}/distribution/rebalance",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Force Rebalance"
+    },
+    {
+      "_type": "request",
+      "_id": "8a2424ee7a77",
+      "parentId": "3fa1bd1d2336",
+      "name": "POST /distribution/reset",
+      "method": "POST",
+      "url": "{{baseUrl}}/distribution/reset",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Reset Distribution Stats"
+    },
+    {
+      "_type": "request",
+      "_id": "ff4262798c23",
+      "parentId": "3fa1bd1d2336",
+      "name": "GET /logs",
+      "method": "GET",
+      "url": "{{baseUrl}}/logs",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Logs"
+    },
+    {
+      "_type": "request",
+      "_id": "bb461f16c3a6",
+      "parentId": "3fa1bd1d2336",
+      "name": "DELETE /logs",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/logs",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Clear Logs"
+    },
+    {
+      "_type": "request",
+      "_id": "10a80ed450dc",
+      "parentId": "3fa1bd1d2336",
+      "name": "GET /logs/{request_id}",
+      "method": "GET",
+      "url": "{{baseUrl}}/logs/{request_id}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Log By Request Id"
+    },
+    {
+      "_type": "request",
+      "_id": "e71e6a161ede",
+      "parentId": "3fa1bd1d2336",
+      "name": "GET /stats",
+      "method": "GET",
+      "url": "{{baseUrl}}/stats",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Stats"
+    },
+    {
+      "_type": "request",
+      "_id": "7e8e594e1c42",
+      "parentId": "3fa1bd1d2336",
+      "name": "GET /stats/errors",
+      "method": "GET",
+      "url": "{{baseUrl}}/stats/errors",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Error Stats"
+    },
+    {
+      "_type": "request",
+      "_id": "9d32216ebc8c",
+      "parentId": "3fa1bd1d2336",
+      "name": "GET /stats/models/{provider_name}/{model_name}",
+      "method": "GET",
+      "url": "{{baseUrl}}/stats/models/{provider_name}/{model_name}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Model Stats"
+    },
+    {
+      "_type": "request",
+      "_id": "ed06f72f7991",
+      "parentId": "3fa1bd1d2336",
+      "name": "GET /stats/providers",
+      "method": "GET",
+      "url": "{{baseUrl}}/stats/providers",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Provider Stats"
+    },
+    {
+      "_type": "request",
+      "_id": "cc19da256ccd",
+      "parentId": "3fa1bd1d2336",
+      "name": "GET /stats/providers/{provider_name}",
+      "method": "GET",
+      "url": "{{baseUrl}}/stats/providers/{provider_name}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Provider Stat"
+    },
+    {
+      "_type": "request",
+      "_id": "e74b4ab9cb3e",
+      "parentId": "3fa1bd1d2336",
+      "name": "POST /stats/reset",
+      "method": "POST",
+      "url": "{{baseUrl}}/stats/reset",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Reset Stats"
+    },
+    {
+      "_type": "request",
+      "_id": "106f3b6b872e",
+      "parentId": "3fa1bd1d2336",
+      "name": "GET /stats/tasks",
+      "method": "GET",
+      "url": "{{baseUrl}}/stats/tasks",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Task Stats"
+    },
+    {
+      "_type": "request",
+      "_id": "bac1ddd80a70",
+      "parentId": "3fa1bd1d2336",
+      "name": "GET /tokens",
+      "method": "GET",
+      "url": "{{baseUrl}}/tokens",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Token Intelligence"
+    },
+    {
+      "_type": "request",
+      "_id": "53ea3a0b0912",
+      "parentId": "3fa1bd1d2336",
+      "name": "GET /tokens/estimate",
+      "method": "GET",
+      "url": "{{baseUrl}}/tokens/estimate",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Estimate Tokens"
+    },
+    {
+      "_type": "request_group",
+      "_id": "aed2a992c6f7",
+      "parentId": "wrk_ai_router_01",
+      "name": "Approval"
+    },
+    {
+      "_type": "request",
+      "_id": "37aa4e7adfc0",
+      "parentId": "aed2a992c6f7",
+      "name": "POST /approval/checkpoints",
+      "method": "POST",
+      "url": "{{baseUrl}}/approval/checkpoints",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Create Approval Checkpoint"
+    },
+    {
+      "_type": "request",
+      "_id": "d30aa2c6c9bd",
+      "parentId": "aed2a992c6f7",
+      "name": "GET /approval/checkpoints",
+      "method": "GET",
+      "url": "{{baseUrl}}/approval/checkpoints",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "List All Approvals"
+    },
+    {
+      "_type": "request",
+      "_id": "ef45804e3c91",
+      "parentId": "aed2a992c6f7",
+      "name": "POST /approval/checkpoints/{checkpoint_id}/approve",
+      "method": "POST",
+      "url": "{{baseUrl}}/approval/checkpoints/{checkpoint_id}/approve",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Approve Checkpoint"
+    },
+    {
+      "_type": "request",
+      "_id": "2475dc007fe9",
+      "parentId": "aed2a992c6f7",
+      "name": "POST /approval/checkpoints/{checkpoint_id}/reject",
+      "method": "POST",
+      "url": "{{baseUrl}}/approval/checkpoints/{checkpoint_id}/reject",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Reject Checkpoint"
+    },
+    {
+      "_type": "request",
+      "_id": "49d13dba5780",
+      "parentId": "aed2a992c6f7",
+      "name": "GET /approval/pending",
+      "method": "GET",
+      "url": "{{baseUrl}}/approval/pending",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "List Pending Approvals"
+    },
+    {
+      "_type": "request_group",
+      "_id": "8f8c9355fb46",
+      "parentId": "wrk_ai_router_01",
+      "name": "Chat & Agents"
+    },
+    {
+      "_type": "request",
+      "_id": "d3b79f4c4411",
+      "parentId": "8f8c9355fb46",
+      "name": "POST /v1/agents",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/agents",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Run Agents",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "1d3183f5c2ce",
+      "parentId": "8f8c9355fb46",
+      "name": "POST /v1/chat/completions",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/chat/completions",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Chat Completion",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "e094b9f6b3fa",
+      "parentId": "8f8c9355fb46",
+      "name": "POST /v1/consensus",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/consensus",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Run Consensus",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "5e66efd52834",
+      "parentId": "8f8c9355fb46",
+      "name": "POST /v1/debate",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/debate",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Run Debate"
+    },
+    {
+      "_type": "request",
+      "_id": "cf62b6fc50fb",
+      "parentId": "8f8c9355fb46",
+      "name": "POST /v1/embeddings",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/embeddings",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Create Embeddings",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "88fe3d1a5821",
+      "parentId": "8f8c9355fb46",
+      "name": "POST /v1/orchestrate",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/orchestrate",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Orchestrate",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "3365fe47e617",
+      "parentId": "8f8c9355fb46",
+      "name": "POST /v1/workflow",
+      "method": "POST",
+      "url": "{{baseUrl}}/v1/workflow",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Run Workflow",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request_group",
+      "_id": "033453b5734f",
+      "parentId": "wrk_ai_router_01",
+      "name": "Health"
+    },
+    {
+      "_type": "request",
+      "_id": "3500d01e2804",
+      "parentId": "033453b5734f",
+      "name": "GET /health",
+      "method": "GET",
+      "url": "{{baseUrl}}/health",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Health Check"
+    },
+    {
+      "_type": "request",
+      "_id": "5bd592fb670d",
+      "parentId": "033453b5734f",
+      "name": "GET /health/providers",
+      "method": "GET",
+      "url": "{{baseUrl}}/health/providers",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Providers Health"
+    },
+    {
+      "_type": "request",
+      "_id": "6b13e18e64ea",
+      "parentId": "033453b5734f",
+      "name": "GET /health/providers/{provider_name}",
+      "method": "GET",
+      "url": "{{baseUrl}}/health/providers/{provider_name}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Provider Health"
+    },
+    {
+      "_type": "request",
+      "_id": "cb5186aa6eee",
+      "parentId": "033453b5734f",
+      "name": "GET /ready",
+      "method": "GET",
+      "url": "{{baseUrl}}/ready",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Readiness Check"
+    },
+    {
+      "_type": "request_group",
+      "_id": "bdae68b6de7a",
+      "parentId": "wrk_ai_router_01",
+      "name": "Knowledge"
+    },
+    {
+      "_type": "request",
+      "_id": "625088841ea7",
+      "parentId": "bdae68b6de7a",
+      "name": "POST /knowledge/chunk",
+      "method": "POST",
+      "url": "{{baseUrl}}/knowledge/chunk",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Chunk Document",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "009e842b6c90",
+      "parentId": "bdae68b6de7a",
+      "name": "POST /knowledge/chunk/preview",
+      "method": "POST",
+      "url": "{{baseUrl}}/knowledge/chunk/preview",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Chunk Preview",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "581d58eb2e67",
+      "parentId": "bdae68b6de7a",
+      "name": "POST /knowledge/collections",
+      "method": "POST",
+      "url": "{{baseUrl}}/knowledge/collections",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Create Collection",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "15e182752575",
+      "parentId": "bdae68b6de7a",
+      "name": "GET /knowledge/collections",
+      "method": "GET",
+      "url": "{{baseUrl}}/knowledge/collections",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "List Collections"
+    },
+    {
+      "_type": "request",
+      "_id": "dd499506c8a6",
+      "parentId": "bdae68b6de7a",
+      "name": "GET /knowledge/collections/{collection_id}",
+      "method": "GET",
+      "url": "{{baseUrl}}/knowledge/collections/{collection_id}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Collection"
+    },
+    {
+      "_type": "request",
+      "_id": "c44af4add3f8",
+      "parentId": "bdae68b6de7a",
+      "name": "PUT /knowledge/collections/{collection_id}",
+      "method": "PUT",
+      "url": "{{baseUrl}}/knowledge/collections/{collection_id}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Update Collection",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "028a8856206b",
+      "parentId": "bdae68b6de7a",
+      "name": "DELETE /knowledge/collections/{collection_id}",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/knowledge/collections/{collection_id}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Delete Collection"
+    },
+    {
+      "_type": "request",
+      "_id": "a0b23a55cdb0",
+      "parentId": "bdae68b6de7a",
+      "name": "POST /knowledge/documents",
+      "method": "POST",
+      "url": "{{baseUrl}}/knowledge/documents",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Create Document",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "0d053734ea88",
+      "parentId": "bdae68b6de7a",
+      "name": "GET /knowledge/documents",
+      "method": "GET",
+      "url": "{{baseUrl}}/knowledge/documents",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "List Documents"
+    },
+    {
+      "_type": "request",
+      "_id": "4e6664e94a56",
+      "parentId": "bdae68b6de7a",
+      "name": "POST /knowledge/documents/import",
+      "method": "POST",
+      "url": "{{baseUrl}}/knowledge/documents/import",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Import Document",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "e021ad8900fd",
+      "parentId": "bdae68b6de7a",
+      "name": "POST /knowledge/documents/upload",
+      "method": "POST",
+      "url": "{{baseUrl}}/knowledge/documents/upload",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Upload Document"
+    },
+    {
+      "_type": "request",
+      "_id": "3d064907976b",
+      "parentId": "bdae68b6de7a",
+      "name": "GET /knowledge/documents/{document_id}",
+      "method": "GET",
+      "url": "{{baseUrl}}/knowledge/documents/{document_id}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Document"
+    },
+    {
+      "_type": "request",
+      "_id": "0c7d1b16aeda",
+      "parentId": "bdae68b6de7a",
+      "name": "PUT /knowledge/documents/{document_id}",
+      "method": "PUT",
+      "url": "{{baseUrl}}/knowledge/documents/{document_id}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Update Document",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "fe30c54ec51b",
+      "parentId": "bdae68b6de7a",
+      "name": "DELETE /knowledge/documents/{document_id}",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/knowledge/documents/{document_id}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Delete Document"
+    },
+    {
+      "_type": "request",
+      "_id": "3b1e1e7a9a8e",
+      "parentId": "bdae68b6de7a",
+      "name": "GET /knowledge/documents/{document_id}/metadata",
+      "method": "GET",
+      "url": "{{baseUrl}}/knowledge/documents/{document_id}/metadata",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Document Metadata"
+    },
+    {
+      "_type": "request",
+      "_id": "98d7c0e5e006",
+      "parentId": "bdae68b6de7a",
+      "name": "POST /knowledge/documents/{document_id}/tags",
+      "method": "POST",
+      "url": "{{baseUrl}}/knowledge/documents/{document_id}/tags",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Add Document Tags",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "b19494a4190e",
+      "parentId": "bdae68b6de7a",
+      "name": "DELETE /knowledge/documents/{document_id}/tags",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/knowledge/documents/{document_id}/tags",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Remove Document Tags"
+    },
+    {
+      "_type": "request",
+      "_id": "421ee4a9a29f",
+      "parentId": "bdae68b6de7a",
+      "name": "POST /knowledge/embed",
+      "method": "POST",
+      "url": "{{baseUrl}}/knowledge/embed",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Embed Text",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "73c85f93c8ab",
+      "parentId": "bdae68b6de7a",
+      "name": "POST /knowledge/embed/batch",
+      "method": "POST",
+      "url": "{{baseUrl}}/knowledge/embed/batch",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Embed Texts",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "328da669c52e",
+      "parentId": "bdae68b6de7a",
+      "name": "GET /knowledge/statistics",
+      "method": "GET",
+      "url": "{{baseUrl}}/knowledge/statistics",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Knowledge Statistics"
+    },
+    {
+      "_type": "request_group",
+      "_id": "c2bdc6105402",
+      "parentId": "wrk_ai_router_01",
+      "name": "Other"
+    },
+    {
+      "_type": "request",
+      "_id": "0bfd0dff2a04",
+      "parentId": "c2bdc6105402",
+      "name": "POST /cache/clear",
+      "method": "POST",
+      "url": "{{baseUrl}}/cache/clear",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Clear Cache"
+    },
+    {
+      "_type": "request",
+      "_id": "03017f07bc11",
+      "parentId": "c2bdc6105402",
+      "name": "DELETE /knowledge/chunks/{chunk_id}",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/knowledge/chunks/{chunk_id}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Delete Chunk"
+    },
+    {
+      "_type": "request",
+      "_id": "fe3c789b1a9e",
+      "parentId": "c2bdc6105402",
+      "name": "GET /knowledge/chunks/{document_id}",
+      "method": "GET",
+      "url": "{{baseUrl}}/knowledge/chunks/{document_id}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "List Chunks"
+    },
+    {
+      "_type": "request",
+      "_id": "b010a7ceab7d",
+      "parentId": "c2bdc6105402",
+      "name": "GET /knowledge/chunks/{document_id}/{chunk_id}",
+      "method": "GET",
+      "url": "{{baseUrl}}/knowledge/chunks/{document_id}/{chunk_id}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Chunk"
+    },
+    {
+      "_type": "request",
+      "_id": "6653017a6261",
+      "parentId": "c2bdc6105402",
+      "name": "DELETE /knowledge/embedding/cache",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/knowledge/embedding/cache",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Clear Embedding Cache"
+    },
+    {
+      "_type": "request",
+      "_id": "94f0c0bb9727",
+      "parentId": "c2bdc6105402",
+      "name": "GET /knowledge/embedding/stats",
+      "method": "GET",
+      "url": "{{baseUrl}}/knowledge/embedding/stats",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Embedding Stats"
+    },
+    {
+      "_type": "request",
+      "_id": "ce89cf58cf3b",
+      "parentId": "c2bdc6105402",
+      "name": "GET /knowledge/embedding/{chunk_id}",
+      "method": "GET",
+      "url": "{{baseUrl}}/knowledge/embedding/{chunk_id}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Embedding Endpoint"
+    },
+    {
+      "_type": "request",
+      "_id": "acaa94b52c70",
+      "parentId": "c2bdc6105402",
+      "name": "DELETE /knowledge/embedding/{chunk_id}",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/knowledge/embedding/{chunk_id}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Delete Embedding Endpoint"
+    },
+    {
+      "_type": "request",
+      "_id": "1bad252d3265",
+      "parentId": "c2bdc6105402",
+      "name": "GET /metrics",
+      "method": "GET",
+      "url": "{{baseUrl}}/metrics",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Prometheus Metrics"
+    },
+    {
+      "_type": "request",
+      "_id": "36cef52ee1d8",
+      "parentId": "c2bdc6105402",
+      "name": "GET /runtime/events",
+      "method": "GET",
+      "url": "{{baseUrl}}/runtime/events",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Runtime Events"
+    },
+    {
+      "_type": "request",
+      "_id": "e535eb41507f",
+      "parentId": "c2bdc6105402",
+      "name": "GET /vector/statistics",
+      "method": "GET",
+      "url": "{{baseUrl}}/vector/statistics",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Vector Store Statistics"
+    },
+    {
+      "_type": "request",
+      "_id": "36b43ba92b7e",
+      "parentId": "c2bdc6105402",
+      "name": "DELETE /vector/{id}",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/vector/{id}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Delete Vector By Id"
+    },
+    {
+      "_type": "request_group",
+      "_id": "d6de15a5648d",
+      "parentId": "wrk_ai_router_01",
+      "name": "Plugins"
+    },
+    {
+      "_type": "request",
+      "_id": "23110df84b73",
+      "parentId": "d6de15a5648d",
+      "name": "GET /plugins",
+      "method": "GET",
+      "url": "{{baseUrl}}/plugins",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "List Plugins"
+    },
+    {
+      "_type": "request",
+      "_id": "9105d2305b0c",
+      "parentId": "d6de15a5648d",
+      "name": "POST /plugins/disable",
+      "method": "POST",
+      "url": "{{baseUrl}}/plugins/disable",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Disable Plugin"
+    },
+    {
+      "_type": "request",
+      "_id": "2399660c866e",
+      "parentId": "d6de15a5648d",
+      "name": "POST /plugins/enable",
+      "method": "POST",
+      "url": "{{baseUrl}}/plugins/enable",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Enable Plugin"
+    },
+    {
+      "_type": "request",
+      "_id": "dc5c94e8d077",
+      "parentId": "d6de15a5648d",
+      "name": "GET /plugins/events",
+      "method": "GET",
+      "url": "{{baseUrl}}/plugins/events",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "List Plugin Events"
+    },
+    {
+      "_type": "request",
+      "_id": "f11583d4d153",
+      "parentId": "d6de15a5648d",
+      "name": "POST /plugins/reload",
+      "method": "POST",
+      "url": "{{baseUrl}}/plugins/reload",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Reload Plugins"
+    },
+    {
+      "_type": "request_group",
+      "_id": "41f5341b4c1b",
+      "parentId": "wrk_ai_router_01",
+      "name": "Providers & Models"
+    },
+    {
+      "_type": "request",
+      "_id": "79b81d2498c7",
+      "parentId": "41f5341b4c1b",
+      "name": "GET /models",
+      "method": "GET",
+      "url": "{{baseUrl}}/models",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "List All Models"
+    },
+    {
+      "_type": "request",
+      "_id": "8e98f1f7f04a",
+      "parentId": "41f5341b4c1b",
+      "name": "GET /models/{task}",
+      "method": "GET",
+      "url": "{{baseUrl}}/models/{task}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "List Models For Task"
+    },
+    {
+      "_type": "request",
+      "_id": "f1a739cd7d51",
+      "parentId": "41f5341b4c1b",
+      "name": "GET /providers",
+      "method": "GET",
+      "url": "{{baseUrl}}/providers",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "List Providers"
+    },
+    {
+      "_type": "request",
+      "_id": "d99bdf404bc1",
+      "parentId": "41f5341b4c1b",
+      "name": "GET /providers/custom",
+      "method": "GET",
+      "url": "{{baseUrl}}/providers/custom",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "List Custom Providers"
+    },
+    {
+      "_type": "request",
+      "_id": "b8aa1fae3c72",
+      "parentId": "41f5341b4c1b",
+      "name": "GET /providers/{provider_name}/models",
+      "method": "GET",
+      "url": "{{baseUrl}}/providers/{provider_name}/models",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "List Provider Models"
+    },
+    {
+      "_type": "request_group",
+      "_id": "30a643761597",
+      "parentId": "wrk_ai_router_01",
+      "name": "Runtime & Tasks"
+    },
+    {
+      "_type": "request",
+      "_id": "17264ee8d8aa",
+      "parentId": "30a643761597",
+      "name": "GET /runtime/health",
+      "method": "GET",
+      "url": "{{baseUrl}}/runtime/health",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Runtime Health"
+    },
+    {
+      "_type": "request",
+      "_id": "61d4cd4eeeba",
+      "parentId": "30a643761597",
+      "name": "GET /runtime/leader",
+      "method": "GET",
+      "url": "{{baseUrl}}/runtime/leader",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Runtime Leader"
+    },
+    {
+      "_type": "request",
+      "_id": "1d44f3d53358",
+      "parentId": "30a643761597",
+      "name": "GET /runtime/queue",
+      "method": "GET",
+      "url": "{{baseUrl}}/runtime/queue",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Runtime Queue"
+    },
+    {
+      "_type": "request",
+      "_id": "50735e82d8f7",
+      "parentId": "30a643761597",
+      "name": "GET /runtime/workers",
+      "method": "GET",
+      "url": "{{baseUrl}}/runtime/workers",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Runtime Workers"
+    },
+    {
+      "_type": "request",
+      "_id": "ae0b9cd12e13",
+      "parentId": "30a643761597",
+      "name": "POST /tasks",
+      "method": "POST",
+      "url": "{{baseUrl}}/tasks",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Create Task"
+    },
+    {
+      "_type": "request",
+      "_id": "be749ec71778",
+      "parentId": "30a643761597",
+      "name": "GET /tasks",
+      "method": "GET",
+      "url": "{{baseUrl}}/tasks",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "List Tasks"
+    },
+    {
+      "_type": "request",
+      "_id": "a45d533e5a2c",
+      "parentId": "30a643761597",
+      "name": "POST /tasks/orchestrate",
+      "method": "POST",
+      "url": "{{baseUrl}}/tasks/orchestrate",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Create Orchestrate Task",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "93a8f3b41428",
+      "parentId": "30a643761597",
+      "name": "GET /tasks/queue/depth",
+      "method": "GET",
+      "url": "{{baseUrl}}/tasks/queue/depth",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Queue Depth"
+    },
+    {
+      "_type": "request",
+      "_id": "c5cd4d6afae4",
+      "parentId": "30a643761597",
+      "name": "GET /tasks/{task_id}",
+      "method": "GET",
+      "url": "{{baseUrl}}/tasks/{task_id}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Task"
+    },
+    {
+      "_type": "request",
+      "_id": "ce2fc08a0756",
+      "parentId": "30a643761597",
+      "name": "DELETE /tasks/{task_id}",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/tasks/{task_id}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Delete Task"
+    },
+    {
+      "_type": "request",
+      "_id": "0d8d1974086f",
+      "parentId": "30a643761597",
+      "name": "POST /tasks/{task_id}/cancel",
+      "method": "POST",
+      "url": "{{baseUrl}}/tasks/{task_id}/cancel",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Cancel Task"
+    },
+    {
+      "_type": "request",
+      "_id": "9c7f14d3e17b",
+      "parentId": "30a643761597",
+      "name": "GET /tasks/{task_id}/graph",
+      "method": "GET",
+      "url": "{{baseUrl}}/tasks/{task_id}/graph",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Task Graph"
+    },
+    {
+      "_type": "request_group",
+      "_id": "baf7f4dc0f85",
+      "parentId": "wrk_ai_router_01",
+      "name": "System"
+    },
+    {
+      "_type": "request",
+      "_id": "e3b717d5883a",
+      "parentId": "baf7f4dc0f85",
+      "name": "GET /",
+      "method": "GET",
+      "url": "{{baseUrl}}/",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Root"
+    },
+    {
+      "_type": "request",
+      "_id": "476584722072",
+      "parentId": "baf7f4dc0f85",
+      "name": "GET /benchmark",
+      "method": "GET",
+      "url": "{{baseUrl}}/benchmark",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Run Benchmark"
+    },
+    {
+      "_type": "request",
+      "_id": "47bc586962ee",
+      "parentId": "baf7f4dc0f85",
+      "name": "GET /benchmark/live",
+      "method": "GET",
+      "url": "{{baseUrl}}/benchmark/live",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Live Benchmark"
+    },
+    {
+      "_type": "request",
+      "_id": "37c458bb89a8",
+      "parentId": "baf7f4dc0f85",
+      "name": "POST /benchmark/live/reset",
+      "method": "POST",
+      "url": "{{baseUrl}}/benchmark/live/reset",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Reset Benchmark"
+    },
+    {
+      "_type": "request",
+      "_id": "68373fe24bb2",
+      "parentId": "baf7f4dc0f85",
+      "name": "GET /benchmark/live/{provider_name}",
+      "method": "GET",
+      "url": "{{baseUrl}}/benchmark/live/{provider_name}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Provider Benchmark"
+    },
+    {
+      "_type": "request",
+      "_id": "301b3c55a8c2",
+      "parentId": "baf7f4dc0f85",
+      "name": "GET /capabilities",
+      "method": "GET",
+      "url": "{{baseUrl}}/capabilities",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "List Capabilities"
+    },
+    {
+      "_type": "request",
+      "_id": "6104abb9a488",
+      "parentId": "baf7f4dc0f85",
+      "name": "GET /capabilities/{provider_name}",
+      "method": "GET",
+      "url": "{{baseUrl}}/capabilities/{provider_name}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Provider Capabilities"
+    },
+    {
+      "_type": "request",
+      "_id": "c61a48ff476f",
+      "parentId": "baf7f4dc0f85",
+      "name": "GET /capabilities/{provider_name}/{model_name}",
+      "method": "GET",
+      "url": "{{baseUrl}}/capabilities/{provider_name}/{model_name}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Model Capability"
+    },
+    {
+      "_type": "request",
+      "_id": "d44af8d90d7e",
+      "parentId": "baf7f4dc0f85",
+      "name": "GET /classifier",
+      "method": "GET",
+      "url": "{{baseUrl}}/classifier",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Classifier Info"
+    },
+    {
+      "_type": "request",
+      "_id": "0bb10f7ce809",
+      "parentId": "baf7f4dc0f85",
+      "name": "GET /config",
+      "method": "GET",
+      "url": "{{baseUrl}}/config",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Get Config"
+    },
+    {
+      "_type": "request",
+      "_id": "02e75fa4b4d3",
+      "parentId": "baf7f4dc0f85",
+      "name": "GET /dashboard",
+      "method": "GET",
+      "url": "{{baseUrl}}/dashboard",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Dashboard"
+    },
+    {
+      "_type": "request",
+      "_id": "1cdd90af7b99",
+      "parentId": "baf7f4dc0f85",
+      "name": "POST /reload-config",
+      "method": "POST",
+      "url": "{{baseUrl}}/reload-config",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Reload Config"
+    },
+    {
+      "_type": "request",
+      "_id": "4bf00df0fca6",
+      "parentId": "baf7f4dc0f85",
+      "name": "GET /version",
+      "method": "GET",
+      "url": "{{baseUrl}}/version",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Version Info"
+    },
+    {
+      "_type": "request_group",
+      "_id": "e04fe9f0da0b",
+      "parentId": "wrk_ai_router_01",
+      "name": "Vector"
+    },
+    {
+      "_type": "request",
+      "_id": "1eb2d4f0227b",
+      "parentId": "e04fe9f0da0b",
+      "name": "GET /vector/collections",
+      "method": "GET",
+      "url": "{{baseUrl}}/vector/collections",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "List Vector Collections"
+    },
+    {
+      "_type": "request",
+      "_id": "c866e5ca99bc",
+      "parentId": "e04fe9f0da0b",
+      "name": "POST /vector/collections",
+      "method": "POST",
+      "url": "{{baseUrl}}/vector/collections",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Create Vector Collection",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "8377b5899580",
+      "parentId": "e04fe9f0da0b",
+      "name": "DELETE /vector/collections/{name}",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/vector/collections/{name}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Delete Vector Collection"
+    },
+    {
+      "_type": "request",
+      "_id": "27d70b818ca2",
+      "parentId": "e04fe9f0da0b",
+      "name": "POST /vector/search",
+      "method": "POST",
+      "url": "{{baseUrl}}/vector/search",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Search Vectors",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "007004fd53dc",
+      "parentId": "e04fe9f0da0b",
+      "name": "POST /vector/upsert",
+      "method": "POST",
+      "url": "{{baseUrl}}/vector/upsert",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Upsert Vector",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "8f9eb47165ca",
+      "parentId": "e04fe9f0da0b",
+      "name": "POST /vector/upsert/batch",
+      "method": "POST",
+      "url": "{{baseUrl}}/vector/upsert/batch",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "description": "Upsert Vectors Batch",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \n}"
+      }
+    }
+  ]
+}

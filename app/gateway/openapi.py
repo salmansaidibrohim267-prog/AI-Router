@@ -54,7 +54,9 @@ def generate_openapi_spec(gateway: Any) -> dict[str, Any]:
                 if route.protocol == RouteProtocol.SSE:
                     operation["responses"]["200"]["content"] = {"text/event-stream": {"schema": {"type": "string"}}}
                 elif route.protocol == RouteProtocol.STREAM:
-                    operation["responses"]["200"]["content"] = {"application/octet-stream": {"schema": {"type": "string", "format": "binary"}}}
+                    operation["responses"]["200"]["content"] = {
+                        "application/octet-stream": {"schema": {"type": "string", "format": "binary"}}
+                    }  # noqa: E501
                 else:
                     operation["responses"]["200"]["content"] = {"application/json": {"schema": {"type": "object"}}}
                 paths[route.pattern][lower] = operation

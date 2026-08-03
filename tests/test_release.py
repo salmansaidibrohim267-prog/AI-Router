@@ -38,7 +38,7 @@ class TestReleaseConfig:
         config = ReleaseConfig()
         assert config.project_name == "ai-router"
         assert config.initial_version == "1.0.0-rc.1"
-        assert config.registry == "ghcr.io/anomalyco"
+        assert config.registry == "ghcr.io/salmansaidibrohim267-prog"
         assert config.publishers == ["github"]
         assert config.pre_release_tags == ["rc", "beta", "alpha"]
         assert config.auto_publish is False
@@ -309,7 +309,7 @@ class TestPublishing:
         result = publisher.publish("1.0.0", [str(artifact)], "notes")
         assert result["release_id"] == 42
         assert result["uploads"] == [{"name": "wheel.whl", "asset_id": 55, "size": 4}]
-        assert any(url == "https://api.github.com/repos/anomalyco/ai-router/releases" for _, url, _ in calls)
+        assert any(url == "https://api.github.com/repos/salmansaidibrohim267-prog/AI-Router/releases" for _, url, _ in calls)
         release_body = [b for _, _, b in calls if isinstance(b, dict) and "tag_name" in b][0]
         assert release_body["tag_name"] == "v1.0.0"
         assert release_body["prerelease"] is False
@@ -405,7 +405,7 @@ class TestPublishing:
 
         publisher = ContainerRegistryPublisher(ReleaseConfig(), transport=transport)
         result = publisher.publish("1.0.0", [])
-        assert result["image"] == "ghcr.io/anomalyco/ai-router"
+        assert result["image"] == "ghcr.io/salmansaidibrohim267-prog/AI-Router"
         assert [tag for _, body in calls for tag in [body["tag"]]] == ["1.0.0", "latest", "1.0"]
 
     def test_registry_prerelease_single_tag(self):

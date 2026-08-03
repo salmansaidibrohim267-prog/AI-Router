@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import base64
-import json
 from typing import Any, Protocol
 
 import httpx
@@ -65,8 +64,9 @@ class BearerTokenAuth:
 class OAuth2Auth:
     name = "oauth2"
 
-    def __init__(self, token: str = "", client_id: str = "", client_secret: str = "",
-                 token_url: str = "", scope: str = ""):
+    def __init__(
+        self, token: str = "", client_id: str = "", client_secret: str = "", token_url: str = "", scope: str = ""
+    ):
         self._token = token
         self._client_id = client_id
         self._client_secret = client_secret

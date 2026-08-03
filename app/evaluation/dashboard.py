@@ -51,11 +51,7 @@ class EvaluationDashboard:
         }
 
     def series(self, metric: str) -> list[float]:
-        return [
-            entry["summary"][metric]
-            for entry in self._history
-            if metric in entry["summary"]
-        ]
+        return [entry["summary"][metric] for entry in self._history if metric in entry["summary"]]
 
     def summary(self) -> dict[str, Any]:
         return self.snapshot()

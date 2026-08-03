@@ -18,11 +18,13 @@ def main():
     parser.add_argument("--output", default=None, help="Output file (JSON)")
     args = parser.parse_args()
 
-    from benchmarks.runner import run_benchmark, get_system_metrics
+    from benchmarks.runner import get_system_metrics, run_benchmark
 
     async def _run():
-        print(f"Running benchmark: model={args.model}, num_requests={args.num_requests}, "
-              f"concurrency={args.concurrency}, stream={args.stream}")
+        print(
+            f"Running benchmark: model={args.model}, num_requests={args.num_requests}, "
+            f"concurrency={args.concurrency}, stream={args.stream}"
+        )
 
         result = await run_benchmark(
             model=args.model,
@@ -35,7 +37,7 @@ def main():
 
         data = result.to_dict()
 
-        print(f"\n--- Benchmark Results ---")
+        print("\n--- Benchmark Results ---")
         print(f"Duration: {data['duration_seconds']}s")
         print(f"Avg Latency: {data['average_latency_ms']}ms")
         print(f"P95: {data['p95_latency_ms']}ms")
@@ -47,7 +49,7 @@ def main():
 
         if not args.stream:
             metrics = await get_system_metrics()
-            print(f"\nSystem Metrics:")
+            print("\nSystem Metrics:")
             print(f"  Cache Hit Ratio: {metrics['cache_hit_ratio'] * 100:.1f}%")
             print(f"  Total Requests: {metrics['total_requests']}")
             print(f"  Success Rate: {metrics['success_rate'] * 100:.1f}%")
