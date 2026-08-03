@@ -62,7 +62,14 @@ class VersionNegotiator:
             return rest, candidate
         return path, ""
 
-    def negotiate(self, path: str, headers: dict[str, str] | None = None, *, url_version: str = "", query: dict[str, Any] | None = None) -> VersionInfo:
+    def negotiate(
+        self,
+        path: str,
+        headers: dict[str, str] | None = None,
+        *,
+        url_version: str = "",
+        query: dict[str, Any] | None = None,
+    ) -> VersionInfo:  # noqa: E501
         """Resolve the effective version, honoring header priority."""
         headers = headers or {}
         query = query or {}
@@ -132,7 +139,11 @@ class VersionNegotiator:
         }
 
     def enforce_deprecation(self, info: VersionInfo) -> None:
-        if info.deprecated and self._config.deprecated_versions.count(info.version) > 0 and getattr(self._config, "_hard_deprecation", False):
+        if (
+            info.deprecated
+            and self._config.deprecated_versions.count(info.version) > 0
+            and getattr(self._config, "_hard_deprecation", False)
+        ):  # noqa: E501
             raise VersionDeprecatedError(info.version)
 
 

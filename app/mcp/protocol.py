@@ -26,8 +26,7 @@ class JSONRPCRequest:
 
 
 class JSONRPCResponse:
-    def __init__(self, request_id: int | None = None, result: Any = None,
-                 error: dict[str, Any] | None = None):
+    def __init__(self, request_id: int | None = None, result: Any = None, error: dict[str, Any] | None = None):
         self.jsonrpc = "2.0"
         self.id = request_id
         self.result = result

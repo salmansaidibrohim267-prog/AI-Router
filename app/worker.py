@@ -8,8 +8,6 @@ import asyncio
 import logging
 import os
 import signal
-import sys
-import time
 
 from app.distributed.distributed_queue import DistributedTaskQueue
 from app.distributed.event_bus import DistributedEventBus, EventTypes
@@ -44,9 +42,12 @@ class WorkerProcess:
             max_concurrent=concurrency,
         )
 
-        await self._bus.publish(EventTypes.WORKER_STARTED, {
-            "worker_id": self._registry._worker_id,
-        })
+        await self._bus.publish(
+            EventTypes.WORKER_STARTED,
+            {
+                "worker_id": self._registry._worker_id,
+            },
+        )
 
         sem = asyncio.Semaphore(concurrency)
 
@@ -59,10 +60,13 @@ class WorkerProcess:
                 worker_id = self._registry._worker_id
                 task.metadata["worker_id"] = worker_id
                 task.state = TaskState.RUNNING
-                await self._bus.publish(EventTypes.TASK_STARTED, {
-                    "task_id": task.task_id,
-                    "worker_id": worker_id,
-                })
+                await self._bus.publish(
+                    EventTypes.TASK_STARTED,
+                    {
+                        "task_id": task.task_id,
+                        "worker_id": worker_id,
+                    },
+                )
 
                 try:
                     from app.orchestration.worker_pool import TaskWorker
@@ -74,19 +78,25 @@ class WorkerProcess:
                     task.state = TaskStateV7.COMPLETED
                     task.metadata["result"] = str(result)
                     await self._queue.ack(task.task_id)
-                    await self._bus.publish(EventTypes.TASK_COMPLETED, {
-                        "task_id": task.task_id,
-                        "worker_id": worker_id,
-                    })
+                    await self._bus.publish(
+                        EventTypes.TASK_COMPLETED,
+                        {
+                            "task_id": task.task_id,
+                            "worker_id": worker_id,
+                        },
+                    )
                 except Exception as e:
                     task.state = TaskState.FAILED
                     task.metadata["error"] = str(e)
                     await self._queue.nack(task.task_id, error=str(e))
-                    await self._bus.publish(EventTypes.TASK_FAILED, {
-                        "task_id": task.task_id,
-                        "worker_id": worker_id,
-                        "error": str(e),
-                    })
+                    await self._bus.publish(
+                        EventTypes.TASK_FAILED,
+                        {
+                            "task_id": task.task_id,
+                            "worker_id": worker_id,
+                            "error": str(e),
+                        },
+                    )
 
         async def poll_loop():
             while self._running:
@@ -94,14 +104,12 @@ class WorkerProcess:
                     await process_one()
                 except asyncio.CancelledError:
                     break
-                except Exception as e:
+                except Exception:
                     logger.exception("Worker poll error")
                     await asyncio.sleep(1)
 
         self._running = True
-        self._poll_tasks = [
-            asyncio.create_task(poll_loop()) for _ in range(concurrency)
-        ]
+        self._poll_tasks = [asyncio.create_task(poll_loop()) for _ in range(concurrency)]
         await asyncio.gather(*self._poll_tasks, return_exceptions=True)
 
     async def stop(self):
@@ -115,9 +123,12 @@ class WorkerProcess:
         self._poll_tasks.clear()
         try:
             if self._bus:
-                await self._bus.publish(EventTypes.WORKER_STOPPED, {
-                    "worker_id": self._registry._worker_id if self._registry else "unknown",
-                })
+                await self._bus.publish(
+                    EventTypes.WORKER_STOPPED,
+                    {
+                        "worker_id": self._registry._worker_id if self._registry else "unknown",
+                    },
+                )
         except Exception:
             pass
         try:

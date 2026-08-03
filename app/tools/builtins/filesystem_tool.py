@@ -13,7 +13,10 @@ class FilesystemTool(Tool):
         parameters={
             "type": "object",
             "properties": {
-                "input": {"type": "string", "description": "Operation and path, e.g. 'read /path/to/file' or 'write /path/to/file content' or 'ls /path'"},
+                "input": {
+                    "type": "string",
+                    "description": "Operation and path, e.g. 'read /path/to/file' or 'write /path/to/file content' or 'ls /path'",  # noqa: E501
+                },  # noqa: E501
             },
             "required": ["input"],
         },
@@ -124,6 +127,7 @@ class FilesystemTool(Tool):
                     p.unlink()
                 else:
                     import shutil
+
                     shutil.rmtree(p)
                 return ToolResponse(
                     tool_name=self.spec.name,

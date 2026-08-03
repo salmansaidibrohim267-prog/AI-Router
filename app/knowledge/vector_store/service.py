@@ -37,8 +37,11 @@ class VectorStoreService:
         metadata: dict[str, Any] | None = None,
     ) -> VectorCollection:
         return await self._store.create_collection(
-            name=name, dimensions=dimensions, distance=distance,
-            namespace=namespace, metadata=metadata,
+            name=name,
+            dimensions=dimensions,
+            distance=distance,
+            namespace=namespace,
+            metadata=metadata,
         )
 
     async def delete_collection(self, name: str) -> bool:
@@ -65,9 +68,14 @@ class VectorStoreService:
         include_vector: bool = False,
     ) -> list[SearchResult]:
         return await self._store.search(
-            vector=vector, top_k=top_k, score_threshold=score_threshold,
-            collection=collection, namespace=namespace, filter=filter,
-            include_metadata=include_metadata, include_vector=include_vector,
+            vector=vector,
+            top_k=top_k,
+            score_threshold=score_threshold,
+            collection=collection,
+            namespace=namespace,
+            filter=filter,
+            include_metadata=include_metadata,
+            include_vector=include_vector,
         )
 
     async def delete(
@@ -78,7 +86,10 @@ class VectorStoreService:
         namespace: str = "default",
     ) -> int:
         return await self._store.delete(
-            ids=ids, filter=filter, collection=collection, namespace=namespace,
+            ids=ids,
+            filter=filter,
+            collection=collection,
+            namespace=namespace,
         )
 
     async def clear(self, collection: str = "", namespace: str = "default") -> int:

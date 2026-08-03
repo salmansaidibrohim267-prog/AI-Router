@@ -123,9 +123,7 @@ class ClusterManager:
             await self.deployments.start()
         self.running = True
         self.started_at = time.time()
-        self._leader_failover_task = asyncio.create_task(
-            self._watch_leader_failover(), name="cluster-leader-watch"
-        )
+        self._leader_failover_task = asyncio.create_task(self._watch_leader_failover(), name="cluster-leader-watch")
         self.logger.log_event("cluster_joined", node=self.node.id)
 
     async def leave(self) -> None:
@@ -188,9 +186,7 @@ class ClusterManager:
         report.failed_nodes = [n.id for n in dead]
         for node in dead:
             if self.failover is not None:
-                report.reassigned_jobs += await self.failover.reassign(
-                    node.id, reason=RebalanceReason.NODE_FAILED
-                )
+                report.reassigned_jobs += await self.failover.reassign(node.id, reason=RebalanceReason.NODE_FAILED)
 
         if self.scheduler is not None:
             for job in self.scheduler.store.orphaned():

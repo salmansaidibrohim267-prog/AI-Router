@@ -1,14 +1,4 @@
 from app.knowledge.vector_store.config import VectorStoreConfig
-from app.knowledge.vector_store.models import (
-    DeleteRequest,
-    DistanceMetric,
-    SearchRequest,
-    SearchResult,
-    UpsertRequest,
-    VectorCollection,
-    VectorRecord,
-    VectorStoreStats,
-)
 from app.knowledge.vector_store.exceptions import (
     CollectionAlreadyExistsError,
     CollectionNotFoundError,
@@ -19,17 +9,27 @@ from app.knowledge.vector_store.exceptions import (
     VectorDimensionError,
     VectorStoreError,
 )
+from app.knowledge.vector_store.models import (
+    DeleteRequest,
+    DistanceMetric,
+    SearchRequest,
+    SearchResult,
+    UpsertRequest,
+    VectorCollection,
+    VectorRecord,
+    VectorStoreStats,
+)
 from app.knowledge.vector_store.protocol import VectorStore
-from app.knowledge.vector_store.validation import VectorStoreValidator
-from app.knowledge.vector_store.statistics import VectorStoreStatistics
-from app.knowledge.vector_store.service import VectorStoreService
 from app.knowledge.vector_store.providers import (
-    InMemoryVectorStore,
-    QdrantVectorStore,
     ChromaVectorStore,
+    InMemoryVectorStore,
     PgVectorStore,
+    QdrantVectorStore,
     RedisVectorStore,
 )
+from app.knowledge.vector_store.service import VectorStoreService
+from app.knowledge.vector_store.statistics import VectorStoreStatistics
+from app.knowledge.vector_store.validation import VectorStoreValidator
 
 __all__ = [
     "VectorStoreConfig",
@@ -71,34 +71,50 @@ def create_vector_store(
     store: InMemoryVectorStore | QdrantVectorStore | ChromaVectorStore | PgVectorStore | RedisVectorStore
     if cfg.backend == "qdrant":
         store = QdrantVectorStore(
-            url=cfg.qdrant_url, api_key=cfg.qdrant_api_key,
+            url=cfg.qdrant_url,
+            api_key=cfg.qdrant_api_key,
             prefer_grpc=cfg.qdrant_prefer_grpc,
-            dimensions=cfg.dimensions, distance=DistanceMetric(cfg.distance),
-            validator=validator, statistics=stats,
+            dimensions=cfg.dimensions,
+            distance=DistanceMetric(cfg.distance),
+            validator=validator,
+            statistics=stats,
         )
     elif cfg.backend == "chroma":
         store = ChromaVectorStore(
-            host=cfg.chroma_host, port=cfg.chroma_port, auth=cfg.chroma_auth,
-            dimensions=cfg.dimensions, distance=DistanceMetric(cfg.distance),
-            validator=validator, statistics=stats,
+            host=cfg.chroma_host,
+            port=cfg.chroma_port,
+            auth=cfg.chroma_auth,
+            dimensions=cfg.dimensions,
+            distance=DistanceMetric(cfg.distance),
+            validator=validator,
+            statistics=stats,
         )
     elif cfg.backend == "pgvector":
         store = PgVectorStore(
-            dsn=cfg.pgvector_dsn, table=cfg.pgvector_table,
+            dsn=cfg.pgvector_dsn,
+            table=cfg.pgvector_table,
             pool_size=cfg.pgvector_pool_size,
-            dimensions=cfg.dimensions, distance=DistanceMetric(cfg.distance),
-            validator=validator, statistics=stats,
+            dimensions=cfg.dimensions,
+            distance=DistanceMetric(cfg.distance),
+            validator=validator,
+            statistics=stats,
         )
     elif cfg.backend == "redis_vector":
         store = RedisVectorStore(
-            redis_url=cfg.redis_url, index=cfg.redis_index, prefix=cfg.redis_prefix,
-            dimensions=cfg.dimensions, distance=DistanceMetric(cfg.distance),
-            validator=validator, statistics=stats,
+            redis_url=cfg.redis_url,
+            index=cfg.redis_index,
+            prefix=cfg.redis_prefix,
+            dimensions=cfg.dimensions,
+            distance=DistanceMetric(cfg.distance),
+            validator=validator,
+            statistics=stats,
         )
     else:
         store = InMemoryVectorStore(
-            dimensions=cfg.dimensions, distance=DistanceMetric(cfg.distance),
-            validator=validator, statistics=stats,
+            dimensions=cfg.dimensions,
+            distance=DistanceMetric(cfg.distance),
+            validator=validator,
+            statistics=stats,
         )
     stats.set_provider(store.provider_name)
     return store

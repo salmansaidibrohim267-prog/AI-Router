@@ -4,7 +4,6 @@ import os
 import threading
 import time
 from pathlib import Path
-from typing import Any
 
 from app.plugin.registry import PluginRegistry
 

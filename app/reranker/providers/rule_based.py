@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import re
-import time
 from typing import Any
 
 from app.reranker.calibration import CalibrationStrategy, create_calibration_strategy
-from app.reranker.exceptions import RerankerInputError
 from app.reranker.models import RerankerResult
 from app.reranker.protocol import BaseReranker
 
@@ -16,9 +14,7 @@ class RuleBasedReranker(BaseReranker):
         calibration: str | None = None,
         calibration_strategy: CalibrationStrategy | None = None,
     ):
-        self._calibration = calibration_strategy or (
-            create_calibration_strategy(calibration) if calibration else None
-        )
+        self._calibration = calibration_strategy or (create_calibration_strategy(calibration) if calibration else None)
         self._warmed = False
 
     @property
@@ -70,22 +66,24 @@ class RuleBasedReranker(BaseReranker):
         if self._calibration:
             calibrated = self._calibration.calibrate(raw_scores)
 
-        scored = list(zip(candidates, raw_scores, calibrated))
+        scored = list(zip(candidates, raw_scores, calibrated, strict=False))
         scored.sort(key=lambda x: x[2], reverse=True)
         top = scored[:top_k]
 
         results: list[RerankerResult] = []
         for rank, (cand, raw, cal) in enumerate(top, 1):
             doc_id = cand.get("id", cand.get("_id", str(hash(str(cand)))))
-            results.append(RerankerResult(
-                id=doc_id,
-                score=cal,
-                original_score=raw,
-                calibrated_score=cal,
-                rank=rank,
-                metadata=cand.get("metadata", {}),
-                model=self.model_name,
-            ))
+            results.append(
+                RerankerResult(
+                    id=doc_id,
+                    score=cal,
+                    original_score=raw,
+                    calibrated_score=cal,
+                    rank=rank,
+                    metadata=cand.get("metadata", {}),
+                    model=self.model_name,
+                )
+            )
         return results
 
     def _tokenize(self, text: str) -> list[str]:

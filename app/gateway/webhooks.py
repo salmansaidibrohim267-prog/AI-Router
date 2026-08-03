@@ -127,9 +127,12 @@ class WebhookManager:
         with self._lock:
             self._deliveries.append(delivery)
         if self._logger.enabled:
-                self._logger.log_event(
-                    "webhook.delivered", webhook_id=webhook.id, event_name=event,
-                status_code=last_status, attempts=attempts,
+            self._logger.log_event(
+                "webhook.delivered",
+                webhook_id=webhook.id,
+                event_name=event,
+                status_code=last_status,
+                attempts=attempts,
             )
         return delivery
 

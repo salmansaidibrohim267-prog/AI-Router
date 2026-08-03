@@ -16,7 +16,6 @@ caching, rotation and audit hooks.
 from __future__ import annotations
 
 import base64
-import json
 import os
 import time
 from abc import ABC, abstractmethod
@@ -26,7 +25,7 @@ from .config import SecurityConfig
 from .exceptions import SecretBackendError, SecretNotFoundError
 from .logging import SecurityLogger
 from .metrics import SecurityMetricsTracker
-from .models import Secret, SecretKind, SecretStatus, generate_id
+from .models import Secret, SecretKind, generate_id
 
 
 class SecretBackend(ABC):
@@ -37,10 +36,10 @@ class SecretBackend(ABC):
     def __init__(self, config: SecurityConfig) -> None:
         self.config = config
 
-    async def start(self) -> None:
+    async def start(self) -> None:  # noqa: B027
         """Open any client resources (overridden by HTTP adapters)."""
 
-    async def close(self) -> None:
+    async def close(self) -> None:  # noqa: B027
         """Release client resources (overridden by HTTP adapters)."""
 
     @abstractmethod
@@ -388,9 +387,7 @@ class GoogleBackend(SecretBackend):
             raise SecretBackendError("google backend requires an injected client")
         parent = f"projects/{self.project}/secrets/{secret.name}"
         try:
-            self.client.create_secret(
-                request={"parent": f"projects/{self.project}", "secret_id": secret.name}
-            )
+            self.client.create_secret(request={"parent": f"projects/{self.project}", "secret_id": secret.name})
         except Exception:
             pass  # already exists
         try:
@@ -448,9 +445,7 @@ class SecretBackendRegistry:
         return factory(config, **overrides)
 
 
-def create_secret_backend(
-    config: SecurityConfig | None = None, **overrides: Any
-) -> SecretBackend:
+def create_secret_backend(config: SecurityConfig | None = None, **overrides: Any) -> SecretBackend:
     """DI factory for secret backends."""
     config = config or SecurityConfig()
     registry = overrides.pop("registry", None) or SecretBackendRegistry()

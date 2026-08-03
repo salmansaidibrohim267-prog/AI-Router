@@ -75,11 +75,13 @@ class DistributedTaskQueue:
                     task.lease_expires_at = time.time() + self._visibility_timeout
                     task.updated_at = time.time()
                     await self._save_task(task)
-                    lease_data = json.dumps({
-                        "task_id": task_id,
-                        "lease_id": lease_id,
-                        "expires_at": task.lease_expires_at,
-                    })
+                    lease_data = json.dumps(
+                        {
+                            "task_id": task_id,
+                            "lease_id": lease_id,
+                            "expires_at": task.lease_expires_at,
+                        }
+                    )
                     await self._redis.set(
                         f"{LEASE_PREFIX}{task_id}",
                         lease_data,
@@ -111,7 +113,7 @@ class DistributedTaskQueue:
         if requeue and task.retry_count < task.max_retries:
             task.state = TaskState.RETRYING
             await self._save_task(task)
-            delay = min(2 ** task.retry_count, 60)
+            delay = min(2**task.retry_count, 60)
             exec_at = time.time() + delay
             await self._redis.zadd(DELAYED_PREFIX, exec_at, task_id)
             logger.info(f"Task {task_id} retry {task.retry_count}/{task.max_retries} in {delay}s")

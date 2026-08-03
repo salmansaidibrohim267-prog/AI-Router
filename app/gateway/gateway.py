@@ -14,10 +14,10 @@ from typing import Any, Awaitable, Callable
 from ..auth import AuthenticationManager
 from ..organization import OrganizationService
 from ..tenancy import TenantManager
-from .cache import ResponseCache, cache_key
+from .cache import ResponseCache
 from .config import GatewayConfig
 from .dispatch import InMemoryTransport, ServiceDispatcher, Transport
-from .exceptions import GatewayError, VersionDeprecatedError, VersionNotSupportedError
+from .exceptions import GatewayError
 from .logging import GatewayLogger
 from .middleware import (
     AuthMiddleware,
@@ -40,12 +40,9 @@ from .models import (
     Route,
     RouteMethod,
     RouteProtocol,
-    RouteVisibility,
     ServiceDescriptor,
     StreamEvent,
     VersionInfo,
-    Webhook,
-    WebhookDelivery,
 )
 from .quota import QuotaManager
 from .ratelimit import RateLimiter
@@ -88,7 +85,12 @@ class APIGateway:
         self._cache = cache or ResponseCache(self._config, self._logger)
         self._webhooks = webhooks or WebhookManager(self._config, self._logger)
         self._dispatcher = dispatcher or ServiceDispatcher(
-            transports={RouteProtocol.HTTP.value: InMemoryTransport(), RouteProtocol.SSE.value: InMemoryTransport(), RouteProtocol.STREAM.value: InMemoryTransport(), RouteProtocol.WEBSOCKET.value: InMemoryTransport()}
+            transports={
+                RouteProtocol.HTTP.value: InMemoryTransport(),
+                RouteProtocol.SSE.value: InMemoryTransport(),
+                RouteProtocol.STREAM.value: InMemoryTransport(),
+                RouteProtocol.WEBSOCKET.value: InMemoryTransport(),
+            }  # noqa: E501
         )
         self._router = RouteRegistry(self._config, self._logger)
         self._negotiator = VersionNegotiator(self._config)
@@ -241,18 +243,27 @@ class APIGateway:
         )
         return result
 
-    async def stream(self, method: str, path: str, headers: dict[str, str] | None = None, query: dict[str, Any] | None = None, body: Any = None, **kwargs: Any) -> DispatchResult:
+    async def stream(
+        self,
+        method: str,
+        path: str,
+        headers: dict[str, str] | None = None,
+        query: dict[str, Any] | None = None,
+        body: Any = None,
+        **kwargs: Any,
+    ) -> DispatchResult:  # noqa: E501
         """Dispatch a request and return a streaming response body iterator."""
         result = await self.dispatch(method, path, headers, query, body, **kwargs)
         return result
 
-    async def dispatch_websocket(self, path: str, headers: dict[str, str] | None = None, version: str = "", tenant_id: str = "") -> list[StreamEvent]:
+    async def dispatch_websocket(
+        self, path: str, headers: dict[str, str] | None = None, version: str = "", tenant_id: str = ""
+    ) -> list[StreamEvent]:  # noqa: E501
         """Dispatch a websocket upgrade and collect the event stream."""
         started = time.time()
         headers = headers or {}
         clean_path, url_version = self._negotiator.strip_version_prefix(path)
         info = self._negotiator.negotiate(clean_path, headers, url_version=url_version or version)
-        client_id = headers.get("X-Client-ID", "")
 
         request = GatewayRequest(
             method=RouteMethod.GET.value,
@@ -277,7 +288,9 @@ class APIGateway:
         events: list[StreamEvent] = []
         async for event in transport.websocket(descriptor, request):
             events.append(event)
-        self._metrics.record_request("WS", clean_path, 200, time.time() - started, version=info.version, protocol="websocket")
+        self._metrics.record_request(
+            "WS", clean_path, 200, time.time() - started, version=info.version, protocol="websocket"
+        )  # noqa: E501
         return events
 
     # ------------------------------------------------------------ internals

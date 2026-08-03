@@ -4,7 +4,6 @@ import logging
 from typing import Any
 
 from app.memory.summary import ConversationSummarizer
-from app.models import ChatRequest, Message, MessageRole
 
 logger = logging.getLogger(__name__)
 
@@ -84,10 +83,12 @@ class ContextCompressor:
 
         compressed = system_msgs.copy()
         if summary:
-            compressed.append({
-                "role": "system",
-                "content": f"Previous conversation summary: {summary}",
-            })
+            compressed.append(
+                {
+                    "role": "system",
+                    "content": f"Previous conversation summary: {summary}",
+                }
+            )
         compressed.extend(recent)
 
         if not compressed:
@@ -97,6 +98,4 @@ class ContextCompressor:
         return compressed
 
     def _estimate_tokens(self, messages: list[dict[str, Any]]) -> int:
-        return ConversationSummarizer.estimate_tokens(
-            " ".join(m.get("content", "") for m in messages)
-        )
+        return ConversationSummarizer.estimate_tokens(" ".join(m.get("content", "") for m in messages))

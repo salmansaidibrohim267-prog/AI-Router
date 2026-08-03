@@ -103,7 +103,9 @@ class MemberManager:
             user_id=user_id,
             role=role,
         )
-        self._audit_event("org.member_added", organization.tenant_id, actor.user_id if actor else user_id, user_id=user_id, role=role)
+        self._audit_event(
+            "org.member_added", organization.tenant_id, actor.user_id if actor else user_id, user_id=user_id, role=role
+        )  # noqa: E501
         return member
 
     def remove_member(
@@ -122,7 +124,9 @@ class MemberManager:
             self._guard.require(actor, actor_member, "org:manage_members")
         deleted = self._members.delete(member.id)
         self._metrics.record("member_removed", organization_id)
-        self._audit_event("org.member_removed", organization.tenant_id, actor.user_id if actor else user_id, user_id=user_id)
+        self._audit_event(
+            "org.member_removed", organization.tenant_id, actor.user_id if actor else user_id, user_id=user_id
+        )  # noqa: E501
         return deleted
 
     def set_role(
@@ -151,11 +155,17 @@ class MemberManager:
         member.updated_at = time.time()
         self._members.update(member)
         self._metrics.record("member_role_changed", organization_id)
-        self._audit_event("org.member_role_changed", organization.tenant_id, actor.user_id if actor else user_id, user_id=user_id, role=role)
+        self._audit_event(
+            "org.member_role_changed",
+            organization.tenant_id,
+            actor.user_id if actor else user_id,
+            user_id=user_id,
+            role=role,
+        )  # noqa: E501
         return member
 
     def get_member(self, organization_id: str, user_id: str, tenant_id: str = "") -> Member:
-        organization = self._get_org(organization_id, tenant_id)
+        _ = self._get_org(organization_id, tenant_id)
         member = self._members.get_by_user(organization_id, user_id)
         if member is None:
             raise MemberNotFoundError(organization_id, user_id)
@@ -181,9 +191,7 @@ class MemberManager:
         self._guard.require(principal, member, permission)
         return member
 
-    def has_permission(
-        self, principal: Principal, organization_id: str, permission: str, tenant_id: str = ""
-    ) -> bool:
+    def has_permission(self, principal: Principal, organization_id: str, permission: str, tenant_id: str = "") -> bool:
         try:
             self.require_permission(principal, organization_id, permission, tenant_id)
             return True
@@ -192,13 +200,24 @@ class MemberManager:
         except Exception:
             return False
 
-    async def add_member_async(self, organization_id: str, user_id: str, tenant_id: str = "", role: str = "member", actor: Principal | None = None) -> Member:
+    async def add_member_async(
+        self,
+        organization_id: str,
+        user_id: str,
+        tenant_id: str = "",
+        role: str = "member",
+        actor: Principal | None = None,
+    ) -> Member:  # noqa: E501
         return self.add_member(organization_id, user_id, tenant_id, role, actor)
 
-    async def remove_member_async(self, organization_id: str, user_id: str, tenant_id: str = "", actor: Principal | None = None) -> bool:
+    async def remove_member_async(
+        self, organization_id: str, user_id: str, tenant_id: str = "", actor: Principal | None = None
+    ) -> bool:  # noqa: E501
         return self.remove_member(organization_id, user_id, tenant_id, actor)
 
-    async def set_role_async(self, organization_id: str, user_id: str, role: str, tenant_id: str = "", actor: Principal | None = None) -> Member:
+    async def set_role_async(
+        self, organization_id: str, user_id: str, role: str, tenant_id: str = "", actor: Principal | None = None
+    ) -> Member:  # noqa: E501
         return self.set_role(organization_id, user_id, role, tenant_id, actor)
 
     async def list_members_async(self, organization_id: str, tenant_id: str = "") -> list[Member]:

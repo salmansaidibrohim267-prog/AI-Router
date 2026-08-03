@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import math
 import time
-from typing import Any
 
 from app.retrieval.config import RetrievalConfig
 from app.retrieval.models import SearchQuery, SearchResultItem
@@ -97,6 +96,8 @@ class Ranker:
         sim = item.similarity_score
         rec = item.recency_score * 0.1 if self._config.enable_recency_boost else 0
         qual = item.quality_score * self._config.quality_weight if self._config.enable_quality_boost else 0
-        meta = item.metadata_boost_score * self._config.metadata_boost_weight if self._config.enable_metadata_boost else 0
+        meta = (
+            item.metadata_boost_score * self._config.metadata_boost_weight if self._config.enable_metadata_boost else 0
+        )  # noqa: E501
         manual = item.manual_boost * self._config.manual_boost_weight if self._config.enable_manual_boost else 0
         return sim + rec + qual + meta + manual

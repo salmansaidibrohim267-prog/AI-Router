@@ -53,7 +53,7 @@ class TaskScheduler:
         logger.info(f"Scheduler started with {len(self._jobs)} jobs")
         while self._running:
             now = time.time()
-            for job_id, job in list(self._jobs.items()):
+            for _, job in list(self._jobs.items()):
                 if not job["enabled"]:
                     continue
                 if job["max_runs"] > 0 and job["run_count"] >= job["max_runs"]:

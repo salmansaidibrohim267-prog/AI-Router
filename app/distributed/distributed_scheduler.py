@@ -52,9 +52,7 @@ class DistributedScheduler:
         self._jobs.pop(job_id, None)
 
     def list_jobs(self) -> list[dict[str, Any]]:
-        return [
-            {"job_id": jid, **job} for jid, job in self._jobs.items()
-        ]
+        return [{"job_id": jid, **job} for jid, job in self._jobs.items()]
 
     def on_leader_change(self, callback: Callable[[bool], Any]) -> None:
         self._on_leader_change = callback
@@ -69,13 +67,13 @@ class DistributedScheduler:
         self._running = False
         if self._is_leader:
             await self._release_leadership()
-        if hasattr(self, '_leader_task'):
+        if hasattr(self, "_leader_task"):
             self._leader_task.cancel()
             try:
                 await self._leader_task
             except asyncio.CancelledError:
                 pass
-        if hasattr(self, '_job_task'):
+        if hasattr(self, "_job_task"):
             self._job_task.cancel()
             try:
                 await self._job_task
@@ -141,9 +139,10 @@ class DistributedScheduler:
                             continue
                         if now - job["last_run"] >= job["interval"]:
                             try:
-                                from app.tasks.queue import TaskQueue
                                 from app.memory.store import SQLiteStore
+                                from app.tasks.queue import TaskQueue
                                 from app.tasks.storage import TaskStorage
+
                                 store = SQLiteStore()
                                 storage = TaskStorage(store)
                                 queue = TaskQueue(storage)

@@ -17,9 +17,7 @@ class TokenBudgetManager:
         budget = token_budget or self._config.token_budget
         reservation = response_reservation or self._config.response_reservation
         if reservation >= budget:
-            raise PromptBudgetError(
-                f"Response reservation ({reservation}) must be less than token budget ({budget})"
-            )
+            raise PromptBudgetError(f"Response reservation ({reservation}) must be less than token budget ({budget})")
         available = budget - reservation
         used = min(total_estimate, available)
         return {
@@ -65,9 +63,7 @@ class TokenBudgetManager:
         available: int,
         tokenizer=None,
     ) -> dict[str, int]:
-        counts = {
-            name: self.count_tokens(content, tokenizer) for name, content in sections
-        }
+        counts = {name: self.count_tokens(content, tokenizer) for name, content in sections}
         total = sum(counts.values())
         if total == 0:
             return {name: 0 for name, _ in sections}

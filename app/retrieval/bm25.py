@@ -50,9 +50,7 @@ class BM25InvertedIndex:
         if not was_present:
             self._doc_count += 1
 
-        self._avg_doc_length = (
-            sum(self._doc_lengths.values()) / self._doc_count if self._doc_count > 0 else 0.0
-        )
+        self._avg_doc_length = sum(self._doc_lengths.values()) / self._doc_count if self._doc_count > 0 else 0.0
         self._recompute_df()
 
     def remove_document(self, doc_id: str) -> bool:
@@ -65,9 +63,7 @@ class BM25InvertedIndex:
             if not self._postings[term]:
                 del self._postings[term]
         self._doc_count = max(0, self._doc_count - 1)
-        self._avg_doc_length = (
-            sum(self._doc_lengths.values()) / self._doc_count if self._doc_count > 0 else 0.0
-        )
+        self._avg_doc_length = sum(self._doc_lengths.values()) / self._doc_count if self._doc_count > 0 else 0.0
         self._recompute_df()
         return True
 
@@ -103,16 +99,15 @@ class BM25InvertedIndex:
                 if filter_ids is not None and doc_id not in filter_ids:
                     continue
                 doc_len = self._doc_lengths.get(doc_id, 0)
-                bm25_score = idf * (tf * (self._k1 + 1)) / (
-                    tf + self._k1 * (1 - self._b + self._b * doc_len / max(self._avg_doc_length, 1))
+                bm25_score = (
+                    idf
+                    * (tf * (self._k1 + 1))
+                    / (tf + self._k1 * (1 - self._b + self._b * doc_len / max(self._avg_doc_length, 1)))
                 )
                 scores[doc_id] = scores.get(doc_id, 0.0) + bm25_score
 
         ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:top_k]
-        return [
-            (doc_id, score, self._doc_store.get(doc_id, {}).get("metadata", {}))
-            for doc_id, score in ranked
-        ]
+        return [(doc_id, score, self._doc_store.get(doc_id, {}).get("metadata", {})) for doc_id, score in ranked]
 
     def _compute_idf(self, term: str) -> float:
         df = self._doc_freq.get(term, 0)

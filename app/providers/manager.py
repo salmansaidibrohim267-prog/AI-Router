@@ -8,19 +8,18 @@ import time
 from typing import Any
 
 from app.config import config_manager
-from app.exceptions import ProviderError, ProviderUnavailableError
+from app.metrics import set_circuit_breaker_state, set_provider_health, set_provider_latency
 from app.models import HealthCheckResponse, ModelInfo, ProviderStatus
-from app.metrics import set_provider_health, set_provider_latency, set_circuit_breaker_state
-from app.secrets import get_secret
+from app.providers.anthropic import AnthropicProvider
 from app.providers.base import BaseProvider
-from app.providers.openrouter import OpenRouterProvider
+from app.providers.discovery import discover_custom_providers
+from app.providers.google import GoogleProvider
+from app.providers.groq import GroqProvider
+from app.providers.mistral import MistralProvider
 from app.providers.ollama import OllamaProvider
 from app.providers.openai import OpenAIProvider
-from app.providers.anthropic import AnthropicProvider
-from app.providers.google import GoogleProvider
-from app.providers.mistral import MistralProvider
-from app.providers.groq import GroqProvider
-from app.providers.discovery import discover_custom_providers
+from app.providers.openrouter import OpenRouterProvider
+from app.secrets import get_secret
 
 BUILTIN_PROVIDERS = {
     "openrouter": OpenRouterProvider,
@@ -32,6 +31,7 @@ BUILTIN_PROVIDERS = {
     "groq": GroqProvider,
 }
 
+
 def _get_provider_registry() -> dict[str, type[BaseProvider]]:
     registry = dict(BUILTIN_PROVIDERS)
     try:
@@ -41,7 +41,9 @@ def _get_provider_registry() -> dict[str, type[BaseProvider]]:
         pass
     return registry
 
+
 logger = logging.getLogger(__name__)
+
 
 PROVIDER_ALIASES = {
     "gemini": "google",
@@ -137,8 +139,9 @@ class ProviderManager:
 
     async def reload_from_yaml(self) -> None:
         """Reload providers directly from providers.yaml."""
+
         import yaml
-        from pathlib import Path
+
         from app.config import CONFIG_DIR
 
         providers_file = CONFIG_DIR / "providers.yaml"
@@ -241,7 +244,9 @@ class ProviderManager:
             return self._health_status.get(name.lower())
         return self._health_status.copy()
 
-    async def check_health(self, name: str | None = None, max_concurrency: int = 5, timeout: float = 10.0) -> dict[str, HealthCheckResponse]:
+    async def check_health(
+        self, name: str | None = None, max_concurrency: int = 5, timeout: float = 10.0
+    ) -> dict[str, HealthCheckResponse]:  # noqa: E501
         """Run health checks in parallel using asyncio.gather with concurrency limiting.
 
         Args:
@@ -315,7 +320,9 @@ class ProviderManager:
         set_circuit_breaker_state(name, self._circuit_breakers[name].state)
         if self._circuit_breakers[name].is_open:
             self._disabled.add(name)
-            logger.warning(f"Provider {name} disabled by circuit breaker after {self._circuit_breakers[name].failure_count} failures")
+            logger.warning(
+                f"Provider {name} disabled by circuit breaker after {self._circuit_breakers[name].failure_count} failures"  # noqa: E501
+            )
 
     def is_circuit_open(self, name: str) -> bool:
         cb = self._circuit_breakers.get(name)

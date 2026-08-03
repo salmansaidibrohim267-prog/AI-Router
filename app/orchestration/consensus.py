@@ -4,10 +4,10 @@ import asyncio
 import time
 from typing import Any
 
-from app.orchestration.models import ConsensusResult, ConsensusStrategy, VoteScore
+from app.models import ChatRequest
 from app.orchestration.metrics import consensus_count_total
+from app.orchestration.models import ConsensusResult, ConsensusStrategy, VoteScore
 from app.router import AIRouter
-from app.models import ChatRequest, Message, MessageRole
 
 
 class VotingEngine:
@@ -46,6 +46,7 @@ class VotingEngine:
 
     def _score_cost(self, provider: str, model: str) -> float:
         from app.costs import token_accounting
+
         try:
             cost_info = token_accounting.estimate_cost(provider, model, 100, 100)
             if cost_info <= 0:
@@ -69,6 +70,7 @@ class VotingEngine:
 
     def _score_reliability(self, provider: str, model: str) -> float:
         from app.router import router
+
         stats = router.get_provider_stats()
         if provider in stats:
             p = stats[provider]
@@ -96,8 +98,6 @@ class ConsensusEngine:
         strategy: str = "majority_vote",
     ) -> ConsensusResult:
         consensus_count_total.labels(strategy=strategy).inc()
-
-        responses: list[tuple[str, str, str, float]] = []
 
         async def query_provider(provider: str) -> tuple[str, str, str, float] | None:
             try:
@@ -153,7 +153,11 @@ class ConsensusEngine:
                 total_votes=len(providers),
             )
 
-        if strategy_enum in (ConsensusStrategy.WEIGHTED_SCORE, ConsensusStrategy.HIGHEST_CONFIDENCE, ConsensusStrategy.BEST_QUALITY):
+        if strategy_enum in (
+            ConsensusStrategy.WEIGHTED_SCORE,
+            ConsensusStrategy.HIGHEST_CONFIDENCE,
+            ConsensusStrategy.BEST_QUALITY,
+        ):  # noqa: E501
             scored: list[tuple[VoteScore, str, str, str, float]] = []
             for provider, model, content, latency in valid_responses:
                 score = self._voting.score_response(content, latency, provider, model)
@@ -184,7 +188,7 @@ class ConsensusEngine:
             )
 
         votes_dict: dict[str, list[tuple[str, str, str]]] = {}
-        for provider, model, content, latency in valid_responses:
+        for provider, model, content, _ in valid_responses:
             simplified = content[:100].lower()
             votes_dict.setdefault(simplified, []).append((provider, model, content))
         winner = max(votes_dict.values(), key=len)

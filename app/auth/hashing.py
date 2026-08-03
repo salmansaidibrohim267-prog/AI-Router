@@ -9,9 +9,7 @@ from .config import AuthConfig
 
 def hash_password(password: str, iterations: int = 100_000) -> str:
     salt = secrets.token_bytes(16)
-    digest = hashlib.pbkdf2_hmac(
-        "sha256", password.encode("utf-8"), salt, iterations=iterations
-    )
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, iterations=iterations)
     return f"pbkdf2_sha256${iterations}${salt.hex()}${digest.hex()}"
 
 
@@ -23,9 +21,7 @@ def verify_password(password: str, stored: str) -> bool:
         expected = bytes.fromhex(digest_hex)
     except (ValueError, AttributeError):
         return False
-    digest = hashlib.pbkdf2_hmac(
-        "sha256", password.encode("utf-8"), salt, iterations=iterations
-    )
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, iterations=iterations)
     return hmac.compare_digest(digest, expected)
 
 

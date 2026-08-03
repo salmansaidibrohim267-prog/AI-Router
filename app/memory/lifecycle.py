@@ -3,9 +3,9 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from app.memory.config import MemoryVectorConfig, MEMORY_TYPE_TTL_DAYS
+from app.memory.config import MEMORY_TYPE_TTL_DAYS, MemoryVectorConfig
 from app.memory.exceptions import MemoryLifecycleError
-from app.memory.models import MemoryItem, MemoryScope, MemoryType
+from app.memory.models import MemoryItem, MemoryScope
 
 
 class MemoryLifecycleManager:
@@ -37,9 +37,7 @@ class MemoryLifecycleManager:
     ) -> dict[str, Any]:
         try:
             now = now if now is not None else time.time()
-            items = [
-                i for i in self._repository.list(scope) if not i.archived
-            ]
+            items = [i for i in self._repository.list(scope) if not i.archived]
             expired = [i for i in items if await self.check_ttl(i, now)]
             archived: list[MemoryItem] = []
             pruned: list[MemoryItem] = []
@@ -57,10 +55,7 @@ class MemoryLifecycleManager:
                 pruned = expired
 
             if self._config.enable_pruning:
-                active = [
-                    i for i in items
-                    if i.id not in {e.id for e in expired}
-                ]
+                active = [i for i in items if i.id not in {e.id for e in expired}]
                 pruned += self._prune(active)
 
             archived += await self._collect_archived(items)

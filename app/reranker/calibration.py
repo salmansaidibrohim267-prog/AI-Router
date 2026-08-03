@@ -6,13 +6,11 @@ from abc import ABC, abstractmethod
 
 class CalibrationStrategy(ABC):
     @abstractmethod
-    def calibrate(self, scores: list[float]) -> list[float]:
-        ...
+    def calibrate(self, scores: list[float]) -> list[float]: ...
 
     @property
     @abstractmethod
-    def name(self) -> str:
-        ...
+    def name(self) -> str: ...
 
 
 class MinMaxCalibration(CalibrationStrategy):

@@ -68,7 +68,11 @@ def _derive_status(framework: ComplianceFramework, control_id: str, config: Secu
         if control_id == "Art.20":
             return ControlStatus.IMPLEMENTED if config.pii_detection_enabled else ControlStatus.PARTIAL
         if control_id == "Art.32":
-            return ControlStatus.IMPLEMENTED if config.encryption_algorithm.startswith("aes-256") else ControlStatus.PARTIAL
+            return (
+                ControlStatus.IMPLEMENTED
+                if config.encryption_algorithm.startswith("aes-256")
+                else ControlStatus.PARTIAL
+            )  # noqa: E501
         if control_id == "Art.30":
             return ControlStatus.PARTIAL
         return ControlStatus.IMPLEMENTED

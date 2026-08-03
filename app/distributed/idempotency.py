@@ -46,7 +46,7 @@ class IdempotencyGuard:
             return True
         key = f"{IDEMPOTENCY_PREFIX}{idempotency_key}"
         acquired = await self._redis.eval_script(
-            """local key = KEYS[1]; local value = ARGV[1]; local ttl = tonumber(ARGV[2]); local acquired = redis.call('set', key, value, 'NX', 'EX', ttl); return acquired and 1 or 0;""",
+            """local key = KEYS[1]; local value = ARGV[1]; local ttl = tonumber(ARGV[2]); local acquired = redis.call('set', key, value, 'NX', 'EX', ttl); return acquired and 1 or 0;""",  # noqa: E501
             keys=[key],
             args=[str(time.time()), str(self._ttl)],
         )

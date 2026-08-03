@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import concurrent.futures
 import resource
-import threading
 from pathlib import Path
 from typing import Any, Callable
 
@@ -105,7 +104,9 @@ class Sandbox:
         try:
             return await asyncio.wait_for(coro, timeout=timeout)
         except asyncio.TimeoutError:
-            raise PluginTimeoutError(f"plugin execution exceeded timeout of {timeout}s", timeout_seconds=timeout) from None
+            raise PluginTimeoutError(
+                f"plugin execution exceeded timeout of {timeout}s", timeout_seconds=timeout
+            ) from None  # noqa: E501
 
     def shutdown(self) -> None:
         self._executor.shutdown(wait=False, cancel_futures=True)

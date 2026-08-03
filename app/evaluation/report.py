@@ -45,9 +45,7 @@ class ReportGenerator:
         if isinstance(result, BenchmarkResult):
             lines.append(f"# Benchmark: {result.name}")
             lines.append("")
-            lines.append(
-                f"- Dataset: **{result.dataset_name}** ({result.dataset_type})"
-            )
+            lines.append(f"- Dataset: **{result.dataset_name}** ({result.dataset_type})")
             lines.append(f"- Duration: {result.duration_ms} ms")
             if result.gate is not None:
                 lines.append(f"- Quality Gate: **{'PASSED' if result.gate['passed'] else 'FAILED'}**")
@@ -65,16 +63,10 @@ class ReportGenerator:
             lines.append(f"**Error:** {result.error}")
         lines.extend(["", "| Metric | Value | Min | Max | Passed |", "| --- | ---: | ---: | ---: | ---: |"])
         for metric in result.metrics:
-            passed = (
-                "✅" if metric.passed else "❌"
-                if metric.passed is False
-                else "—"
-            )
+            passed = "✅" if metric.passed else "❌" if metric.passed is False else "—"
             min_val = metric.threshold_min if metric.threshold_min is not None else "—"
             max_val = metric.threshold_max if metric.threshold_max is not None else "—"
-            lines.append(
-                f"| {metric.name} | {metric.value} | {min_val} | {max_val} | {passed} |"
-            )
+            lines.append(f"| {metric.name} | {metric.value} | {min_val} | {max_val} | {passed} |")
         return lines
 
     def to_html(self, result: EvaluationResult | BenchmarkResult) -> str:
@@ -123,9 +115,7 @@ class ReportGenerator:
                 f"<td>{metric.threshold_max if metric.threshold_max is not None else '—'}</td>"
                 f'<td class="{cls}">{passed}</td></tr>'
             )
-        error_html = (
-            f"<p style='color:#cf222e'>Error: {html.escape(result.error)}</p>" if result.error else ""
-        )
+        error_html = f"<p style='color:#cf222e'>Error: {html.escape(result.error)}</p>" if result.error else ""
         return (
             f"<h2>{html.escape(result.evaluator)}</h2>"
             f"<p>Samples: {len(result.samples)} | Duration: {result.duration_ms} ms</p>"
@@ -138,9 +128,7 @@ class ReportGenerator:
         buffer = io.StringIO()
         writer = csv.writer(buffer)
         writer.writerow(["evaluator", "metric", "value", "samples", "threshold_min", "threshold_max", "passed"])
-        sub_results: list[EvaluationResult] = (
-            result.results if isinstance(result, BenchmarkResult) else [result]
-        )
+        sub_results: list[EvaluationResult] = result.results if isinstance(result, BenchmarkResult) else [result]
         for sub in sub_results:
             for metric in sub.metrics:
                 writer.writerow(

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from ..models import EvaluationSample, MetricScore
 from ..registry import BaseEvaluator
 
@@ -68,7 +66,7 @@ class RetrievalEvaluator(BaseEvaluator):
         relevant_ids = [str(r) for r in sample.expected.get("relevant_ids", [])]
         results = sample.actual.get("results", [])
         ranked_ids: list[str] = []
-        for i, item in enumerate(results):
+        for _, item in enumerate(results):
             doc_id = item.id if not isinstance(item, dict) else item.get("id", "")
             ranked_ids.append(str(doc_id))
         k = self._config.recall_at_k

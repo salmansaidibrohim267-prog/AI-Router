@@ -5,7 +5,7 @@ import logging
 import time
 from typing import Any
 
-from app.distributed.models import DLQEntry, DistributedTask, TaskState
+from app.distributed.models import DistributedTask, DLQEntry, TaskState
 from app.distributed.redis_client import AsyncRedisClient
 
 logger = logging.getLogger(__name__)

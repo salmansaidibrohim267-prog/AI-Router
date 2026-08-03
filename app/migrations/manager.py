@@ -10,14 +10,12 @@ the plan without executing it.
 from __future__ import annotations
 
 import os
-import time
-from typing import Any, Callable
+from typing import Any
 
 from .config import MigrationConfig
 from .exceptions import (
     MigrationFailureError,
     MigrationLockedError,
-    MigrationNotFoundError,
     MigrationVersionError,
 )
 from .repository import (

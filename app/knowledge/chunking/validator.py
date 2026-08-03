@@ -16,13 +16,9 @@ class ChunkValidator:
         if not chunk.content or not chunk.content.strip():
             raise ChunkValidationError("Empty chunk content")
         if chunk.character_count < self._min:
-            raise ChunkValidationError(
-                f"Chunk too small: {chunk.character_count} chars (min {self._min})"
-            )
+            raise ChunkValidationError(f"Chunk too small: {chunk.character_count} chars (min {self._min})")
         if chunk.character_count > self._max:
-            raise ChunkValidationError(
-                f"Chunk too large: {chunk.character_count} chars (max {self._max})"
-            )
+            raise ChunkValidationError(f"Chunk too large: {chunk.character_count} chars (max {self._max})")
         if chunk.end_offset <= chunk.start_offset:
             raise ChunkValidationError("Invalid chunk offsets")
         if chunk.token_estimate < 1:

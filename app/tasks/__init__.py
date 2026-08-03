@@ -1,7 +1,7 @@
 from app.tasks.queue import TaskQueue
 from app.tasks.scheduler import TaskScheduler
+from app.tasks.status import TaskState, TaskStatus
 from app.tasks.storage import TaskStorage
-from app.tasks.status import TaskStatus, TaskState
 
 __all__ = [
     "TaskQueue",

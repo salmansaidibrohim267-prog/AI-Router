@@ -6,10 +6,8 @@ import hashlib
 import json
 import threading
 import time
-from typing import Any
 
 from .config import GatewayConfig
-from .exceptions import CacheError
 from .logging import GatewayLogger
 from .models import CacheEntry, GatewayRequest, GatewayResponse
 

@@ -6,7 +6,6 @@ from typing import Any
 from .config import PluginConfig
 from .exceptions import PluginPermissionDeniedError
 from .logging import PluginLogger
-from .models import PermissionResource
 
 
 class PermissionManager:
@@ -62,7 +61,10 @@ class PermissionManager:
     def check_or_raise(self, plugin: str, resource: str, action: str = "*") -> None:
         if not self.check(plugin, resource, action):
             raise PluginPermissionDeniedError(
-                f"plugin {plugin!r} lacks permission {resource}:{action}", plugin=plugin, resource=resource, action=action
+                f"plugin {plugin!r} lacks permission {resource}:{action}",
+                plugin=plugin,
+                resource=resource,
+                action=action,  # noqa: E501
             )
 
     def permissions(self, plugin: str) -> dict[str, list[str]]:

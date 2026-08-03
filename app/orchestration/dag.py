@@ -5,8 +5,10 @@ import time
 from collections import defaultdict, deque
 from typing import Any
 
+from app.models import ChatRequest
 from app.orchestration.agents import AgentRegistry
 from app.orchestration.memory import ExecutionMemory
+from app.orchestration.metrics import execution_latency_seconds
 from app.orchestration.models import (
     AgentResult,
     PlanStep,
@@ -15,9 +17,7 @@ from app.orchestration.models import (
     WorkflowResult,
     WorkflowStep,
 )
-from app.orchestration.metrics import execution_latency_seconds, agent_latency_seconds
 from app.router import AIRouter
-from app.models import ChatRequest
 
 
 class CycleError(Exception):
@@ -87,9 +87,7 @@ class WorkflowDAG:
                 in_degree[s.id] = in_degree.get(s.id, 0) + 1
 
         levels: list[list[WorkflowStep]] = []
-        queue = deque(
-            [s.id for s in self.steps if in_degree.get(s.id, 0) == 0]
-        )
+        queue = deque([s.id for s in self.steps if in_degree.get(s.id, 0) == 0])
         visited = set()
 
         while queue:
@@ -118,12 +116,14 @@ class WorkflowDAG:
         edges = []
         for s in self.steps:
             node_type = s.type.value if isinstance(s.type, WorkflowNodeType) else str(s.type)
-            nodes.append({
-                "id": s.id,
-                "type": node_type,
-                "agent": s.agent,
-                "label": s.id or node_type,
-            })
+            nodes.append(
+                {
+                    "id": s.id,
+                    "type": node_type,
+                    "agent": s.agent,
+                    "label": s.id or node_type,
+                }
+            )
             for dep in s.depends_on:
                 if dep != "START":
                     edges.append({"from": dep, "to": s.id})
@@ -163,10 +163,7 @@ class DAGExecutor:
                     if result is not None:
                         outputs[step.id] = result
                 else:
-                    tasks = [
-                        self._execute_dag_step(s, router, request, memory, outputs, timeline)
-                        for s in level
-                    ]
+                    tasks = [self._execute_dag_step(s, router, request, memory, outputs, timeline) for s in level]
                     results = await asyncio.gather(*tasks, return_exceptions=True)
                     for i, step in enumerate(level):
                         r = results[i]
@@ -206,12 +203,14 @@ class DAGExecutor:
         step_start = time.perf_counter()
 
         if timeline is not None:
-            timeline.append({
-                "event": f"{step.id}_started",
-                "step": step.id,
-                "type": step.type.value,
-                "timestamp": step_start,
-            })
+            timeline.append(
+                {
+                    "event": f"{step.id}_started",
+                    "step": step.id,
+                    "type": step.type.value,
+                    "timestamp": step_start,
+                }
+            )
 
         try:
             if step.type == WorkflowNodeType.TASK:
@@ -247,10 +246,7 @@ class DAGExecutor:
 
             elif step.type == WorkflowNodeType.PARALLEL:
                 if step.steps:
-                    tasks = [
-                        self._execute_dag_step(s, router, request, memory, outputs, timeline)
-                        for s in step.steps
-                    ]
+                    tasks = [self._execute_dag_step(s, router, request, memory, outputs, timeline) for s in step.steps]
                     results = await asyncio.gather(*tasks, return_exceptions=True)
                     for i, s in enumerate(step.steps):
                         r = results[i]
@@ -297,9 +293,7 @@ class DAGExecutor:
                         for inner_level in inner_levels:
                             for inner_step in inner_level:
                                 inner = await asyncio.wait_for(
-                                    self._execute_dag_step(
-                                        inner_step, router, request, memory, outputs, timeline
-                                    ),
+                                    self._execute_dag_step(inner_step, router, request, memory, outputs, timeline),
                                     timeout=timeout,
                                 )
                                 if inner is not None:
@@ -322,13 +316,15 @@ class DAGExecutor:
 
         finally:
             if timeline is not None:
-                timeline.append({
-                    "event": f"{step.id}_finished",
-                    "step": step.id,
-                    "type": step.type.value,
-                    "timestamp": time.perf_counter(),
-                    "duration_ms": (time.perf_counter() - step_start) * 1000,
-                })
+                timeline.append(
+                    {
+                        "event": f"{step.id}_finished",
+                        "step": step.id,
+                        "type": step.type.value,
+                        "timestamp": time.perf_counter(),
+                        "duration_ms": (time.perf_counter() - step_start) * 1000,
+                    }
+                )
 
     async def _execute_task(
         self,
@@ -362,20 +358,22 @@ class DAGExecutor:
             return True
         resolved = memory.resolve_refs(condition)
         try:
-            return bool(eval(
-                resolved,
-                {"__builtins__": {}},
-                {
-                    "memory": memory,
-                    "len": len,
-                    "str": str,
-                    "int": int,
-                    "float": float,
-                    "bool": bool,
-                    "dict": dict,
-                    "list": list,
-                },
-            ))
+            return bool(
+                eval(
+                    resolved,
+                    {"__builtins__": {}},
+                    {
+                        "memory": memory,
+                        "len": len,
+                        "str": str,
+                        "int": int,
+                        "float": float,
+                        "bool": bool,
+                        "dict": dict,
+                        "list": list,
+                    },
+                )
+            )
         except Exception:
             return bool(resolved) if resolved else False
 

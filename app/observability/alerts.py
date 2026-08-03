@@ -103,13 +103,22 @@ class AlertEngine:
         fired: list[AlertIncident] = []
         now = time.time()
         for rule in self._rules:
-            triggered = rule.evaluator(context) if rule.evaluator is not None else self._evaluate_condition(rule.condition, context)
+            triggered = (
+                rule.evaluator(context)
+                if rule.evaluator is not None
+                else self._evaluate_condition(rule.condition, context)
+            )  # noqa: E501
             if triggered:
                 since = self._firing_since.get(rule.name, now)
                 if rule.name not in self._firing_since:
                     self._firing_since[rule.name] = since
                 if now - since >= rule.for_seconds:
-                    incident = AlertIncident(rule=rule.name, severity=rule.severity, message=rule.description or rule.name, metadata=dict(context))
+                    incident = AlertIncident(
+                        rule=rule.name,
+                        severity=rule.severity,
+                        message=rule.description or rule.name,
+                        metadata=dict(context),
+                    )  # noqa: E501
                     self._incidents.append(incident)
                     fired.append(incident)
                     for handler in self._handlers:
@@ -202,12 +211,17 @@ class DashboardGenerator:
     def _default_panels(self, service: str) -> list[dict[str, Any]]:
         prefix = service.replace("-", "_")
         return [
-            self._panel(1, "Request rate", f'sum(rate({prefix}_request_total[5m]))', 0),
-            self._panel(2, "Error rate", f'sum(rate({prefix}_request_failed[5m]))', 0, kind="graph"),
-            self._panel(3, "p95 latency", f"histogram_quantile(0.95, sum(rate({prefix}_provider_latency_seconds_bucket[5m])) by (le))", 0),
+            self._panel(1, "Request rate", f"sum(rate({prefix}_request_total[5m]))", 0),
+            self._panel(2, "Error rate", f"sum(rate({prefix}_request_failed[5m]))", 0, kind="graph"),
+            self._panel(
+                3,
+                "p95 latency",
+                f"histogram_quantile(0.95, sum(rate({prefix}_provider_latency_seconds_bucket[5m])) by (le))",
+                0,
+            ),  # noqa: E501
             self._panel(4, "Success ratio", f"sum({prefix}_request_success) / sum({prefix}_request_total)", 1),
-            self._panel(5, "Memory usage", f"process_resident_memory_bytes{{job=\"{service}\"}}", 1, kind="graph"),
-            self._panel(6, "CPU usage", f"rate(process_cpu_seconds_total{{job=\"{service}\"}}[5m])", 1, kind="graph"),
+            self._panel(5, "Memory usage", f'process_resident_memory_bytes{{job="{service}"}}', 1, kind="graph"),
+            self._panel(6, "CPU usage", f'rate(process_cpu_seconds_total{{job="{service}"}}[5m])', 1, kind="graph"),
         ]
 
     def to_json(self, dashboard: dict[str, Any]) -> str:

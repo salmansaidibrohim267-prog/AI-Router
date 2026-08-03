@@ -52,15 +52,18 @@ class ApprovalManager:
             context=context,
         )
         self._pending[checkpoint_id] = cp
-        self._store.set(f"approval:{checkpoint_id}", {
-            "checkpoint_id": checkpoint_id,
-            "workflow_id": workflow_id,
-            "step_id": step_id,
-            "prompt": prompt,
-            "context": context,
-            "status": "pending",
-            "created_at": cp.created_at,
-        })
+        self._store.set(
+            f"approval:{checkpoint_id}",
+            {
+                "checkpoint_id": checkpoint_id,
+                "workflow_id": workflow_id,
+                "step_id": step_id,
+                "prompt": prompt,
+                "context": context,
+                "status": "pending",
+                "created_at": cp.created_at,
+            },
+        )
         logger.info(f"Approval checkpoint created: {checkpoint_id} (workflow={workflow_id}, step={step_id})")
         return cp
 
@@ -72,13 +75,16 @@ class ApprovalManager:
         cp.decided_at = time.time()
         cp.decided_by = user
         cp.notes = notes
-        self._store.set(f"approval:{checkpoint_id}", {
-            "checkpoint_id": checkpoint_id,
-            "status": "approved",
-            "decided_at": cp.decided_at,
-            "decided_by": user,
-            "notes": notes,
-        })
+        self._store.set(
+            f"approval:{checkpoint_id}",
+            {
+                "checkpoint_id": checkpoint_id,
+                "status": "approved",
+                "decided_at": cp.decided_at,
+                "decided_by": user,
+                "notes": notes,
+            },
+        )
         logger.info(f"Checkpoint {checkpoint_id} approved by {user}")
         return True
 
@@ -90,13 +96,16 @@ class ApprovalManager:
         cp.decided_at = time.time()
         cp.decided_by = user
         cp.notes = notes
-        self._store.set(f"approval:{checkpoint_id}", {
-            "checkpoint_id": checkpoint_id,
-            "status": "rejected",
-            "decided_at": cp.decided_at,
-            "decided_by": user,
-            "notes": notes,
-        })
+        self._store.set(
+            f"approval:{checkpoint_id}",
+            {
+                "checkpoint_id": checkpoint_id,
+                "status": "rejected",
+                "decided_at": cp.decided_at,
+                "decided_by": user,
+                "notes": notes,
+            },
+        )
         logger.info(f"Checkpoint {checkpoint_id} rejected by {user}")
         return True
 

@@ -14,19 +14,16 @@ from .exceptions import (
     AccountInactiveError,
     AuthenticationError,
     InvalidCredentialsError,
-    InvalidTokenError,
-    MFARequiredError,
     SessionExpiredError,
-    SessionLimitError,
 )
 from .hashing import hash_password, is_strong_password, verify_password
 from .logging import AuthLogger
-from .models import AuthResult, ProviderUser, Session, TokenPair, User, UserStatus
+from .models import AuthResult, ProviderUser, Session, TokenPair, User
 from .providers import ProviderRegistry, register_builtin_providers
 from .rbac import PermissionPolicy, Principal
 from .repository import InMemoryUserRepository, UserRepository
-from .sessions import SessionManager
 from .service_accounts import ServiceAccountManager
+from .sessions import SessionManager
 from .statistics import AuthMetricsTracker
 from .tokens import JWTManager
 
@@ -158,9 +155,7 @@ class AuthenticationManager:
         self._logger.log_event("user_registered", tenant_id=tenant_id, user_id=user.id)
         return user
 
-    async def _issue_principal_tokens(
-        self, provider_user: ProviderUser, device: str
-    ) -> tuple[TokenPair, Session]:
+    async def _issue_principal_tokens(self, provider_user: ProviderUser, device: str) -> tuple[TokenPair, Session]:
         session = self._sessions.create(
             user_id=provider_user.id,
             tenant_id=provider_user.tenant_id,
@@ -209,9 +204,7 @@ class AuthenticationManager:
             return AuthResult(user=user, mfa_required=True, method=provider)
         pair, session = await self._issue_principal_tokens(provider_user, device)
         self._metrics.record("login_success", tenant_id)
-        self._audit_event(
-            "auth.login", tenant_id, provider_user.id, details={"method": provider, "device": device}
-        )
+        self._audit_event("auth.login", tenant_id, provider_user.id, details={"method": provider, "device": device})
         self._logger.log_event("login", tenant_id=tenant_id, user_id=provider_user.id, provider=provider)
         principal = Principal(
             user_id=provider_user.id,

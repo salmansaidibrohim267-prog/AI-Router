@@ -12,7 +12,7 @@ import time
 from typing import Any, Callable
 
 from .config import SecurityConfig
-from .exceptions import IncidentError, ThreatError
+from .exceptions import IncidentError, ThreatError  # noqa: F401
 from .logging import SecurityLogger
 from .metrics import SecurityMetricsTracker
 from .models import Incident, IncidentStatus, ThreatEvent, ThreatSeverity, ThreatType, generate_id
@@ -39,7 +39,9 @@ class ThreatDetector:
     def enabled(self) -> bool:
         return self.config.threat_detection_enabled
 
-    def report(self, threat_type: ThreatType, source: str = "", target: str = "", details: dict[str, Any] | None = None) -> ThreatEvent:
+    def report(
+        self, threat_type: ThreatType, source: str = "", target: str = "", details: dict[str, Any] | None = None
+    ) -> ThreatEvent:  # noqa: E501
         event = ThreatEvent(
             id=generate_id("threat"),
             threat_type=threat_type,
@@ -137,7 +139,10 @@ class IncidentManager:
         name, source = signal.split(":", 1)
         with self._lock:
             for incident in self._incidents.values():
-                if incident.status in (IncidentStatus.OPEN, IncidentStatus.INVESTIGATING) and incident.summary == signal:
+                if (
+                    incident.status in (IncidentStatus.OPEN, IncidentStatus.INVESTIGATING)
+                    and incident.summary == signal
+                ):  # noqa: E501
                     incident.threat_events.append(event)
                     incident.updated_at = time.time()
                     return None

@@ -102,9 +102,7 @@ class Autoscaler:
         self.config = config or ClusterConfig()
         self.logger = logger or ClusterLogger(self.config)
         self.metrics = metrics or ClusterMetricsTracker(self.config)
-        self.collectors = collectors or {
-            name: kind() for name, kind in _COLLECTOR_TYPES.items()
-        }
+        self.collectors = collectors or {name: kind() for name, kind in _COLLECTOR_TYPES.items()}
         self._apply_scale = apply_scale
         self._observers: list[ScaleObserver] = []
         self._decisions: list[AutoscaleDecision] = []
@@ -210,7 +208,7 @@ class Autoscaler:
                     self.config.min_replicas,
                     int(self._replicas * ratio),
                 )
-                reason = f"{name} at {current:.1f} below scale-down threshold {threshold * self.config.scale_down_factor:.1f}"
+                reason = f"{name} at {current:.1f} below scale-down threshold {threshold * self.config.scale_down_factor:.1f}"  # noqa: E501
             if desired == self._replicas:
                 continue
             decision = AutoscaleDecision(

@@ -60,9 +60,7 @@ class CitationEngine:
         self._resolver = resolver or SourceResolver(self._config)
         if attribution is None:
             attribution = (
-                EmbeddingAttributionStrategy(embedder)
-                if embedder is not None
-                else TokenOverlapAttributionStrategy()
+                EmbeddingAttributionStrategy(embedder) if embedder is not None else TokenOverlapAttributionStrategy()
             )
         self._attribution = attribution
         self._mapper = mapper or SentenceAttributionMapper(
@@ -139,7 +137,6 @@ class CitationEngine:
         self,
         requests: list[CitationRequest],
     ) -> list[CitationResult]:
-        t0 = time.perf_counter()
         try:
             results = [await self._generate_impl_async(r) for r in requests]
             self._metrics.record_batch(
@@ -225,7 +222,6 @@ class CitationEngine:
         builder = CitationResultBuilder(text, fmt).with_sources(sources)
         citation_count = 0
         for mapping in mappings:
-            attribution = mapping.attribution_score
             source_scores = {
                 sid: self._scorer.score(source, mapping.scores.get(sid, 0.0))
                 for source in sources
@@ -243,9 +239,7 @@ class CitationEngine:
             )
             for source in sources:
                 if source.source_id in mapping.source_ids:
-                    source.attribution_score = max(
-                        source.attribution_score, mapping.scores.get(source.source_id, 0.0)
-                    )
+                    source.attribution_score = max(source.attribution_score, mapping.scores.get(source.source_id, 0.0))
             builder.add_citation(citation)
             builder.add_mapping(mapping)
 
@@ -268,13 +262,9 @@ class CitationEngine:
     ) -> None:
         latency = (time.perf_counter() - t0) * 1000
         if async_mode:
-            self._metrics.record_async_generation(
-                len(result.citations), len(result.sources), latency
-            )
+            self._metrics.record_async_generation(len(result.citations), len(result.sources), latency)
         else:
-            self._metrics.record_generation(
-                len(result.citations), len(result.sources), latency
-            )
+            self._metrics.record_generation(len(result.citations), len(result.sources), latency)
         if self._config.log_events:
             self._logger.log_event("generate", result, latency_ms=round(latency, 4))
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import threading
 from abc import ABC, abstractmethod
-from typing import Any, Generic, TypeVar
+from typing import Generic, TypeVar
 
 from .models import Invitation, Member, Organization, Project, Team, Workspace
 

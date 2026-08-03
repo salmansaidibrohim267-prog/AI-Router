@@ -12,7 +12,6 @@ from .exceptions import (
     InvitationExpiredError,
     InvitationLimitError,
     InvitationNotFoundError,
-    MemberNotFoundError,
     OrganizationArchivedError,
     OrganizationNotFoundError,
 )
@@ -127,7 +126,9 @@ class InvitationManager:
                 role=invitation.role.value,
             )
         self._metrics.record("invitation_accepted", invitation.organization_id)
-        self._audit_event("org.invitation_accepted", invitation.tenant_id, user_id, organization_id=invitation.organization_id)
+        self._audit_event(
+            "org.invitation_accepted", invitation.tenant_id, user_id, organization_id=invitation.organization_id
+        )  # noqa: E501
         return invitation
 
     def revoke(self, token: str, tenant_id: str = "") -> bool:
@@ -153,7 +154,15 @@ class InvitationManager:
         self._get_org(organization_id, tenant_id)
         return self._invitations.list_for_organization(organization_id, status)
 
-    async def create_async(self, organization_id: str, email: str, role: str = "member", tenant_id: str = "", invited_by: str = "", ttl: int | None = None) -> Invitation:
+    async def create_async(
+        self,
+        organization_id: str,
+        email: str,
+        role: str = "member",
+        tenant_id: str = "",
+        invited_by: str = "",
+        ttl: int | None = None,
+    ) -> Invitation:  # noqa: E501
         return self.create(organization_id, email, role, tenant_id, invited_by, ttl)
 
     async def accept_async(self, token: str, user_id: str) -> Invitation:

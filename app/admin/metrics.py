@@ -18,9 +18,7 @@ class AdminMetricsTracker:
     def record_request(self, endpoint: str, latency_ms: float = 0.0, error: bool = False) -> None:
         if not self._config.track_metrics:
             return
-        self._requests.append(
-            {"endpoint": endpoint, "latency_ms": latency_ms, "error": error, "ts": time.time()}
-        )
+        self._requests.append({"endpoint": endpoint, "latency_ms": latency_ms, "error": error, "ts": time.time()})
 
     def report(self) -> dict[str, Any]:
         total = len(self._requests)

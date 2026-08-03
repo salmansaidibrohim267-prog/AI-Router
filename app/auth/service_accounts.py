@@ -4,7 +4,6 @@ import hashlib
 import secrets
 import time
 import uuid
-from typing import Any
 
 from .config import AuthConfig
 from .exceptions import ServiceAccountError

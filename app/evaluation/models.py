@@ -151,9 +151,7 @@ class EvaluationSample:
         )
 
     @classmethod
-    def from_retrieved_chunks(
-        cls, id: str, query: str, relevant_ids: list[str], chunks: list[Any]
-    ) -> EvaluationSample:
+    def from_retrieved_chunks(cls, id: str, query: str, relevant_ids: list[str], chunks: list[Any]) -> EvaluationSample:
         items: list[RetrievedItem] = []
         for i, chunk in enumerate(chunks):
             items.append(
@@ -168,9 +166,7 @@ class EvaluationSample:
         return cls.retrieval(id, query, relevant_ids, items)
 
     @classmethod
-    def from_search_results(
-        cls, id: str, query: str, relevant_ids: list[str], items: list[Any]
-    ) -> EvaluationSample:
+    def from_search_results(cls, id: str, query: str, relevant_ids: list[str], items: list[Any]) -> EvaluationSample:
         converted: list[RetrievedItem] = []
         for i, item in enumerate(items):
             converted.append(
@@ -185,9 +181,7 @@ class EvaluationSample:
         return cls.retrieval(id, query, relevant_ids, converted)
 
     @classmethod
-    def from_memory_items(
-        cls, id: str, query: str, relevant_ids: list[str], items: list[Any]
-    ) -> EvaluationSample:
+    def from_memory_items(cls, id: str, query: str, relevant_ids: list[str], items: list[Any]) -> EvaluationSample:
         converted: list[RetrievedItem] = []
         for i, item in enumerate(items):
             converted.append(

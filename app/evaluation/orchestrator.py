@@ -22,7 +22,7 @@ from .report import ReportGenerator
 from .statistics import EvaluationMetricsTracker
 
 
-class EvaluationObserver(ABC):
+class EvaluationObserver(ABC):  # noqa: B024
     def handle(self, event: str, data: dict[str, Any]) -> None:
         raise NotImplementedError
 
@@ -94,9 +94,7 @@ class EvaluationOrchestrator:
         samples: list[EvaluationSample],
     ) -> EvaluationResult:
         start = time.perf_counter()
-        instance = (
-            self.create_evaluator(evaluator) if isinstance(evaluator, str) else evaluator
-        )
+        instance = self.create_evaluator(evaluator) if isinstance(evaluator, str) else evaluator
         self._notify("run_started", evaluator=instance.name, samples=len(samples))
         result = await instance.evaluate_batch(samples)
         for metric in result.metrics:
@@ -122,9 +120,7 @@ class EvaluationOrchestrator:
             asyncio.get_running_loop()
         except RuntimeError:
             return asyncio.run(self.run_async(evaluator, samples))
-        raise EvaluationError(
-            "run() cannot be used inside a running event loop; use run_async() instead"
-        )
+        raise EvaluationError("run() cannot be used inside a running event loop; use run_async() instead")
 
     async def benchmark(
         self,
@@ -134,9 +130,7 @@ class EvaluationOrchestrator:
         apply_gate: bool = True,
     ) -> BenchmarkResult:
         self._notify("benchmark_started", dataset=str(dataset))
-        result = await self._benchmark_runner.run(
-            dataset, evaluators=evaluators, name=name, apply_gate=apply_gate
-        )
+        result = await self._benchmark_runner.run(dataset, evaluators=evaluators, name=name, apply_gate=apply_gate)
         self._dashboard.record(result)
         self._notify(
             "benchmark_completed",
@@ -155,14 +149,8 @@ class EvaluationOrchestrator:
         current_summary = _as_summary(current)
         if not base_summary:
             raise ComparisonError("Base benchmark has no metrics to compare against")
-        base_name = (
-            base.name if isinstance(base, BenchmarkResult) else base.get("name", "base")
-        )
-        current_name = (
-            current.name
-            if isinstance(current, BenchmarkResult)
-            else current.get("name", "current")
-        )
+        base_name = base.name if isinstance(base, BenchmarkResult) else base.get("name", "base")
+        current_name = current.name if isinstance(current, BenchmarkResult) else current.get("name", "current")
         metrics: dict[str, dict[str, float]] = {}
         regressions: list[str] = []
         tolerance = self._config.regression_tolerance

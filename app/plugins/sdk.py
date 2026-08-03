@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import inspect
 import uuid
 from typing import Any, Callable
@@ -8,7 +7,6 @@ from typing import Any, Callable
 from .config import PluginConfig
 from .di import Container
 from .events import PluginEventBus
-from .exceptions import ExtensionNotFoundError
 from .hooks import HookSystem
 from .logging import PluginLogger
 from .models import Extension, ExtensionKind, PermissionResource, SchedulerSpec
@@ -138,7 +136,13 @@ class PluginSDK:
 
     def register_tool(self, name: str, handler: Callable[..., Any], schema: dict[str, Any] | None = None) -> Extension:
         return self._extensions.register(
-            Extension(kind=ExtensionKind.TOOL, name=name, handler=handler, plugin=self._plugin_name, metadata={"schema": schema})
+            Extension(
+                kind=ExtensionKind.TOOL,
+                name=name,
+                handler=handler,
+                plugin=self._plugin_name,
+                metadata={"schema": schema},
+            )  # noqa: E501
         )
 
     def unregister_tool(self, name: str) -> bool:
@@ -162,9 +166,17 @@ class PluginSDK:
 
     # --------------------------------------------------------- MCP provider
 
-    def register_mcp_provider(self, name: str, factory: Callable[..., Any], config: dict[str, Any] | None = None) -> Extension:
+    def register_mcp_provider(
+        self, name: str, factory: Callable[..., Any], config: dict[str, Any] | None = None
+    ) -> Extension:  # noqa: E501
         return self._extensions.register(
-            Extension(kind=ExtensionKind.MCP_PROVIDER, name=name, handler=factory, plugin=self._plugin_name, metadata={"config": config})
+            Extension(
+                kind=ExtensionKind.MCP_PROVIDER,
+                name=name,
+                handler=factory,
+                plugin=self._plugin_name,
+                metadata={"config": config},
+            )  # noqa: E501
         )
 
     def unregister_mcp_provider(self, name: str) -> bool:
@@ -172,9 +184,17 @@ class PluginSDK:
 
     # --------------------------------------------------------- LLM provider
 
-    def register_llm_provider(self, name: str, factory: Callable[..., Any], models: list[str] | None = None) -> Extension:
+    def register_llm_provider(
+        self, name: str, factory: Callable[..., Any], models: list[str] | None = None
+    ) -> Extension:  # noqa: E501
         return self._extensions.register(
-            Extension(kind=ExtensionKind.LLM_PROVIDER, name=name, handler=factory, plugin=self._plugin_name, metadata={"models": models or []})
+            Extension(
+                kind=ExtensionKind.LLM_PROVIDER,
+                name=name,
+                handler=factory,
+                plugin=self._plugin_name,
+                metadata={"models": models or []},
+            )  # noqa: E501
         )
 
     def unregister_llm_provider(self, name: str) -> bool:
@@ -184,7 +204,13 @@ class PluginSDK:
 
     def register_embedding_model(self, name: str, factory: Callable[..., Any], dimensions: int = 0) -> Extension:
         return self._extensions.register(
-            Extension(kind=ExtensionKind.EMBEDDING_MODEL, name=name, handler=factory, plugin=self._plugin_name, metadata={"dimensions": dimensions})
+            Extension(
+                kind=ExtensionKind.EMBEDDING_MODEL,
+                name=name,
+                handler=factory,
+                plugin=self._plugin_name,
+                metadata={"dimensions": dimensions},
+            )  # noqa: E501
         )
 
     def unregister_embedding_model(self, name: str) -> bool:
@@ -192,11 +218,19 @@ class PluginSDK:
 
     # ------------------------------------------------------------ scheduler
 
-    def register_scheduler(self, name: str, spec: SchedulerSpec | dict[str, Any], handler: Callable[..., Any]) -> Extension:
+    def register_scheduler(
+        self, name: str, spec: SchedulerSpec | dict[str, Any], handler: Callable[..., Any]
+    ) -> Extension:  # noqa: E501
         if isinstance(spec, dict):
             spec = SchedulerSpec(**spec)
         return self._extensions.register(
-            Extension(kind=ExtensionKind.SCHEDULER, name=name, handler=handler, plugin=self._plugin_name, metadata={"spec": spec.to_dict()})
+            Extension(
+                kind=ExtensionKind.SCHEDULER,
+                name=name,
+                handler=handler,
+                plugin=self._plugin_name,
+                metadata={"spec": spec.to_dict()},
+            )  # noqa: E501
         )
 
     def unregister_scheduler(self, name: str) -> bool:
@@ -206,7 +240,13 @@ class PluginSDK:
 
     def register_cli_command(self, name: str, handler: Callable[..., Any], help_text: str = "") -> Extension:
         return self._extensions.register(
-            Extension(kind=ExtensionKind.CLI_COMMAND, name=name, handler=handler, plugin=self._plugin_name, metadata={"help": help_text})
+            Extension(
+                kind=ExtensionKind.CLI_COMMAND,
+                name=name,
+                handler=handler,
+                plugin=self._plugin_name,
+                metadata={"help": help_text},
+            )  # noqa: E501
         )
 
     def unregister_cli_command(self, name: str) -> bool:

@@ -83,11 +83,7 @@ class NodeStore:
         return [n for n in self.all() if n.state == state]
 
     def alive(self) -> list[NodeInfo]:
-        return [
-            n
-            for n in self.all()
-            if n.state not in (NodeState.FAILED, NodeState.LEFT, NodeState.LEAVING)
-        ]
+        return [n for n in self.all() if n.state not in (NodeState.FAILED, NodeState.LEFT, NodeState.LEAVING)]
 
     def history(self) -> list[NodeInfo]:
         with self._lock:

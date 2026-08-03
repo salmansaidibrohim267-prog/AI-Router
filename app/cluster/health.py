@@ -146,9 +146,7 @@ class HealthMonitor:
             if new_state != previous:
                 self.store.mark(node.id, new_state)
                 transitions.append((node.id, previous, new_state))
-                self.logger.log_event(
-                    "health_change", node=node.id, previous=previous.value, state=new_state.value
-                )
+                self.logger.log_event("health_change", node=node.id, previous=previous.value, state=new_state.value)
                 if new_state == NodeState.FAILED:
                     self.metrics.record("node_failures", component="health")
                 if new_state == NodeState.HEALTHY:

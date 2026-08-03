@@ -9,7 +9,7 @@ and latency after deployment.
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Callable
 
 from .config import DeployConfig
@@ -163,7 +163,9 @@ class DeploymentVerifier:
         checks.append({"name": "version", "passed": version_ok, "detail": f"expected={expected} actual={version}"})
         latency = float(outcome.get("latency_ms", 0.0))
         latency_ok = latency <= self.config.max_latency_ms
-        checks.append({"name": "latency", "passed": latency_ok, "detail": f"{latency}ms <= {self.config.max_latency_ms}ms"})
+        checks.append(
+            {"name": "latency", "passed": latency_ok, "detail": f"{latency}ms <= {self.config.max_latency_ms}ms"}
+        )  # noqa: E501
         passed = all(c["passed"] for c in checks)
         result = {"passed": passed, "checks": checks, "version": version, "latency_ms": latency}
         self._checks.append(result)

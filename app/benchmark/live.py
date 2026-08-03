@@ -5,7 +5,7 @@ from __future__ import annotations
 import threading
 import time
 from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 MAX_RECORDS_PER_PROVIDER = 200000
@@ -21,6 +21,7 @@ WINDOWS_SECONDS = {
 @dataclass
 class RequestRecord:
     """Single request measurement."""
+
     timestamp: float
     latency_ms: float
     first_token_latency_ms: float
@@ -33,6 +34,7 @@ class RequestRecord:
 @dataclass
 class WindowSnapshot:
     """Computed statistics for a single time window."""
+
     requests: int = 0
     successes: int = 0
     failures: int = 0
@@ -131,15 +133,17 @@ class ProviderBenchmark:
         model: str,
     ) -> None:
         with self._lock:
-            self._records.append(RequestRecord(
-                timestamp=time.time(),
-                latency_ms=latency_ms,
-                first_token_latency_ms=first_token_latency_ms,
-                tokens=tokens,
-                success=success,
-                timeout=timeout,
-                model=model,
-            ))
+            self._records.append(
+                RequestRecord(
+                    timestamp=time.time(),
+                    latency_ms=latency_ms,
+                    first_token_latency_ms=first_token_latency_ms,
+                    tokens=tokens,
+                    success=success,
+                    timeout=timeout,
+                    model=model,
+                )
+            )
 
     def get_snapshot(self) -> dict[str, WindowSnapshot]:
         """Compute statistics for all configured windows."""
@@ -259,11 +263,13 @@ class LiveBenchmark:
         for name in names:
             pb = self._providers[name]
             score = pb.get_aggregated_score()
-            ranked.append({
-                "provider": name,
-                "score": score,
-                "total_records": pb.total_records,
-            })
+            ranked.append(
+                {
+                    "provider": name,
+                    "score": score,
+                    "total_records": pb.total_records,
+                }
+            )
         ranked.sort(key=lambda x: x["score"], reverse=True)
         return ranked
 

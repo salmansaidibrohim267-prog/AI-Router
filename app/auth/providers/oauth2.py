@@ -64,9 +64,7 @@ class OAuth2Provider(AuthProvider):
     async def authenticate(self, credentials: dict[str, Any]) -> ProviderUser:
         grant = str(credentials.get("grant_type", ""))
         if grant == "authorization_code":
-            data = self._exchange_code(
-                str(credentials.get("code", "")), str(credentials.get("redirect_uri", ""))
-            )
+            data = self._exchange_code(str(credentials.get("code", "")), str(credentials.get("redirect_uri", "")))
         elif grant == "client_credentials":
             data = {"access_token": str(credentials.get("access_token", ""))}
             if not data["access_token"]:
@@ -78,12 +76,7 @@ class OAuth2Provider(AuthProvider):
 
         access_token = data["access_token"]
         userinfo = self._fetch_userinfo(access_token)
-        user_id = str(
-            userinfo.get("sub")
-            or userinfo.get("id")
-            or userinfo.get(self._username_field)
-            or ""
-        )
+        user_id = str(userinfo.get("sub") or userinfo.get("id") or userinfo.get(self._username_field) or "")
         if not user_id:
             raise ProviderError("Userinfo missing subject")
         return ProviderUser(

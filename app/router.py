@@ -12,9 +12,11 @@ from typing import Any
 
 import httpx
 
-from app.classifier import TaskClassifier, classifier
+from app.benchmark.live import live_benchmark
+from app.classifier import classifier
 from app.config import config_manager
 from app.costs import token_accounting
+from app.event_bus import event_bus
 from app.exceptions import (
     AllProvidersFailedError,
     NoHealthyProviderError,
@@ -27,47 +29,39 @@ from app.exceptions import (
 )
 from app.logger import logger
 from app.metrics import (
-    record_request,
-    record_success,
-    record_failure,
-    record_latency,
-    record_tokens,
     record_cost,
     record_distribution_selection,
+    record_failure,
     record_fallback,
+    record_latency,
+    record_request,
+    record_success,
+    record_tokens,
 )
 from app.models import (
-    ChatChoice,
     ChatRequest,
     ChatResponse,
     EmbeddingRequest,
     EmbeddingResponse,
-    Message,
     ProviderStatus,
-    StreamChunk,
     TaskType,
 )
-from app.providers.base import BaseProvider
+from app.plugin.pipeline import MiddlewarePipeline
+from app.plugin.registry import PluginRegistry
+from app.plugin.watcher import PluginWatcher
 from app.providers.manager import provider_manager
-from app.benchmark.live import live_benchmark
-from app.capability_registry import capability_registry
 from app.reputation import compute_reputation, compute_trend
 from app.routing import (
     EWMA_ALPHA,
     OptimizationMode,
     RoutingContext,
-    RoutingEngine,
     estimate_prompt_tokens,
     routing_engine,
 )
-from app.token_intelligence import token_intelligence
-from app.traffic_distribution import traffic_distribution
 from app.stats import stats
 from app.storage import ProviderStats as StorageProviderStats
-from app.event_bus import event_bus
-from app.plugin.registry import PluginRegistry
-from app.plugin.pipeline import MiddlewarePipeline
-from app.plugin.watcher import PluginWatcher
+from app.token_intelligence import token_intelligence
+from app.traffic_distribution import traffic_distribution
 
 HISTORY_SIZE = 100
 ROLLING_WINDOW = 100
@@ -111,7 +105,7 @@ class ProviderMetrics:
     @property
     def avg_latency(self) -> float:
         if self.successful_requests == 0:
-            return float('inf')
+            return float("inf")
         return self.total_latency / self.successful_requests
 
     @property
@@ -159,7 +153,9 @@ class ProviderMetrics:
     def uptime_seconds(self) -> float:
         return time.time() - self._start_time
 
-    def record_success(self, latency_ms: float, cost_usd: float = 0.0, prompt_tokens: int = 0, completion_tokens: int = 0):
+    def record_success(
+        self, latency_ms: float, cost_usd: float = 0.0, prompt_tokens: int = 0, completion_tokens: int = 0
+    ):  # noqa: E501
         self.total_requests += 1
         self.successful_requests += 1
         self.total_latency += latency_ms
@@ -249,7 +245,9 @@ def _is_retryable(e: Exception) -> bool:
         return True
     if isinstance(e, ProviderError):
         return e.status_code in RETRYABLE_CODES
-    if isinstance(e, (httpx.TimeoutException, httpx.ConnectError, httpx.RemoteProtocolError, ConnectionResetError, TimeoutError)):
+    if isinstance(
+        e, (httpx.TimeoutException, httpx.ConnectError, httpx.RemoteProtocolError, ConnectionResetError, TimeoutError)
+    ):  # noqa: E501
         return True
     return True  # generic exceptions are retryable (transient)
 
@@ -280,7 +278,7 @@ async def retry_with_backoff(coro_factory, max_retries=3, base_delay=1.0):
                 raise
             last_error = e
             if attempt < max_retries - 1:
-                delay = base_delay * (2 ** attempt) + random.uniform(0, 0.5)
+                delay = base_delay * (2**attempt) + random.uniform(0, 0.5)
                 await asyncio.sleep(delay)
     raise last_error
 
@@ -324,7 +322,7 @@ class AIRouter:
     async def _persist_all_metrics(self) -> None:
         if not self._storage:
             return
-        for name, m in self.metrics.items():
+        for _, m in self.metrics.items():
             try:
                 stats = m.to_storage()
                 await self._storage.save_provider(stats)
@@ -334,6 +332,7 @@ class AIRouter:
     def _start_persist_loop(self) -> None:
         if not self._storage:
             return
+
         async def loop():
             while True:
                 try:
@@ -343,6 +342,7 @@ class AIRouter:
                     break
                 except Exception:
                     pass
+
         self._persist_task = asyncio.create_task(loop())
 
     def _get_provider_configs(self, task: str) -> list[tuple[str, str]]:
@@ -404,6 +404,7 @@ class AIRouter:
             await asyncio.wait_for(provider.chat(shadow_req), timeout=30.0)
             latency = (time.perf_counter() - start) * 1000
             from app.metrics import shadow_traffic_total
+
             shadow_traffic_total.labels(provider=provider_name, model=model).inc()
             logger.log_request(
                 request_id=f"{request_id}-shadow",
@@ -440,7 +441,9 @@ class AIRouter:
             model=model_hint,
             provider=provider_hint,
         )
-        return self.routing_engine.rank_providers(candidates, self.metrics, self.provider_manager, ctx, return_scores=return_scores)
+        return self.routing_engine.rank_providers(
+            candidates, self.metrics, self.provider_manager, ctx, return_scores=return_scores
+        )  # noqa: E501
 
     def _is_provider_available(self, provider: str) -> bool:
         if provider not in self.provider_manager.get_provider_names():
@@ -450,11 +453,20 @@ class AIRouter:
         h = self.provider_manager.get_health_status(provider)
         if isinstance(h, dict):
             h = h.get(provider)
-        if hasattr(h, 'status') and h.status == ProviderStatus.UNHEALTHY:
+        if hasattr(h, "status") and h.status == ProviderStatus.UNHEALTHY:
             return False
         return True
 
-    async def _try_provider(self, provider_name: str, model: str, request: ChatRequest, request_id: str, task: TaskType, retry_attempt: int = 0, context: dict | None = None) -> ChatResponse | None:
+    async def _try_provider(
+        self,
+        provider_name: str,
+        model: str,
+        request: ChatRequest,
+        request_id: str,
+        task: TaskType,
+        retry_attempt: int = 0,
+        context: dict | None = None,
+    ) -> ChatResponse | None:  # noqa: E501
         provider = self.provider_manager.get(provider_name)
         if not provider:
             return None
@@ -502,8 +514,27 @@ class AIRouter:
             record_cost(provider_name, model, cost)
             token_intelligence.record(model, pt, ct, cache_t, reason_t)
 
-            logger.log_request(request_id=request_id, provider=provider_name, model=model, task=task.value, latency_ms=latency, success=True, prompt_tokens=pt, completion_tokens=ct, total_tokens=tt)
-            stats.record(provider=provider_name, model=model, latency_ms=latency, success=True, task=task, prompt_tokens=pt, completion_tokens=ct, total_tokens=tt)
+            logger.log_request(
+                request_id=request_id,
+                provider=provider_name,
+                model=model,
+                task=task.value,
+                latency_ms=latency,
+                success=True,
+                prompt_tokens=pt,
+                completion_tokens=ct,
+                total_tokens=tt,
+            )  # noqa: E501
+            stats.record(
+                provider=provider_name,
+                model=model,
+                latency_ms=latency,
+                success=True,
+                task=task,
+                prompt_tokens=pt,
+                completion_tokens=ct,
+                total_tokens=tt,
+            )  # noqa: E501
 
             live_benchmark.record(
                 provider=provider_name,
@@ -527,7 +558,15 @@ class AIRouter:
             metrics.record_failure(latency)
             record_failure(provider_name, model, type(e).__name__)
             record_latency(provider_name, model, latency)
-            logger.log_request(request_id=request_id, provider=provider_name, model=model, task=task.value, latency_ms=latency, success=False, error=str(e))
+            logger.log_request(
+                request_id=request_id,
+                provider=provider_name,
+                model=model,
+                task=task.value,
+                latency_ms=latency,
+                success=False,
+                error=str(e),
+            )  # noqa: E501
             stats.record(provider=provider_name, model=model, latency_ms=latency, success=False, task=task)
 
             is_timeout = isinstance(e, (asyncio.TimeoutError, ProviderTimeoutError))
@@ -540,8 +579,12 @@ class AIRouter:
                 model=model,
             )
 
-            await event_bus.emit("provider.failed", provider=provider_name, model=model, request_id=request_id, error=str(e))
-            await self.pipeline.execute_on_error(request, e, {"request_id": request_id, "provider": provider_name, "model": model})
+            await event_bus.emit(
+                "provider.failed", provider=provider_name, model=model, request_id=request_id, error=str(e)
+            )  # noqa: E501
+            await self.pipeline.execute_on_error(
+                request, e, {"request_id": request_id, "provider": provider_name, "model": model}
+            )  # noqa: E501
             return None
 
     async def chat(self, request: ChatRequest) -> ChatResponse:
@@ -587,8 +630,12 @@ class AIRouter:
         user_pref = request.metadata.get("preferred_provider") if request.metadata else None
         full_prompt = " ".join(m.content or "" for m in request.messages)
         ranked_raw = self._rank_providers(
-            task, available, user_preference=user_pref,
-            required_capabilities=required_caps, prompt=full_prompt, return_scores=True,
+            task,
+            available,
+            user_preference=user_pref,
+            required_capabilities=required_caps,
+            prompt=full_prompt,
+            return_scores=True,
         )
         if ranked_raw and isinstance(ranked_raw[0], tuple) and len(ranked_raw[0]) == 3:
             scored_ranked = ranked_raw
@@ -600,21 +647,26 @@ class AIRouter:
         errors = []
         selected = traffic_distribution.select(scored_ranked if scored_ranked else ranked)
 
-        shadow_task = None
         if selected and selected.shadow_provider:
-            shadow_task = asyncio.create_task(
+            _ = asyncio.create_task(
                 self._send_shadow(
-                    selected.shadow_provider, selected.shadow_model,
-                    request, request_id, task,
+                    selected.shadow_provider,
+                    selected.shadow_model,
+                    request,
+                    request_id,
+                    task,
                 )
             )
 
         if selected:
             record_distribution_selection(
-                selected.provider, selected.model,
-                is_canary=selected.ab_test_name != "" or any(
+                selected.provider,
+                selected.model,
+                is_canary=selected.ab_test_name != ""
+                or any(
                     c.provider == selected.provider and c.model == selected.model
-                    for c in [traffic_distribution.config.canary] if traffic_distribution.config.canary
+                    for c in [traffic_distribution.config.canary]
+                    if traffic_distribution.config.canary
                 ),
             )
 
@@ -626,7 +678,9 @@ class AIRouter:
             raise RouterError(f"Request cancelled by plugin: {after_route_result.cancel_reason}")
 
         for attempt, (provider_name, model) in enumerate(providers_to_try):
-            response = await self._try_provider(provider_name, model, request, request_id, task, retry_attempt=attempt, context=context)
+            response = await self._try_provider(
+                provider_name, model, request, request_id, task, retry_attempt=attempt, context=context
+            )  # noqa: E501
             if response:
                 response.metadata = {"request_id": request_id, "task": task.value}
                 before_resp_result = await self.pipeline.execute_before_response(request, response, context)
@@ -635,7 +689,9 @@ class AIRouter:
                 if before_resp_result.modified_response is not None:
                     response = before_resp_result.modified_response
                 await self.pipeline.execute_after_response(request, response, context)
-                await event_bus.emit("request.finished", request_id=request_id, provider=provider_name, model=model, success=True)
+                await event_bus.emit(
+                    "request.finished", request_id=request_id, provider=provider_name, model=model, success=True
+                )  # noqa: E501
                 if before_resp_result.metadata:
                     if not response.metadata:
                         response.metadata = {}
@@ -645,7 +701,12 @@ class AIRouter:
             await event_bus.emit("fallback.triggered", from_provider=provider_name, to_provider="", task=task.value)
             errors.append(ProviderError(f"Provider {provider_name} failed", provider=provider_name, model=model))
 
-        await event_bus.emit("request.finished", request_id=request_id, success=False, error=str(errors[-1]) if errors else "All providers failed")
+        await event_bus.emit(
+            "request.finished",
+            request_id=request_id,
+            success=False,
+            error=str(errors[-1]) if errors else "All providers failed",
+        )  # noqa: E501
         raise AllProvidersFailedError(task=task, errors=errors)
 
     async def stream_chat(self, request: ChatRequest):
@@ -691,8 +752,12 @@ class AIRouter:
         user_pref = request.metadata.get("preferred_provider") if request.metadata else None
         full_prompt = " ".join(m.content or "" for m in request.messages)
         ranked_raw = self._rank_providers(
-            task, available, user_preference=user_pref,
-            required_capabilities=required_caps, prompt=full_prompt, return_scores=True,
+            task,
+            available,
+            user_preference=user_pref,
+            required_capabilities=required_caps,
+            prompt=full_prompt,
+            return_scores=True,
         )
         if ranked_raw and isinstance(ranked_raw[0], tuple) and len(ranked_raw[0]) == 3:
             scored_ranked = ranked_raw
@@ -704,21 +769,26 @@ class AIRouter:
         errors = []
         selected = traffic_distribution.select(scored_ranked if scored_ranked else ranked)
 
-        shadow_task = None
         if selected and selected.shadow_provider:
-            shadow_task = asyncio.create_task(
+            _ = asyncio.create_task(
                 self._send_shadow(
-                    selected.shadow_provider, selected.shadow_model,
-                    request, request_id, task,
+                    selected.shadow_provider,
+                    selected.shadow_model,
+                    request,
+                    request_id,
+                    task,
                 )
             )
 
         if selected:
             record_distribution_selection(
-                selected.provider, selected.model,
-                is_canary=selected.ab_test_name != "" or any(
+                selected.provider,
+                selected.model,
+                is_canary=selected.ab_test_name != ""
+                or any(
                     c.provider == selected.provider and c.model == selected.model
-                    for c in [traffic_distribution.config.canary] if traffic_distribution.config.canary
+                    for c in [traffic_distribution.config.canary]
+                    if traffic_distribution.config.canary
                 ),
             )
 
@@ -729,7 +799,7 @@ class AIRouter:
         if after_route_result.should_cancel:
             raise RouterError(f"Request cancelled by plugin: {after_route_result.cancel_reason}")
 
-        for attempt, (provider_name, model) in enumerate(providers_to_try):
+        for _, (provider_name, model) in enumerate(providers_to_try):
             provider = self.provider_manager.get(provider_name)
             if not provider:
                 errors.append(ProviderError(f"Provider {provider_name} not found", provider=provider_name))
@@ -782,8 +852,27 @@ class AIRouter:
                 record_tokens(provider_name, model, pt, ct)
                 record_cost(provider_name, model, cost)
 
-                logger.log_request(request_id=request_id, provider=provider_name, model=model, task=task.value, latency_ms=latency, success=True, prompt_tokens=pt, completion_tokens=ct, total_tokens=tt)
-                stats.record(provider=provider_name, model=model, latency_ms=latency, success=True, task=task, prompt_tokens=pt, completion_tokens=ct, total_tokens=tt)
+                logger.log_request(
+                    request_id=request_id,
+                    provider=provider_name,
+                    model=model,
+                    task=task.value,
+                    latency_ms=latency,
+                    success=True,
+                    prompt_tokens=pt,
+                    completion_tokens=ct,
+                    total_tokens=tt,
+                )  # noqa: E501
+                stats.record(
+                    provider=provider_name,
+                    model=model,
+                    latency_ms=latency,
+                    success=True,
+                    task=task,
+                    prompt_tokens=pt,
+                    completion_tokens=ct,
+                    total_tokens=tt,
+                )  # noqa: E501
 
                 live_benchmark.record(
                     provider=provider_name,
@@ -800,11 +889,15 @@ class AIRouter:
                     "model": model,
                     "usage": {"prompt_tokens": pt, "completion_tokens": ct, "total_tokens": tt},
                 }
-                ap_result = await self.pipeline.execute_after_provider(request, stream_response, provider_name, model, hook_ctx_stream)
-                br_result = await self.pipeline.execute_before_response(request, stream_response, context)
+                _ = await self.pipeline.execute_after_provider(
+                    request, stream_response, provider_name, model, hook_ctx_stream
+                )  # noqa: E501
+                _ = await self.pipeline.execute_before_response(request, stream_response, context)
                 await self.pipeline.execute_after_response(request, stream_response, context)
 
-                await event_bus.emit("request.finished", request_id=request_id, provider=provider_name, model=model, success=True)
+                await event_bus.emit(
+                    "request.finished", request_id=request_id, provider=provider_name, model=model, success=True
+                )  # noqa: E501
 
                 if self._storage:
                     try:
@@ -818,9 +911,19 @@ class AIRouter:
                 metrics.record_failure(latency)
                 record_failure(provider_name, model, "Cancelled")
                 record_latency(provider_name, model, latency)
-                logger.log_request(request_id=request_id, provider=provider_name, model=model, task=task.value, latency_ms=latency, success=False, error="Stream cancelled")
+                logger.log_request(
+                    request_id=request_id,
+                    provider=provider_name,
+                    model=model,
+                    task=task.value,
+                    latency_ms=latency,
+                    success=False,
+                    error="Stream cancelled",
+                )  # noqa: E501
                 stats.record(provider=provider_name, model=model, latency_ms=latency, success=False, task=task)
-                live_benchmark.record(provider=provider_name, latency_ms=latency, tokens=0, success=False, timeout=False, model=model)
+                live_benchmark.record(
+                    provider=provider_name, latency_ms=latency, tokens=0, success=False, timeout=False, model=model
+                )  # noqa: E501
                 raise
 
             except Exception as e:
@@ -828,16 +931,33 @@ class AIRouter:
                 metrics.record_failure(latency)
                 record_failure(provider_name, model, type(e).__name__)
                 record_latency(provider_name, model, latency)
-                logger.log_request(request_id=request_id, provider=provider_name, model=model, task=task.value, latency_ms=latency, success=False, error=str(e))
+                logger.log_request(
+                    request_id=request_id,
+                    provider=provider_name,
+                    model=model,
+                    task=task.value,
+                    latency_ms=latency,
+                    success=False,
+                    error=str(e),
+                )  # noqa: E501
                 stats.record(provider=provider_name, model=model, latency_ms=latency, success=False, task=task)
                 is_timeout = isinstance(e, (asyncio.TimeoutError, ProviderTimeoutError))
-                live_benchmark.record(provider=provider_name, latency_ms=latency, tokens=0, success=False, timeout=is_timeout, model=model)
+                live_benchmark.record(
+                    provider=provider_name, latency_ms=latency, tokens=0, success=False, timeout=is_timeout, model=model
+                )  # noqa: E501
                 record_fallback(provider_name, model, from_provider="")
                 await event_bus.emit("fallback.triggered", from_provider=provider_name, to_provider="", task=task.value)
-                errors.append(ProviderError(f"Provider {provider_name} stream failed: {e}", provider=provider_name, model=model))
+                errors.append(
+                    ProviderError(f"Provider {provider_name} stream failed: {e}", provider=provider_name, model=model)
+                )  # noqa: E501
                 continue
 
-        await event_bus.emit("request.finished", request_id=request_id, success=False, error=str(errors[-1]) if errors else "All providers failed")
+        await event_bus.emit(
+            "request.finished",
+            request_id=request_id,
+            success=False,
+            error=str(errors[-1]) if errors else "All providers failed",
+        )  # noqa: E501
         raise AllProvidersFailedError(task=task, errors=errors)
 
     async def embeddings(self, request: EmbeddingRequest) -> EmbeddingResponse:

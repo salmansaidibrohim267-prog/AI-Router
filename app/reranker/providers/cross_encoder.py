@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import time
 from typing import Any
 
 from app.reranker.calibration import CalibrationStrategy, create_calibration_strategy
-from app.reranker.exceptions import RerankerInputError, RerankerModelError
+from app.reranker.exceptions import RerankerModelError
 from app.reranker.models import RerankerResult
 from app.reranker.protocol import BaseReranker
 
@@ -28,9 +27,7 @@ class CrossEncoderReranker(BaseReranker):
         self._model_name = model_name
         self._batch_size = batch_size
         self._max_length = max_length
-        self._calibration = calibration_strategy or (
-            create_calibration_strategy(calibration) if calibration else None
-        )
+        self._calibration = calibration_strategy or (create_calibration_strategy(calibration) if calibration else None)
         self._model: CrossEncoder | None = None
 
     @property
@@ -102,22 +99,24 @@ class CrossEncoderReranker(BaseReranker):
         if self._calibration:
             calibrated = self._calibration.calibrate(raw_scores)
 
-        scored = list(zip(candidates, raw_scores, calibrated))
+        scored = list(zip(candidates, raw_scores, calibrated, strict=False))
         scored.sort(key=lambda x: x[2], reverse=True)
         top = scored[:top_k]
 
         results: list[RerankerResult] = []
         for rank, (cand, raw, cal) in enumerate(top, 1):
             doc_id = cand.get("id", cand.get("_id", str(hash(str(cand)))))
-            results.append(RerankerResult(
-                id=doc_id,
-                score=cal,
-                original_score=raw,
-                calibrated_score=cal,
-                rank=rank,
-                metadata=cand.get("metadata", {}),
-                model=self.model_name,
-            ))
+            results.append(
+                RerankerResult(
+                    id=doc_id,
+                    score=cal,
+                    original_score=raw,
+                    calibrated_score=cal,
+                    rank=rank,
+                    metadata=cand.get("metadata", {}),
+                    model=self.model_name,
+                )
+            )
         return results
 
     def _get_candidate_text(self, candidate: dict[str, Any]) -> str:

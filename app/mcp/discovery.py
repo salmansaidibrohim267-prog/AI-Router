@@ -86,9 +86,7 @@ class ServerDiscovery:
         return list(self._tools)
 
     async def list_resources(self, cursor: str | None = None) -> list[Any]:
-        result = await self._request(
-            "resources/list", {"cursor": cursor} if cursor else {}
-        )
+        result = await self._request("resources/list", {"cursor": cursor} if cursor else {})
         raw = result.get("resources", []) if isinstance(result, dict) else []
         self._resources = [dict(r) for r in raw]
         return list(self._resources)

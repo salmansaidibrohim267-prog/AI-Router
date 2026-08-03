@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-import os
 import threading
-import time
 from typing import Any
 
 from .exceptions import SettingNotFoundError, SettingValidationError
 from .logging import AdminLogger
-from .models import SettingDefinition, SettingType
+from .models import SettingDefinition
 from .repositories import DEFAULT_SETTINGS, SettingsRepository
 
 
@@ -57,7 +55,9 @@ class SystemSettingsManager:
         if not definition.validate(value):
             raise SettingValidationError(key, f"expected {definition.type.value}")
         self._repository.set(key, value)
-        self._logger.log_event("setting.updated", key=key, value=value if not definition.sensitive else "***", actor=actor)
+        self._logger.log_event(
+            "setting.updated", key=key, value=value if not definition.sensitive else "***", actor=actor
+        )  # noqa: E501
         return value
 
     def reset(self, key: str) -> Any:

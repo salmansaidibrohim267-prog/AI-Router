@@ -5,10 +5,9 @@ import logging
 import time
 from typing import Any
 
-from app.orchestration.orchestrator import Orchestrator
 from app.orchestration.models import OrchestrationRequest
+from app.orchestration.orchestrator import Orchestrator
 from app.tasks.queue import TaskQueue
-from app.tasks.status import TaskState
 
 logger = logging.getLogger(__name__)
 
@@ -75,11 +74,14 @@ class TaskWorker:
         payload = task.get("payload", {})
         task_type = task.get("type", "")
 
-        self._queue.add_timeline_event(task_id, {
-            "event": "task_started",
-            "timestamp": time.time(),
-            "worker": self._worker_id,
-        })
+        self._queue.add_timeline_event(
+            task_id,
+            {
+                "event": "task_started",
+                "timestamp": time.time(),
+                "worker": self._worker_id,
+            },
+        )
 
         try:
             async with asyncio.timeout(task.get("timeout", 300)):
@@ -94,11 +96,14 @@ class TaskWorker:
             self._queue.fail_task(task_id, "Task timed out")
             return
 
-        self._queue.add_timeline_event(task_id, {
-            "event": "task_completed",
-            "timestamp": time.time(),
-            "worker": self._worker_id,
-        })
+        self._queue.add_timeline_event(
+            task_id,
+            {
+                "event": "task_completed",
+                "timestamp": time.time(),
+                "worker": self._worker_id,
+            },
+        )
 
     def get_status(self) -> dict[str, Any]:
         return {

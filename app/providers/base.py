@@ -10,8 +10,8 @@ from app.models import (
     EmbeddingResponse,
     HealthCheckResponse,
     ModelInfo,
-    StreamChunk,
     StreamChoice,
+    StreamChunk,
 )
 
 

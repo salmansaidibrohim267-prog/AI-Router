@@ -24,22 +24,26 @@ class CitationLogger:
             **extra,
         }
         if result is not None:
-            payload.update({
-                "citations": len(result.citations),
-                "sources": len(result.sources),
-                "format": result.format.value,
-                "confidence": round(result.confidence, 4),
-                "errors": len(result.errors),
-                "warnings": len(result.warnings),
-            })
+            payload.update(
+                {
+                    "citations": len(result.citations),
+                    "sources": len(result.sources),
+                    "format": result.format.value,
+                    "confidence": round(result.confidence, 4),
+                    "errors": len(result.errors),
+                    "warnings": len(result.warnings),
+                }
+            )
         self._logger.info(json.dumps(payload))
 
     def log_error(self, error: Exception, context: str = "") -> None:
         self._logger.error(
-            json.dumps({
-                "event": "citation_error",
-                "error": str(error),
-                "error_type": error.__class__.__name__,
-                "context": context,
-            })
+            json.dumps(
+                {
+                    "event": "citation_error",
+                    "error": str(error),
+                    "error_type": error.__class__.__name__,
+                    "context": context,
+                }
+            )
         )

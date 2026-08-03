@@ -4,7 +4,7 @@ import threading
 from abc import ABC, abstractmethod
 from typing import Any
 
-from .exceptions import AlertNotFoundError, FeatureFlagNotFoundError, SettingNotFoundError
+from .exceptions import AlertNotFoundError, FeatureFlagNotFoundError
 from .models import AlertRecord, AuditRecord, FeatureFlag, SettingDefinition, SettingType
 
 
@@ -198,12 +198,28 @@ class AdminRepositories:
 
 
 DEFAULT_SETTINGS: dict[str, SettingDefinition] = {
-    "platform_name": SettingDefinition("platform_name", SettingType.STRING, default="AI Router", description="Display name"),
-    "max_upload_mb": SettingDefinition("max_upload_mb", SettingType.INTEGER, default=100, description="Max upload size"),
-    "session_timeout_minutes": SettingDefinition("session_timeout_minutes", SettingType.INTEGER, default=60, description="Session timeout"),
-    "rate_limit_multiplier": SettingDefinition("rate_limit_multiplier", SettingType.FLOAT, default=1.0, description="Global rate limit factor"),
-    "maintenance_notice": SettingDefinition("maintenance_notice", SettingType.STRING, default="", description="Maintenance notice"),
-    "allow_public_signup": SettingDefinition("allow_public_signup", SettingType.BOOLEAN, default=False, description="Public signup"),
-    "supported_languages": SettingDefinition("supported_languages", SettingType.JSON, default=["en"], description="Languages"),
-    "secret_overrides": SettingDefinition("secret_overrides", SettingType.STRING, default="", description="Secret overrides", sensitive=True),
+    "platform_name": SettingDefinition(
+        "platform_name", SettingType.STRING, default="AI Router", description="Display name"
+    ),  # noqa: E501
+    "max_upload_mb": SettingDefinition(
+        "max_upload_mb", SettingType.INTEGER, default=100, description="Max upload size"
+    ),  # noqa: E501
+    "session_timeout_minutes": SettingDefinition(
+        "session_timeout_minutes", SettingType.INTEGER, default=60, description="Session timeout"
+    ),  # noqa: E501
+    "rate_limit_multiplier": SettingDefinition(
+        "rate_limit_multiplier", SettingType.FLOAT, default=1.0, description="Global rate limit factor"
+    ),  # noqa: E501
+    "maintenance_notice": SettingDefinition(
+        "maintenance_notice", SettingType.STRING, default="", description="Maintenance notice"
+    ),  # noqa: E501
+    "allow_public_signup": SettingDefinition(
+        "allow_public_signup", SettingType.BOOLEAN, default=False, description="Public signup"
+    ),  # noqa: E501
+    "supported_languages": SettingDefinition(
+        "supported_languages", SettingType.JSON, default=["en"], description="Languages"
+    ),  # noqa: E501
+    "secret_overrides": SettingDefinition(
+        "secret_overrides", SettingType.STRING, default="", description="Secret overrides", sensitive=True
+    ),  # noqa: E501
 }

@@ -15,8 +15,7 @@ except ImportError:
 
 
 class DocumentParser(Protocol):
-    async def parse(self, document: LoadedDocument, **kwargs) -> str:
-        ...
+    async def parse(self, document: LoadedDocument, **kwargs) -> str: ...
 
 
 class PlainTextParser:
@@ -36,9 +35,7 @@ class PDFParser:
         text_parts: list[str] = []
 
         text_pattern = re.compile(rb"\((.*?)\)", re.DOTALL)
-        stream_pattern = re.compile(
-            rb"stream\s(.*?)\s*endstream", re.DOTALL
-        )
+        stream_pattern = re.compile(rb"stream\s(.*?)\s*endstream", re.DOTALL)
 
         for match in text_pattern.finditer(raw):
             part = match.group(1)
@@ -73,10 +70,7 @@ class PDFParser:
         result = "\n".join(text_parts)
         result = result.strip()
         if not result:
-            result = (
-                "[PDF content could not be fully extracted. "
-                "Install pypdf or pdfminer.six for better PDF support.]"
-            )
+            result = "[PDF content could not be fully extracted. Install pypdf or pdfminer.six for better PDF support.]"
         return result
 
 
@@ -122,7 +116,7 @@ class JSONParser:
                 parts.append(f"{indent}{key}:")
                 parts.append(self._json_to_text(value, indent + "  "))
         elif isinstance(data, list):
-            for i, item in enumerate(data):
+            for _, item in enumerate(data):
                 parts.append(f"{indent}- {self._json_to_text(item, indent + '  ')}")
         elif isinstance(data, bool):
             parts.append(f"{indent}{'true' if data else 'false'}")

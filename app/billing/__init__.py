@@ -4,8 +4,8 @@ from .config import BillingConfig
 from .coupons import CouponManager
 from .exceptions import (
     BillingError,
-    CouponExpiredError,
     CouponExhaustedError,
+    CouponExpiredError,
     CouponInvalidError,
     CouponNotFoundError,
     GracePeriodExceededError,

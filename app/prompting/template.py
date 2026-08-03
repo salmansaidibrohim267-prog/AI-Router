@@ -3,9 +3,6 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from app.prompting.exceptions import PromptTemplateError
-
-
 PLACEHOLDER_PATTERN = re.compile(r"\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}")
 DEFAULT_PLACEHOLDERS = {
     "system",
@@ -60,7 +57,11 @@ class TemplateEngine:
         return errors
 
     def has_placeholder(self, name: str) -> bool:
-        return f"{{{{ {name} }}}}" in self._template or f"{{{{ {name}}}}}" in self._template or f"{{{{{name}}}}}" in self._template
+        return (
+            f"{{{{ {name} }}}}" in self._template
+            or f"{{{{ {name}}}}}" in self._template
+            or f"{{{{{name}}}}}" in self._template
+        )  # noqa: E501
 
     def build_default_template(self) -> str:
         return (

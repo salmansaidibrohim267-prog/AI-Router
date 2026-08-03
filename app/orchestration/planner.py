@@ -6,7 +6,6 @@ from typing import Any
 from app.orchestration.models import (
     ExecutionPlan,
     PlanStep,
-    PlanStepType,
 )
 
 
@@ -94,13 +93,19 @@ class Planner:
 
         steps = []
         for i, agent in enumerate(matched_agents):
-            steps.append(PlanStep(
-                step=f"step_{i + 1}",
-                agent=agent,
-                execution="sequential",
-                prompt_template=prompt if i == len(matched_agents) - 1 else f"{prompt}\n\nFocus on this from a {agent} perspective.",
-                context_refs=[] if i == 0 else [f"step_{i}"],
-            ))
+            steps.append(
+                PlanStep(
+                    step=f"step_{i + 1}",
+                    agent=agent,
+                    execution="sequential",
+                    prompt_template=(
+                        prompt
+                        if i == len(matched_agents) - 1
+                        else f"{prompt}\n\nFocus on this from a {agent} perspective."
+                    ),  # noqa: E501
+                    context_refs=[] if i == 0 else [f"step_{i}"],
+                )
+            )
         return steps
 
     def _classify_agent(self, prompt: str) -> str:

@@ -226,7 +226,9 @@ class Marketplace:
 
         with self._lock:
             entry.downloads += 1
-        self._logger.log_event("marketplace.entry_installed", entry_id=entry_id, plugin=entry.name, version=entry.version)
+        self._logger.log_event(
+            "marketplace.entry_installed", entry_id=entry_id, plugin=entry.name, version=entry.version
+        )  # noqa: E501
         return {
             "plugin": entry.name,
             "version": entry.version,

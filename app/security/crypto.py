@@ -12,7 +12,6 @@ import base64
 import hashlib
 import hmac
 import os
-import time
 from typing import Any, Callable
 
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -21,7 +20,7 @@ from .config import SecurityConfig
 from .exceptions import DecryptionError, EncryptionError, KeyManagementError
 from .logging import SecurityLogger
 from .metrics import SecurityMetricsTracker
-from .models import EncryptionAlgorithm, EncryptionKey, Envelope, generate_id
+from .models import EncryptionAlgorithm, EncryptionKey, Envelope
 
 _KeyProvider = Callable[[str, int], EncryptionKey | None]
 Data = str | bytes | dict | list | int | float | bool | None
@@ -112,9 +111,7 @@ class EncryptionService:
         metrics: SecurityMetricsTracker | None = None,
     ) -> None:
         self.config = config if config is not None else SecurityConfig()
-        self.cipher = cipher if cipher is not None else AESCipher(
-            EncryptionAlgorithm(self.config.encryption_algorithm)
-        )
+        self.cipher = cipher if cipher is not None else AESCipher(EncryptionAlgorithm(self.config.encryption_algorithm))
         self.key_provider = key_provider
         self.logger = logger if logger is not None else SecurityLogger(self.config)
         self.metrics = metrics if metrics is not None else SecurityMetricsTracker(self.config)

@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import time
 from typing import Any
 
-from app.orchestration.models import AgentResult, ReflectionScore
-from app.orchestration.metrics import reflection_retry_total
-from app.router import AIRouter
 from app.models import ChatRequest, Message, MessageRole
+from app.orchestration.metrics import reflection_retry_total
+from app.orchestration.models import AgentResult, ReflectionScore
+from app.router import AIRouter
 
 
 class ReflectionEngine:
@@ -35,7 +34,7 @@ class ReflectionEngine:
             "2. hallucination: Does the answer contain made-up information? (1.0 = no hallucination)\n"
             "3. completeness: Does the answer fully address the question?\n\n"
             f"Response:\n{result.content}\n\n"
-            "Return scores in JSON format: {\"correctness\": 0.0, \"hallucination\": 0.0, \"completeness\": 0.0}"
+            'Return scores in JSON format: {"correctness": 0.0, "hallucination": 0.0, "completeness": 0.0}'
         )
 
         try:
@@ -49,7 +48,9 @@ class ReflectionEngine:
         except Exception:
             return ReflectionScore(overall=0.5, should_retry=False, reason="Evaluation failed, defaulting")
 
-        overall = (scores.get("correctness", 0.0) + scores.get("hallucination", 0.0) + scores.get("completeness", 0.0)) / 3.0
+        overall = (
+            scores.get("correctness", 0.0) + scores.get("hallucination", 0.0) + scores.get("completeness", 0.0)
+        ) / 3.0  # noqa: E501
 
         should_retry = overall < self._threshold
         reason = ""
@@ -124,6 +125,7 @@ class ReflectionEngine:
     def _parse_scores(self, text: str) -> dict[str, float]:
         import json
         import re
+
         try:
             data = json.loads(text)
             return {

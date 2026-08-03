@@ -5,8 +5,7 @@ from typing import Protocol
 
 
 class TokenEstimator(Protocol):
-    def estimate(self, text: str) -> int:
-        ...
+    def estimate(self, text: str) -> int: ...
 
 
 class HeuristicTokenEstimator:

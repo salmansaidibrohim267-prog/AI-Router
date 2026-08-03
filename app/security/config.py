@@ -87,6 +87,7 @@ class SecurityConfig:
     @classmethod
     def from_env(cls, **overrides: Any) -> "SecurityConfig":
         """Build config from ``SEC_*`` environment variables + overrides."""
+
         def _get(name: str, default: str) -> str:
             return os.environ.get(f"SEC_{name}", default)
 
@@ -103,7 +104,8 @@ class SecurityConfig:
             "pii_masking_mode": _get("PII_MASKING_MODE", "partial"),
             "zero_trust_enforce": os.environ.get("SEC_ZERO_TRUST_ENFORCE", "true").lower() in ("1", "true", "yes"),
             "audit_enabled": os.environ.get("SEC_AUDIT_ENABLED", "true").lower() in ("1", "true", "yes"),
-            "threat_detection_enabled": os.environ.get("SEC_THREAT_DETECTION_ENABLED", "true").lower() in ("1", "true", "yes"),
+            "threat_detection_enabled": os.environ.get("SEC_THREAT_DETECTION_ENABLED", "true").lower()
+            in ("1", "true", "yes"),  # noqa: E501
             "monitoring_enabled": os.environ.get("SEC_MONITORING_ENABLED", "true").lower() in ("1", "true", "yes"),
             "log_events": os.environ.get("SEC_LOG_EVENTS", "true").lower() in ("1", "true", "yes"),
         }

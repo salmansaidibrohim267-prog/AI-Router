@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import importlib.util
-import os
 import sys
 from pathlib import Path
-from typing import Any
 
 from app.providers.base import BaseProvider
 
@@ -29,15 +27,12 @@ def discover_custom_providers(custom_dir: str = "providers") -> dict[str, type[B
 
                 for attr_name in dir(module):
                     attr = getattr(module, attr_name)
-                    if (
-                        isinstance(attr, type)
-                        and issubclass(attr, BaseProvider)
-                        and attr is not BaseProvider
-                    ):
+                    if isinstance(attr, type) and issubclass(attr, BaseProvider) and attr is not BaseProvider:
                         provider_name = getattr(attr, "name", entry.stem.lower())
                         providers[provider_name] = attr
             except Exception:
                 import traceback
+
                 traceback.print_exc()
 
     return providers

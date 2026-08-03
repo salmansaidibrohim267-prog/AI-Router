@@ -33,8 +33,10 @@ class ExecutionMemory:
 
     def resolve_refs(self, text: str) -> str:
         import re
+
         def _replace(match):
             key = match.group(1)
             val = self.get(key, "")
             return str(val) if val is not None else ""
+
         return re.sub(r"\{\{([^}]+)\}\}", _replace, text)

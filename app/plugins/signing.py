@@ -45,7 +45,6 @@ def verify_or_raise(payload: dict[str, Any], signature: Signature | str, secret:
 
 def hash_directory(root: str) -> str:
     """Content hash of a directory tree (stable, sorted paths)."""
-    import os
     from pathlib import Path
 
     digest = hashlib.sha256()

@@ -16,14 +16,13 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import time
 from typing import Any
 
 from .changelog import ChangelogGenerator, CommitEntry, ReleaseEntry
 from .config import ReleaseConfig
 from .exceptions import ReleaseError, ReleaseLockedError, VersionNotFoundError
-from .publishing import Publisher, PublisherRegistry, create_publisher
-from .signing import ReleaseSigner, Signature, canonical_json
+from .publishing import Publisher, create_publisher
+from .signing import ReleaseSigner, Signature
 from .version import SemanticVersion
 
 
@@ -138,7 +137,10 @@ class ReleaseManager:
         if not self.history_file:
             return
         data = {
-            "releases": [{"version": r.version, "date": r.date, "commits": [c.to_dict() for c in r.commits]} for r in self._releases],
+            "releases": [
+                {"version": r.version, "date": r.date, "commits": [c.to_dict() for c in r.commits]}
+                for r in self._releases
+            ],  # noqa: E501
             "finalised": sorted(self._finalised),
             "manifests": [m.to_dict() for m in self._manifests.values()],
             "signatures": [s.to_dict() for s in self._signatures.values()],

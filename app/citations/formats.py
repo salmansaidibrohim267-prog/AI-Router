@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import re
 from typing import Any, Protocol
 
 from app.citations.config import CitationConfig
@@ -41,7 +40,7 @@ class _BaseFormatter:
         mappings = result.mappings
         pairs: list[tuple[CitationMappingLike, Citation]] = []
         if len(mappings) == len(citations):
-            pairs = list(zip(mappings, citations))
+            pairs = list(zip(mappings, citations, strict=False))
         else:
             by_sentence = {c.sentence: c for c in citations}
             for mapping in mappings:
@@ -239,7 +238,7 @@ class MarkdownCitationFormatter(NumericCitationFormatter):
         for i, citation in enumerate(result.citations, start=1):
             parts: list[str] = []
             for source in self._sources_for(result, citation):
-                ref_parts = [p for p in (source.author, f'*{source.title}*' if source.title else "") if p]
+                ref_parts = [p for p in (source.author, f"*{source.title}*" if source.title else "") if p]
                 if source.filename:
                     ref_parts.append(source.filename)
                 if source.page:

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import time
-from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -69,6 +68,7 @@ PERFECT_COST: float = 0.04
 @dataclass
 class RoutingContext:
     """Context for a routing decision."""
+
     task: str = ""
     prompt_token_estimate: int = 0
     expected_completion_tokens: int = 0
@@ -81,6 +81,7 @@ class RoutingContext:
 @dataclass
 class ProviderReputation:
     """Reputation snapshot for a provider at scoring time."""
+
     success_rate: float = 0.0
     avg_latency: float = 0.0
     ewma_latency: float = 0.0
@@ -100,7 +101,9 @@ class ProviderReputation:
     benchmark_score: float = 50.0
 
 
-def build_reputation(metrics: Any, now: float | None = None, circuit_breaker_state: str | None = None) -> ProviderReputation:
+def build_reputation(
+    metrics: Any, now: float | None = None, circuit_breaker_state: str | None = None
+) -> ProviderReputation:  # noqa: E501
     """Build a reputation snapshot from provider metrics.
 
     Includes dynamic reputation score, trend analysis, and circuit breaker multiplier.
@@ -111,26 +114,26 @@ def build_reputation(metrics: Any, now: float | None = None, circuit_breaker_sta
     from app.benchmark.live import live_benchmark
     from app.reputation import circuit_breaker_multiplier, compute_reputation, compute_trend
 
-    trend_data = compute_trend(metrics.request_history) if hasattr(metrics, 'request_history') else None
+    trend_data = compute_trend(metrics.request_history) if hasattr(metrics, "request_history") else None
     trend_delta = trend_data.score_delta if trend_data else 0.0
 
     rep_score = compute_reputation(
         success_rate=metrics.success_rate,
         ewma_latency=metrics.ewma_latency,
         avg_cost=metrics.avg_cost,
-        uptime_seconds=getattr(metrics, 'uptime_seconds', 0.0),
+        uptime_seconds=getattr(metrics, "uptime_seconds", 0.0),
         consecutive_success=metrics.consecutive_success,
         consecutive_failure=metrics.consecutive_failures,
     )
 
     cb_mult = circuit_breaker_multiplier(circuit_breaker_state)
 
-    bm = live_benchmark.get_or_create(metrics.name) if hasattr(metrics, 'name') and metrics.name else None
+    bm = live_benchmark.get_or_create(metrics.name) if hasattr(metrics, "name") and metrics.name else None
     benchmark_score = bm.get_aggregated_score() if bm else 50.0
 
     return ProviderReputation(
         success_rate=metrics.success_rate,
-        avg_latency=metrics.avg_latency if metrics.avg_latency != float('inf') else 0.0,
+        avg_latency=metrics.avg_latency if metrics.avg_latency != float("inf") else 0.0,
         ewma_latency=metrics.ewma_latency,
         avg_cost=metrics.avg_cost,
         consecutive_success=metrics.consecutive_success,
@@ -139,9 +142,9 @@ def build_reputation(metrics: Any, now: float | None = None, circuit_breaker_sta
         rolling_failure_rate=metrics.rolling_failure_rate,
         recent_error_rate=1.0 - metrics.rolling_success_rate,
         total_requests=metrics.total_requests,
-        uptime_seconds=getattr(metrics, 'uptime_seconds', 0.0),
-        last_failure_ago=now - metrics.last_failure_time if metrics.last_failure_time > 0 else float('inf'),
-        last_success_ago=now - metrics.last_success_time if metrics.last_success_time > 0 else float('inf'),
+        uptime_seconds=getattr(metrics, "uptime_seconds", 0.0),
+        last_failure_ago=now - metrics.last_failure_time if metrics.last_failure_time > 0 else float("inf"),
+        last_success_ago=now - metrics.last_success_time if metrics.last_success_time > 0 else float("inf"),
         reputation_score=rep_score,
         trend_delta=trend_delta,
         circuit_breaker_multiplier=cb_mult,
@@ -213,7 +216,8 @@ class RoutingEngine:
         """
         if health_status is not None:
             from app.models import ProviderStatus
-            if getattr(health_status, 'status', health_status) != ProviderStatus.HEALTHY:
+
+            if getattr(health_status, "status", health_status) != ProviderStatus.HEALTHY:
                 return -99999.0
 
         w = MODE_WEIGHTS[self._mode]
@@ -236,9 +240,7 @@ class RoutingEngine:
         config_score = float(base_score)
 
         # User preference
-        pref_score = 100.0 if (
-            context.user_preference and context.user_preference.lower() == provider.lower()
-        ) else 0.0
+        pref_score = 100.0 if (context.user_preference and context.user_preference.lower() == provider.lower()) else 0.0
 
         # Context suitability
         ctx_window = get_model_context_window(model)
@@ -286,8 +288,8 @@ class RoutingEngine:
             + ctx_score * w["context"]
             + recency_score * w["recency"]
             + reputation_score * 0.10  # reputation as 10% factor
-            + trend_delta                # trend directly affects score
-            + benchmark_score * 0.05    # live benchmark as 5% factor
+            + trend_delta  # trend directly affects score
+            + benchmark_score * 0.05  # live benchmark as 5% factor
             + failure_penalty
             + retry_penalty
             + capability_penalty
@@ -313,6 +315,7 @@ class RoutingEngine:
         for provider, model in candidates:
             m = metrics_map.get(provider)
             from app.providers.manager import ProviderManager
+
             if isinstance(provider_manager, ProviderManager):
                 cb_state = provider_manager.get_circuit_state(provider)
             else:

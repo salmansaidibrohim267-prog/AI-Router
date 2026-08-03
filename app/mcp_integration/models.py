@@ -93,15 +93,11 @@ class MCPIntegrationMetrics:
             "total_citations_generated": self.total_citations_generated,
             "total_answers": self.total_answers,
             "total_errors": self.total_errors,
-            "average_retrieval_latency_ms": round(
-                self.retrieval_latency_ms / self.total_retrievals, 4
-            )
-            if self.total_retrievals
-            else 0.0,
-            "average_answer_latency_ms": round(
-                self.answer_latency_ms / self.total_answers, 4
-            )
-            if self.total_answers
-            else 0.0,
+            "average_retrieval_latency_ms": (
+                round(self.retrieval_latency_ms / self.total_retrievals, 4) if self.total_retrievals else 0.0
+            ),
+            "average_answer_latency_ms": (
+                round(self.answer_latency_ms / self.total_answers, 4) if self.total_answers else 0.0
+            ),
             "uptime_seconds": round(time.time() - self.started_at, 4),
         }

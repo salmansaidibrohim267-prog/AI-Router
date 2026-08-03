@@ -1,36 +1,31 @@
 from __future__ import annotations
 
-import json
 import time
 import uuid
 from typing import Any, AsyncIterator
 
-from app.orchestration.planner import Planner
+from app.models import ChatRequest, Message, MessageRole, StreamChoice, StreamChunk
 from app.orchestration.agents import AgentRegistry
-from app.orchestration.executor import ExecutionEngine
-from app.orchestration.reflection import ReflectionEngine
 from app.orchestration.consensus import ConsensusEngine
 from app.orchestration.debate import DebateEngine
-from app.orchestration.tools import ToolPipeline
+from app.orchestration.executor import ExecutionEngine
 from app.orchestration.memory import ExecutionMemory
-from app.orchestration.workflow import WorkflowBuilder
+from app.orchestration.metrics import (
+    orchestrator_active_requests,
+    orchestrator_requests_total,
+)
 from app.orchestration.models import (
     AgentResult,
-    ConsensusResult,
-    DebateResult,
     ExecutionPlan,
     OrchestrationRequest,
     OrchestrationResponse,
     ReflectionScore,
     WorkflowDefinition,
     WorkflowNodeType,
-    WorkflowResult,
 )
-from app.orchestration.metrics import (
-    orchestrator_requests_total,
-    orchestrator_active_requests,
-)
-from app.models import ChatRequest, Message, MessageRole, StreamChunk, StreamChoice
+from app.orchestration.planner import Planner
+from app.orchestration.reflection import ReflectionEngine
+from app.orchestration.tools import ToolPipeline
 from app.router import router as _default_router
 
 try:
@@ -72,17 +67,21 @@ class Orchestrator:
 
     @staticmethod
     def _add_timeline(timeline: list[dict[str, Any]], event: str, **kwargs: Any) -> None:
-        timeline.append({
-            "event": event,
-            "timestamp": time.time(),
-            **kwargs,
-        })
+        timeline.append(
+            {
+                "event": event,
+                "timestamp": time.time(),
+                **kwargs,
+            }
+        )
 
     @staticmethod
     def _load_config() -> dict[str, Any]:
         import os
+
         try:
             import yaml
+
             path = os.path.join(os.path.dirname(__file__), "..", "..", "config", "orchestrator.yaml")
             if os.path.isfile(path):
                 with open(path) as f:
@@ -143,7 +142,8 @@ class Orchestrator:
             orchestrator_active_requests.labels(mode=request.mode).dec()
 
     async def orchestrate_stream(
-        self, request: OrchestrationRequest,
+        self,
+        request: OrchestrationRequest,
     ) -> AsyncIterator[StreamChunk]:
         orchestrator_requests_total.labels(mode=request.mode).inc()
         orchestrator_active_requests.labels(mode=request.mode).inc()
@@ -164,16 +164,25 @@ class Orchestrator:
                 await self._run_hook("before_plan", request, hook_ctx)
                 providers = request.consensus_providers or ["openai", "anthropic", "google"]
                 yield StreamChunk(
-                    id=stream_id, model=request.model or "",
-                    choices=[StreamChoice(index=0, delta={"content": f"[consensus] Querying {len(providers)} providers...\n"})],
+                    id=stream_id,
+                    model=request.model or "",
+                    choices=[
+                        StreamChoice(
+                            index=0, delta={"content": f"[consensus] Querying {len(providers)} providers...\n"}
+                        )
+                    ],  # noqa: E501
                 )
-                result = await self.consensus.run_consensus(chat_request, providers, self._router, strategy=request.consensus_strategy)
+                result = await self.consensus.run_consensus(
+                    chat_request, providers, self._router, strategy=request.consensus_strategy
+                )  # noqa: E501
                 yield StreamChunk(
-                    id=stream_id, model=request.model or "",
+                    id=stream_id,
+                    model=request.model or "",
                     choices=[StreamChoice(index=0, delta={"content": result.content})],
                 )
                 yield StreamChunk(
-                    id=stream_id, model=request.model or "",
+                    id=stream_id,
+                    model=request.model or "",
                     choices=[StreamChoice(index=0, delta={}, finish_reason="stop")],
                 )
                 return
@@ -183,16 +192,19 @@ class Orchestrator:
                 provider_a = request.debate_provider_a or "openai"
                 provider_b = request.debate_provider_b or "anthropic"
                 yield StreamChunk(
-                    id=stream_id, model=request.model or "",
+                    id=stream_id,
+                    model=request.model or "",
                     choices=[StreamChoice(index=0, delta={"content": f"[debate] {provider_a} vs {provider_b}...\n"})],
                 )
                 result = await self.debate.run_debate(chat_request, provider_a, provider_b, self._router)
                 yield StreamChunk(
-                    id=stream_id, model=request.model or "",
+                    id=stream_id,
+                    model=request.model or "",
                     choices=[StreamChoice(index=0, delta={"content": result.final_content})],
                 )
                 yield StreamChunk(
-                    id=stream_id, model=request.model or "",
+                    id=stream_id,
+                    model=request.model or "",
                     choices=[StreamChoice(index=0, delta={}, finish_reason="stop")],
                 )
                 return
@@ -209,7 +221,8 @@ class Orchestrator:
 
             for step in plan.steps:
                 yield StreamChunk(
-                    id=stream_id, model=request.model or "",
+                    id=stream_id,
+                    model=request.model or "",
                     choices=[StreamChoice(index=0, delta={"content": f"[{step.agent}] {step.step}...\n"})],
                 )
 
@@ -218,26 +231,36 @@ class Orchestrator:
             for r in results:
                 await self._run_hook("after_agent", r, r.agent_name if hasattr(r, "agent_name") else "", hook_ctx)
                 yield StreamChunk(
-                    id=stream_id, model=request.model or "",
+                    id=stream_id,
+                    model=request.model or "",
                     choices=[StreamChoice(index=0, delta={"content": r.content})],
                 )
 
             if request.reflection and results:
                 last = results[-1]
                 await self._run_hook("before_reflection", last, hook_ctx)
-                final_result, reflection_score = await self.reflection.reflect_and_retry(last, self._router, chat_request)
+                final_result, reflection_score = await self.reflection.reflect_and_retry(
+                    last, self._router, chat_request
+                )  # noqa: E501
                 if reflection_score and reflection_score.should_retry:
                     yield StreamChunk(
-                        id=stream_id, model=request.model or "",
-                        choices=[StreamChoice(index=0, delta={"content": f"[reflection] {reflection_score.reason}, retrying...\n"})],
+                        id=stream_id,
+                        model=request.model or "",
+                        choices=[
+                            StreamChoice(
+                                index=0, delta={"content": f"[reflection] {reflection_score.reason}, retrying...\n"}
+                            )
+                        ],  # noqa: E501
                     )
                 yield StreamChunk(
-                    id=stream_id, model=request.model or "",
+                    id=stream_id,
+                    model=request.model or "",
                     choices=[StreamChoice(index=0, delta={"content": final_result.content})],
                 )
 
             yield StreamChunk(
-                id=stream_id, model=request.model or "",
+                id=stream_id,
+                model=request.model or "",
                 choices=[StreamChoice(index=0, delta={}, finish_reason="stop")],
             )
 
@@ -261,8 +284,9 @@ class Orchestrator:
 
         for r in results:
             await self._run_hook("after_agent", r, r.agent_name if hasattr(r, "agent_name") else "", hook_ctx)
-            self._add_timeline(timeline, f"agent_{r.agent}_completed",
-                               agent=r.agent, step=r.step, tokens=r.tokens, cost=r.cost)
+            self._add_timeline(
+                timeline, f"agent_{r.agent}_completed", agent=r.agent, step=r.step, tokens=r.tokens, cost=r.cost
+            )
 
         final_content = ""
         total_tokens = 0
@@ -282,8 +306,11 @@ class Orchestrator:
                     last, self._router, chat_request
                 )
                 final_content = final_result.content
-                self._add_timeline(timeline, "reflection_completed",
-                                   should_retry=reflection_score.should_retry if reflection_score else False)
+                self._add_timeline(
+                    timeline,
+                    "reflection_completed",
+                    should_retry=reflection_score.should_retry if reflection_score else False,
+                )
 
         latency = (time.perf_counter() - start) * 1000
         graph = self._build_graph_from_plan(plan, results)
@@ -303,21 +330,21 @@ class Orchestrator:
         await self._run_hook("after_orchestrate", response, hook_ctx)
         return response
 
-    def _build_graph_from_plan(
-        self, plan: ExecutionPlan, results: list[AgentResult]
-    ) -> dict[str, Any]:
+    def _build_graph_from_plan(self, plan: ExecutionPlan, results: list[AgentResult]) -> dict[str, Any]:
         nodes = []
         edges = []
         for i, step in enumerate(plan.steps):
-            nodes.append({
-                "id": step.step or f"step_{i}",
-                "type": "agent",
-                "agent": step.agent,
-                "label": step.step or step.agent,
-                "status": results[i].success if i < len(results) else "unknown",
-            })
+            nodes.append(
+                {
+                    "id": step.step or f"step_{i}",
+                    "type": "agent",
+                    "agent": step.agent,
+                    "label": step.step or step.agent,
+                    "status": results[i].success if i < len(results) else "unknown",
+                }
+            )
             if i > 0:
-                edges.append({"from": plan.steps[i - 1].step or f"step_{i-1}", "to": step.step or f"step_{i}"})
+                edges.append({"from": plan.steps[i - 1].step or f"step_{i - 1}", "to": step.step or f"step_{i}"})
         return {"nodes": nodes, "edges": edges}
 
     async def _run_consensus_mode(
@@ -400,7 +427,11 @@ class Orchestrator:
                 mode="workflow",
             )
 
-        hook_ctx = {"request_id": response_id, "mode": "workflow", "workflow": workflow.name if hasattr(workflow, "name") else ""}
+        hook_ctx = {
+            "request_id": response_id,
+            "mode": "workflow",
+            "workflow": workflow.name if hasattr(workflow, "name") else "",
+        }  # noqa: E501
         await self._run_hook("before_plan", request, hook_ctx)
 
         self._add_timeline(timeline, "workflow_execution_started", workflow_id=workflow.id)
@@ -427,12 +458,14 @@ class Orchestrator:
         nodes = []
         edges = []
         for step in workflow.steps:
-            nodes.append({
-                "id": step.id,
-                "type": step.type.value if isinstance(step.type, WorkflowNodeType) else str(step.type),
-                "agent": step.agent,
-                "label": step.id or step.type,
-            })
+            nodes.append(
+                {
+                    "id": step.id,
+                    "type": step.type.value if isinstance(step.type, WorkflowNodeType) else str(step.type),
+                    "agent": step.agent,
+                    "label": step.id or step.type,
+                }
+            )
             for dep in step.depends_on:
                 if dep != "START":
                     edges.append({"from": dep, "to": step.id})

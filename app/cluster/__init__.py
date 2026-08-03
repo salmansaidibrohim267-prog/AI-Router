@@ -23,17 +23,17 @@ from .config import ClusterConfig
 from .deployments import DeploymentManager
 from .discovery import (
     ConsulDiscovery,
-    DNSDiscovery,
     DiscoveryBackend,
     DiscoveryRegistry,
+    DNSDiscovery,
     EtcdDiscovery,
     KubernetesDiscovery,
     StaticDiscovery,
     create_discovery,
 )
 from .election import (
-    Elector,
     ElectionRegistry,
+    Elector,
     KubernetesLeaseElection,
     LeaseElection,
     RedisElection,

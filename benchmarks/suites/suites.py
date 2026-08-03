@@ -5,8 +5,8 @@ from __future__ import annotations
 import threading
 import time
 import tracemalloc
-from dataclasses import dataclass, field
-from typing import Any, Callable
+from dataclasses import dataclass
+from typing import Callable
 
 from .base import SuiteResult, Target, mean, percentile
 
@@ -27,7 +27,11 @@ class ThroughputSuite:
         throughput = count / elapsed if elapsed else 0.0
         return SuiteResult(
             name="throughput",
-            metrics={"requests": float(count), "requests_per_second": round(throughput, 2), "duration_seconds": round(elapsed, 4)},
+            metrics={
+                "requests": float(count),
+                "requests_per_second": round(throughput, 2),
+                "duration_seconds": round(elapsed, 4),
+            },  # noqa: E501
         )
 
 
@@ -206,18 +210,26 @@ class RagQualitySuite:
         corpus: list[RagDoc] | None = None,
         queries: list[tuple[str, str]] | None = None,
     ) -> None:
-        self.corpus = corpus if corpus is not None else [
-            RagDoc("d1", "The AI Router routes requests to the best provider based on health."),
-            RagDoc("d2", "Billing tracks usage per tenant and produces monthly invoices."),
-            RagDoc("d3", "The security framework signs releases with HMAC-SHA256."),
-            RagDoc("d4", "SLOs define error budgets and burn rates for alerting."),
-        ]
-        self.queries = queries if queries is not None else [
-            ("how does routing choose a provider", "d1"),
-            ("how are tenants billed", "d2"),
-            ("how are releases signed", "d3"),
-            ("what is an error budget", "d4"),
-        ]
+        self.corpus = (
+            corpus
+            if corpus is not None
+            else [
+                RagDoc("d1", "The AI Router routes requests to the best provider based on health."),
+                RagDoc("d2", "Billing tracks usage per tenant and produces monthly invoices."),
+                RagDoc("d3", "The security framework signs releases with HMAC-SHA256."),
+                RagDoc("d4", "SLOs define error budgets and burn rates for alerting."),
+            ]
+        )
+        self.queries = (
+            queries
+            if queries is not None
+            else [
+                ("how does routing choose a provider", "d1"),
+                ("how are tenants billed", "d2"),
+                ("how are releases signed", "d3"),
+                ("what is an error budget", "d4"),
+            ]
+        )
 
     def _score(self, retriever: Callable[[str], list[RagDoc]]) -> tuple[float, float, int, int]:
         precisions: list[float] = []
