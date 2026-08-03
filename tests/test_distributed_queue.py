@@ -790,5 +790,7 @@ class TestTracing:
 
     def test_init_tracing_disabled(self):
         from app.distributed import tracing
+        tracing.TRACER = None
+        tracing.TRACER_PROVIDER = None
         tracing.init_tracing(enabled=False)
         assert tracing.TRACER is None
