@@ -7,6 +7,17 @@ name = "ai-router"
 version = "1.0.0-rc.1"
 description = "Production-ready AI Gateway with intelligent routing, health checks, and fallback"
 requires-python = ">=3.10"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "salmansaidibrohim267-prog", email = "salmansaidibrohim267-prog@users.noreply.github.com" },
+]
+
+[project.urls]
+Homepage = "https://github.com/salmansaidibrohim267-prog/AI-Router"
+Repository = "https://github.com/salmansaidibrohim267-prog/AI-Router"
+Documentation = "https://github.com/salmansaidibrohim267-prog/AI-Router#readme"
+Issues = "https://github.com/salmansaidibrohim267-prog/AI-Router/issues"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

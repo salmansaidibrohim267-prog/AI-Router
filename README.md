@@ -20,10 +20,10 @@ scaling, and operations for you.
 ![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![Tests](https://img.shields.io/badge/tests-4477%20passed-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-98%25-28A745)
-![Docker](https://img.shields.io/badge/docker-ghcr.io%2Fanomalyco%2Fai-router-2496ED?logo=docker&logoColor=white)
-![CI](https://img.shields.io/github/actions/workflow/status/anomalyco/ai-router/ci.yml?branch=main&label=CI&logo=github)
-![Release](https://img.shields.io/github/v/release/anomalyco/ai-router)
-![Stars](https://img.shields.io/github/stars/anomalyco/ai-router?style=social)
+![Docker](https://img.shields.io/badge/docker-ghcr.io%2Fsalmansaidibrohim267-prog%2FAI-Router-2496ED?logo=docker&logoColor=white)
+![CI](https://img.shields.io/github/actions/workflow/status/salmansaidibrohim267-prog/AI-Router/ci.yml?branch=main&label=CI&logo=github)
+![Release](https://img.shields.io/github/v/release/salmansaidibrohim267-prog/AI-Router)
+![Stars](https://img.shields.io/github/stars/salmansaidibrohim267-prog/AI-Router?style=social)
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)
 
 </p>
@@ -455,7 +455,7 @@ the project layout.
 
 > [!NOTE]
 > AI Router ships as a **Linux-first** platform. For development on macOS or Windows,
-> use the Docker image (`ghcr.io/anomalyco/ai-router`) — the only fully supported
+> use the Docker image (`ghcr.io/salmansaidibrohim267-prog/AI-Router`) — the only fully supported
 > runtime path on those platforms.
 
 ### Python Versions
@@ -492,7 +492,7 @@ the project layout.
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/anomalyco/ai-router.git
+git clone https://github.com/salmansaidibrohim267-prog/AI-Router.git
 cd ai-router
 ```
 
@@ -831,7 +831,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: ai-router
-          image: ghcr.io/anomalyco/ai-router:1.0.0-rc.1
+          image: ghcr.io/salmansaidibrohim267-prog/AI-Router:1.0.0-rc.1
           ports:
             - name: http
               containerPort: 8000
@@ -3176,7 +3176,7 @@ flowchart LR
     SG --> GH["GitHub Release<br/>prerelease if '-' in version"]
     GH --> TAG["push release tag"]
     TAG --> CI["release tag → CI"]
-    CI --> IMG["build + push image<br/>ghcr.io/anomalyco/ai-router:vX.Y.Z"]
+    CI --> IMG["build + push image<br/>ghcr.io/salmansaidibrohim267-prog/AI-Router:vX.Y.Z"]
     IMG --> CO["cosign sign"]
 ```
 
@@ -3199,7 +3199,7 @@ Triggered manually with a bump type; the `ReleaseManager`
   **Buildx** (multi-arch) → login to **ghcr.io** → `docker/build-push-action`
   → **cosign** sign (sigstore), with graceful skip if signing keys aren't
   configured.
-- Images are **immutable**: `ghcr.io/anomalyco/ai-router:v1.0.0-rc.1` never
+- Images are **immutable**: `ghcr.io/salmansaidibrohim267-prog/AI-Router:v1.0.0-rc.1` never
   changes; GitOps/ArgoCD rejects `latest`.
 
 ### Versioning
@@ -3223,7 +3223,7 @@ MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]
 `CHANGELOG.md` is generated from conventional commits by the release pipeline:
 
 ```markdown
-## [1.0.0-rc.1](https://github.com/anomalyco/ai-router/releases/tag/v1.0.0-rc.1) - 2026-08-02
+## [1.0.0](https://github.com/salmansaidibrohim267-prog/AI-Router/releases/tag/v1.0.0) - 2026-07-31
 
 ### Added
 - routing, fallback and traffic distribution
@@ -3519,7 +3519,7 @@ retained. See the repository root for the full license text.
 
 ## ✍️ Author
 
-**anomalyco** — build and maintenance of AI Router.
+**salmansaidibrohim267-prog** — build and maintenance of AI Router.
 
 ---
 
@@ -3527,8 +3527,8 @@ retained. See the repository root for the full license text.
 
 | Channel | Purpose |
 | :--- | :--- |
-| **[GitHub Discussions](https://github.com/anomalyco/ai-router/discussions)** | Questions, ideas, show & tell |
-| **[GitHub Issues](https://github.com/anomalyco/ai-router/issues)** | Bug reports and feature requests |
+| **[GitHub Discussions](https://github.com/salmansaidibrohim267-prog/AI-Router/discussions)** | Questions, ideas, show & tell |
+| **[GitHub Issues](https://github.com/salmansaidibrohim267-prog/AI-Router/issues)** | Bug reports and feature requests |
 | **Discord** | *Community server coming soon* — placeholder |
 | **Star History** | *Watch the project grow* — star history widget placeholder |
 
@@ -3573,7 +3573,7 @@ on top of it.
 
 **AI Router** · v1.0.0-rc.1 · MIT License
 
-[GitHub](https://github.com/anomalyco/ai-router) · [Discussions](https://github.com/anomalyco/ai-router/discussions) · [Issues](https://github.com/anomalyco/ai-router/issues) · [Releases](https://github.com/anomalyco/ai-router/releases)
+[GitHub](https://github.com/salmansaidibrohim267-prog/AI-Router) · [Discussions](https://github.com/salmansaidibrohim267-prog/AI-Router/discussions) · [Issues](https://github.com/salmansaidibrohim267-prog/AI-Router/issues) · [Releases](https://github.com/salmansaidibrohim267-prog/AI-Router/releases)
 
 Built with FastAPI, Redis and an unreasonable number of providers.
 

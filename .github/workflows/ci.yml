@@ -55,13 +55,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pip-audit
           pip install -r requirements.txt
       - name: Dependency audit
-        run: pip-audit --desc on --ignore-vuln PYSEC-XXXX 2>/dev/null || echo "Audit completed (non-blocking)"
+        run: pip-audit --desc on -r requirements.txt || echo "audit findings reported (non-blocking)"
 
   test:
     runs-on: ubuntu-latest

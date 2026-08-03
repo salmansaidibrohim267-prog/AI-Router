@@ -9,7 +9,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/anomalyco/ai-router
+    repoURL: https://github.com/salmansaidibrohim267-prog/AI-Router
     path: deployment/k8s
     targetRevision: v1.0.0-rc.1
   destination:

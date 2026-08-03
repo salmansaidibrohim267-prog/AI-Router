@@ -85,6 +85,13 @@ jobs:
           print('manifest signed:', signature.algorithm)
           "
 
+      - name: Generate source SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: dist/release/sbom.spdx.json
+
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
@@ -94,6 +101,7 @@ jobs:
           files: |
             dist/release/signature.json
             dist/release/history.json
+            dist/release/sbom.spdx.json
             CHANGELOG.md
           prerelease: ${{ contains(steps.release.outputs.version, '-') }}
           generate_release_notes: true
@@ -101,7 +109,7 @@ jobs:
       - name: Push release tag back
         run: |
           git config user.name "CI Bot"
-          git config user.email "ci@anomalyco.dev"
+          git config user.email "salmansaidibrohim267-prog@users.noreply.github.com"
           git add CHANGELOG.md dist/release/history.json
           git commit -m "chore(release): ${{ steps.release.outputs.version }}" || true
           git push origin main

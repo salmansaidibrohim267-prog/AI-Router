@@ -1,0 +1,7 @@
+{
+  "model": "gpt-4o-mini",
+  "stream": true,
+  "messages": [
+    {"role": "user", "content": "Write a haiku about AI routing."}
+  ]
+}

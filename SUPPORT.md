@@ -3,11 +3,11 @@
 ## Community support
 
 - **Issues & bugs** — open a bug report via the
-  [issue templates](https://github.com/anomalyco/ai-router/issues/new/choose).
+  [issue templates](https://github.com/salmansaidibrohim267-prog/AI-Router/issues/new/choose).
 - **Questions** — ask a question using the
-  [question template](https://github.com/anomalyco/ai-router/issues/new?template=question.yml).
+  [question template](https://github.com/salmansaidibrohim267-prog/AI-Router/issues/new?template=question.yml).
 - **Discussions** — feature ideas and general chat live in
-  [GitHub Discussions](https://github.com/anomalyco/ai-router/discussions)
+  [GitHub Discussions](https://github.com/salmansaidibrohim267-prog/AI-Router/discussions)
   (enable it in repository settings).
 
 ## Before you ask

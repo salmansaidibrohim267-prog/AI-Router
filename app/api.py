@@ -14,6 +14,7 @@ import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Request, Response, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.openapi.models import Contact, License
 from fastapi.responses import JSONResponse, StreamingResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
@@ -161,6 +162,14 @@ app = FastAPI(
     title="AI Router Gateway",
     description="Production-ready AI Gateway with intelligent routing, health checks, and fallback",
     version=_get_app_version(),
+    contact=Contact(
+        name="salmansaidibrohim267-prog",
+        url="https://github.com/salmansaidibrohim267-prog/AI-Router",
+    ),
+    license=License(
+        name="MIT",
+        url="https://github.com/salmansaidibrohim267-prog/AI-Router/blob/main/LICENSE",
+    ),
     lifespan=lifespan,
 )
 

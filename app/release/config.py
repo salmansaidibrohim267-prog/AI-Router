@@ -17,8 +17,8 @@ class ReleaseConfig:
         self.project_name: str = kwargs.pop("project_name", "ai-router")
         self.initial_version: str = kwargs.pop("initial_version", "1.0.0-rc.1")
         self.main_branch: str = kwargs.pop("main_branch", "main")
-        self.registry: str = kwargs.pop("registry", "ghcr.io/anomalyco")
-        self.image_name: str = kwargs.pop("image_name", "ai-router")
+        self.registry: str = kwargs.pop("registry", "ghcr.io/salmansaidibrohim267-prog")
+        self.image_name: str = kwargs.pop("image_name", "AI-Router")
         self.sbom_enabled: bool = bool(kwargs.pop("sbom_enabled", True))
         self.signing_enabled: bool = bool(kwargs.pop("signing_enabled", True))
         self.signing_key: str = kwargs.pop("signing_key", "release-signing-key")
@@ -39,8 +39,8 @@ class ReleaseConfig:
             "project_name": os.environ.get("REL_PROJECT_NAME", "ai-router"),
             "initial_version": os.environ.get("REL_INITIAL_VERSION", "1.0.0-rc.1"),
             "main_branch": os.environ.get("REL_MAIN_BRANCH", "main"),
-            "registry": os.environ.get("REL_REGISTRY", "ghcr.io/anomalyco"),
-            "image_name": os.environ.get("REL_IMAGE_NAME", "ai-router"),
+            "registry": os.environ.get("REL_REGISTRY", "ghcr.io/salmansaidibrohim267-prog"),
+            "image_name": os.environ.get("REL_IMAGE_NAME", "AI-Router"),
             "sbom_enabled": os.environ.get("REL_SBOM_ENABLED", "true").lower() in ("1", "true", "yes"),
             "signing_enabled": os.environ.get("REL_SIGNING_ENABLED", "true").lower() in ("1", "true", "yes"),
             "signing_key": os.environ.get("REL_SIGNING_KEY", "release-signing-key"),

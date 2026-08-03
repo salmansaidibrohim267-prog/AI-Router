@@ -15,7 +15,7 @@ AI Router v1.0.0-rc.1 ships with production-grade deployment assets under
 
 ## Image
 
-Pinned immutable tag: `ghcr.io/anomalyco/ai-router:1.0.0-rc.1`.
+Pinned immutable tag: `ghcr.io/salmansaidibrohim267-prog/AI-Router:1.0.0-rc.1`.
 
 Build with build args `VERSION`, `GIT_COMMIT`, `BUILD_DATE`; the image drops
 privileges to a non-root user and runs a `/health` HEALTHCHECK.

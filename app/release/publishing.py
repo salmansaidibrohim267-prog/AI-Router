@@ -44,7 +44,7 @@ class GitHubPublisher(Publisher):
         super().__init__(config)
         self.transport = transport
         self.token = token or os.environ.get("GITHUB_TOKEN", "")
-        self.repo = "anomalyco/ai-router"
+        self.repo = "salmansaidibrohim267-prog/AI-Router"
         self.api_url = "https://api.github.com"
 
     def _headers(self) -> dict[str, str]:

@@ -5,5 +5,5 @@ resources:
   - ai-router.yaml
   - rbac.yaml
 images:
-  - name: ghcr.io/anomalyco/ai-router
+  - name: ghcr.io/salmansaidibrohim267-prog/AI-Router
     newTag: 1.0.0-rc.1

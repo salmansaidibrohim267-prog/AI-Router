@@ -1,0 +1,2828 @@
+{
+  "info": {
+    "_postman_id": "280bf77e-d165-4915-84b2-0f73b7bb1701",
+    "name": "AI Router",
+    "description": "AI Router v1.0.0 \u2014 generated from the live OpenAPI schema.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{apiKey}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Analytics & Stats",
+      "item": [
+        {
+          "name": "GET /analytics/providers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/providers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "providers"
+              ]
+            },
+            "description": "Analytics Providers"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /analytics/providers/{provider_name}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/providers/{provider_name}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "providers",
+                "{provider_name}"
+              ]
+            },
+            "description": "Analytics Provider"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /cache/stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cache/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cache",
+                "stats"
+              ]
+            },
+            "description": "Get Cache Stats"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /costs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/costs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "costs"
+              ]
+            },
+            "description": "Get Costs"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /costs/{provider}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/costs/{provider}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "costs",
+                "{provider}"
+              ]
+            },
+            "description": "Get Provider Cost"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /distribution",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/distribution",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "distribution"
+              ]
+            },
+            "description": "Get Distribution"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /distribution/config",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/distribution/config",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "distribution",
+                "config"
+              ]
+            },
+            "description": "Set Distribution Config"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /distribution/rebalance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/distribution/rebalance",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "distribution",
+                "rebalance"
+              ]
+            },
+            "description": "Force Rebalance"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /distribution/reset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/distribution/reset",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "distribution",
+                "reset"
+              ]
+            },
+            "description": "Reset Distribution Stats"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/logs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logs"
+              ]
+            },
+            "description": "Get Logs"
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /logs",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/logs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logs"
+              ]
+            },
+            "description": "Clear Logs"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /logs/{request_id}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/logs/{request_id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logs",
+                "{request_id}"
+              ]
+            },
+            "description": "Get Log By Request Id"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "stats"
+              ]
+            },
+            "description": "Get Stats"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /stats/errors",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stats/errors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "stats",
+                "errors"
+              ]
+            },
+            "description": "Get Error Stats"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /stats/models/{provider_name}/{model_name}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stats/models/{provider_name}/{model_name}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "stats",
+                "models",
+                "{provider_name}",
+                "{model_name}"
+              ]
+            },
+            "description": "Get Model Stats"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /stats/providers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stats/providers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "stats",
+                "providers"
+              ]
+            },
+            "description": "Get Provider Stats"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /stats/providers/{provider_name}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stats/providers/{provider_name}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "stats",
+                "providers",
+                "{provider_name}"
+              ]
+            },
+            "description": "Get Provider Stat"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /stats/reset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stats/reset",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "stats",
+                "reset"
+              ]
+            },
+            "description": "Reset Stats"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /stats/tasks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stats/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "stats",
+                "tasks"
+              ]
+            },
+            "description": "Get Task Stats"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /tokens",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tokens",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tokens"
+              ]
+            },
+            "description": "Get Token Intelligence"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /tokens/estimate",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tokens/estimate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tokens",
+                "estimate"
+              ]
+            },
+            "description": "Estimate Tokens"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Approval",
+      "item": [
+        {
+          "name": "POST /approval/checkpoints",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/approval/checkpoints",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "approval",
+                "checkpoints"
+              ]
+            },
+            "description": "Create Approval Checkpoint"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /approval/checkpoints",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/approval/checkpoints",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "approval",
+                "checkpoints"
+              ]
+            },
+            "description": "List All Approvals"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /approval/checkpoints/{checkpoint_id}/approve",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/approval/checkpoints/{checkpoint_id}/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "approval",
+                "checkpoints",
+                "{checkpoint_id}",
+                "approve"
+              ]
+            },
+            "description": "Approve Checkpoint"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /approval/checkpoints/{checkpoint_id}/reject",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/approval/checkpoints/{checkpoint_id}/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "approval",
+                "checkpoints",
+                "{checkpoint_id}",
+                "reject"
+              ]
+            },
+            "description": "Reject Checkpoint"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /approval/pending",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/approval/pending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "approval",
+                "pending"
+              ]
+            },
+            "description": "List Pending Approvals"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Chat & Agents",
+      "item": [
+        {
+          "name": "POST /v1/agents",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/agents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "agents"
+              ]
+            },
+            "description": "Run Agents",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /v1/chat/completions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/chat/completions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "chat",
+                "completions"
+              ]
+            },
+            "description": "Chat Completion",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /v1/consensus",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/consensus",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "consensus"
+              ]
+            },
+            "description": "Run Consensus",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /v1/debate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/debate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "debate"
+              ]
+            },
+            "description": "Run Debate"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /v1/embeddings",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/embeddings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "embeddings"
+              ]
+            },
+            "description": "Create Embeddings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /v1/orchestrate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/orchestrate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "orchestrate"
+              ]
+            },
+            "description": "Orchestrate",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /v1/workflow",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/workflow",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "workflow"
+              ]
+            },
+            "description": "Run Workflow",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Health Check"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /health/providers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health/providers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health",
+                "providers"
+              ]
+            },
+            "description": "Providers Health"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /health/providers/{provider_name}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health/providers/{provider_name}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health",
+                "providers",
+                "{provider_name}"
+              ]
+            },
+            "description": "Provider Health"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /ready",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ready",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ready"
+              ]
+            },
+            "description": "Readiness Check"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Knowledge",
+      "item": [
+        {
+          "name": "POST /knowledge/chunk",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/chunk",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "chunk"
+              ]
+            },
+            "description": "Chunk Document",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /knowledge/chunk/preview",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/chunk/preview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "chunk",
+                "preview"
+              ]
+            },
+            "description": "Chunk Preview",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /knowledge/collections",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/collections",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "collections"
+              ]
+            },
+            "description": "Create Collection",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /knowledge/collections",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/collections",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "collections"
+              ]
+            },
+            "description": "List Collections"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /knowledge/collections/{collection_id}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/collections/{collection_id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "collections",
+                "{collection_id}"
+              ]
+            },
+            "description": "Get Collection"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /knowledge/collections/{collection_id}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/collections/{collection_id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "collections",
+                "{collection_id}"
+              ]
+            },
+            "description": "Update Collection",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /knowledge/collections/{collection_id}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/collections/{collection_id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "collections",
+                "{collection_id}"
+              ]
+            },
+            "description": "Delete Collection"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /knowledge/documents",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/documents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "documents"
+              ]
+            },
+            "description": "Create Document",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /knowledge/documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/documents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "documents"
+              ]
+            },
+            "description": "List Documents"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /knowledge/documents/import",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/documents/import",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "documents",
+                "import"
+              ]
+            },
+            "description": "Import Document",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /knowledge/documents/upload",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/documents/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "documents",
+                "upload"
+              ]
+            },
+            "description": "Upload Document"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /knowledge/documents/{document_id}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/documents/{document_id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "documents",
+                "{document_id}"
+              ]
+            },
+            "description": "Get Document"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /knowledge/documents/{document_id}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/documents/{document_id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "documents",
+                "{document_id}"
+              ]
+            },
+            "description": "Update Document",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /knowledge/documents/{document_id}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/documents/{document_id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "documents",
+                "{document_id}"
+              ]
+            },
+            "description": "Delete Document"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /knowledge/documents/{document_id}/metadata",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/documents/{document_id}/metadata",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "documents",
+                "{document_id}",
+                "metadata"
+              ]
+            },
+            "description": "Get Document Metadata"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /knowledge/documents/{document_id}/tags",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/documents/{document_id}/tags",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "documents",
+                "{document_id}",
+                "tags"
+              ]
+            },
+            "description": "Add Document Tags",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /knowledge/documents/{document_id}/tags",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/documents/{document_id}/tags",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "documents",
+                "{document_id}",
+                "tags"
+              ]
+            },
+            "description": "Remove Document Tags"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /knowledge/embed",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/embed",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "embed"
+              ]
+            },
+            "description": "Embed Text",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /knowledge/embed/batch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/embed/batch",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "embed",
+                "batch"
+              ]
+            },
+            "description": "Embed Texts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /knowledge/statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/statistics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "statistics"
+              ]
+            },
+            "description": "Knowledge Statistics"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Other",
+      "item": [
+        {
+          "name": "POST /cache/clear",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cache/clear",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cache",
+                "clear"
+              ]
+            },
+            "description": "Clear Cache"
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /knowledge/chunks/{chunk_id}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/chunks/{chunk_id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "chunks",
+                "{chunk_id}"
+              ]
+            },
+            "description": "Delete Chunk"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /knowledge/chunks/{document_id}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/chunks/{document_id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "chunks",
+                "{document_id}"
+              ]
+            },
+            "description": "List Chunks"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /knowledge/chunks/{document_id}/{chunk_id}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/chunks/{document_id}/{chunk_id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "chunks",
+                "{document_id}",
+                "{chunk_id}"
+              ]
+            },
+            "description": "Get Chunk"
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /knowledge/embedding/cache",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/embedding/cache",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "embedding",
+                "cache"
+              ]
+            },
+            "description": "Clear Embedding Cache"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /knowledge/embedding/stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/embedding/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "embedding",
+                "stats"
+              ]
+            },
+            "description": "Embedding Stats"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /knowledge/embedding/{chunk_id}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/embedding/{chunk_id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "embedding",
+                "{chunk_id}"
+              ]
+            },
+            "description": "Get Embedding Endpoint"
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /knowledge/embedding/{chunk_id}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/knowledge/embedding/{chunk_id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "knowledge",
+                "embedding",
+                "{chunk_id}"
+              ]
+            },
+            "description": "Delete Embedding Endpoint"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/metrics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "metrics"
+              ]
+            },
+            "description": "Prometheus Metrics"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /runtime/events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/runtime/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "runtime",
+                "events"
+              ]
+            },
+            "description": "Runtime Events"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /vector/statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vector/statistics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vector",
+                "statistics"
+              ]
+            },
+            "description": "Vector Store Statistics"
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /vector/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vector/{id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vector",
+                "{id}"
+              ]
+            },
+            "description": "Delete Vector By Id"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Plugins",
+      "item": [
+        {
+          "name": "GET /plugins",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/plugins",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plugins"
+              ]
+            },
+            "description": "List Plugins"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /plugins/disable",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/plugins/disable",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plugins",
+                "disable"
+              ]
+            },
+            "description": "Disable Plugin"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /plugins/enable",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/plugins/enable",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plugins",
+                "enable"
+              ]
+            },
+            "description": "Enable Plugin"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /plugins/events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/plugins/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plugins",
+                "events"
+              ]
+            },
+            "description": "List Plugin Events"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /plugins/reload",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/plugins/reload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plugins",
+                "reload"
+              ]
+            },
+            "description": "Reload Plugins"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Providers & Models",
+      "item": [
+        {
+          "name": "GET /models",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/models",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "models"
+              ]
+            },
+            "description": "List All Models"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /models/{task}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/models/{task}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "models",
+                "{task}"
+              ]
+            },
+            "description": "List Models For Task"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /providers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/providers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "providers"
+              ]
+            },
+            "description": "List Providers"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /providers/custom",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/providers/custom",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "providers",
+                "custom"
+              ]
+            },
+            "description": "List Custom Providers"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /providers/{provider_name}/models",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/providers/{provider_name}/models",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "providers",
+                "{provider_name}",
+                "models"
+              ]
+            },
+            "description": "List Provider Models"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Runtime & Tasks",
+      "item": [
+        {
+          "name": "GET /runtime/health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/runtime/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "runtime",
+                "health"
+              ]
+            },
+            "description": "Runtime Health"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /runtime/leader",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/runtime/leader",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "runtime",
+                "leader"
+              ]
+            },
+            "description": "Runtime Leader"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /runtime/queue",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/runtime/queue",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "runtime",
+                "queue"
+              ]
+            },
+            "description": "Runtime Queue"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /runtime/workers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/runtime/workers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "runtime",
+                "workers"
+              ]
+            },
+            "description": "Runtime Workers"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /tasks",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks"
+              ]
+            },
+            "description": "Create Task"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /tasks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks"
+              ]
+            },
+            "description": "List Tasks"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /tasks/orchestrate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/orchestrate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks",
+                "orchestrate"
+              ]
+            },
+            "description": "Create Orchestrate Task",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /tasks/queue/depth",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/queue/depth",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks",
+                "queue",
+                "depth"
+              ]
+            },
+            "description": "Get Queue Depth"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /tasks/{task_id}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{task_id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks",
+                "{task_id}"
+              ]
+            },
+            "description": "Get Task"
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /tasks/{task_id}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{task_id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks",
+                "{task_id}"
+              ]
+            },
+            "description": "Delete Task"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /tasks/{task_id}/cancel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{task_id}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks",
+                "{task_id}",
+                "cancel"
+              ]
+            },
+            "description": "Cancel Task"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /tasks/{task_id}/graph",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{task_id}/graph",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks",
+                "{task_id}",
+                "graph"
+              ]
+            },
+            "description": "Get Task Graph"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "GET /",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": []
+            },
+            "description": "Root"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /benchmark",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/benchmark",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "benchmark"
+              ]
+            },
+            "description": "Run Benchmark"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /benchmark/live",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/benchmark/live",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "benchmark",
+                "live"
+              ]
+            },
+            "description": "Get Live Benchmark"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /benchmark/live/reset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/benchmark/live/reset",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "benchmark",
+                "live",
+                "reset"
+              ]
+            },
+            "description": "Reset Benchmark"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /benchmark/live/{provider_name}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/benchmark/live/{provider_name}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "benchmark",
+                "live",
+                "{provider_name}"
+              ]
+            },
+            "description": "Get Provider Benchmark"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /capabilities",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/capabilities",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "capabilities"
+              ]
+            },
+            "description": "List Capabilities"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /capabilities/{provider_name}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/capabilities/{provider_name}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "capabilities",
+                "{provider_name}"
+              ]
+            },
+            "description": "Get Provider Capabilities"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /capabilities/{provider_name}/{model_name}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/capabilities/{provider_name}/{model_name}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "capabilities",
+                "{provider_name}",
+                "{model_name}"
+              ]
+            },
+            "description": "Get Model Capability"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /classifier",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/classifier",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classifier"
+              ]
+            },
+            "description": "Get Classifier Info"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /config",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/config",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "config"
+              ]
+            },
+            "description": "Get Config"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard"
+              ]
+            },
+            "description": "Dashboard"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /reload-config",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reload-config",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reload-config"
+              ]
+            },
+            "description": "Reload Config"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /version",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/version",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "version"
+              ]
+            },
+            "description": "Version Info"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Vector",
+      "item": [
+        {
+          "name": "GET /vector/collections",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vector/collections",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vector",
+                "collections"
+              ]
+            },
+            "description": "List Vector Collections"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /vector/collections",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vector/collections",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vector",
+                "collections"
+              ]
+            },
+            "description": "Create Vector Collection",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /vector/collections/{name}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vector/collections/{name}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vector",
+                "collections",
+                "{name}"
+              ]
+            },
+            "description": "Delete Vector Collection"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /vector/search",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vector/search",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vector",
+                "search"
+              ]
+            },
+            "description": "Search Vectors",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /vector/upsert",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vector/upsert",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vector",
+                "upsert"
+              ]
+            },
+            "description": "Upsert Vector",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /vector/upsert/batch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vector/upsert/batch",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vector",
+                "upsert",
+                "batch"
+              ]
+            },
+            "description": "Upsert Vectors Batch",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "apiKey",
+      "value": "test-key"
+    }
+  ]
+}

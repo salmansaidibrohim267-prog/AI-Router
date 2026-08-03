@@ -33,10 +33,10 @@ class TestVersionAlignment:
         assert 'tag: "1.0.0-rc.1"' in _read("deployment/helm/ai-router/values.yaml")
 
     def test_k8s_image_tag(self):
-        assert "ghcr.io/anomalyco/ai-router:1.0.0-rc.1" in _read("deployment/k8s/ai-router.yaml")
+        assert "ghcr.io/salmansaidibrohim267-prog/AI-Router:1.0.0-rc.1" in _read("deployment/k8s/ai-router.yaml")
 
     def test_prod_compose_image_tag(self):
-        assert "ghcr.io/anomalyco/ai-router:1.0.0-rc.1" in _read("deployment/docker-compose.prod.yml")
+        assert "ghcr.io/salmansaidibrohim267-prog/AI-Router:1.0.0-rc.1" in _read("deployment/docker-compose.prod.yml")
 
     def test_prod_dockerfile_version(self):
         assert "ARG VERSION=1.0.0-rc.1" in _read("deployment/Dockerfile.prod")
@@ -180,5 +180,5 @@ class TestReleaseArtifact:
 
     def test_changelog_contains_release(self):
         text = _read("CHANGELOG.md")
-        assert "## [1.0.0-rc.1]" in text
+        assert "## [1.0.0]" in text
         assert "### Added" in text

@@ -311,7 +311,7 @@ class TestGitOps:
         manifest = GitOpsManifest(
             "Application",
             "ai-router",
-            spec={"targetRevision": "v1.0.0", "images": "ghcr.io/anomalyco/ai-router:v1.0.0"},
+            spec={"targetRevision": "v1.0.0", "images": "ghcr.io/salmansaidibrohim267-prog/AI-Router:v1.0.0"},
         )
         assert GitOpsValidator().validate(manifest) == []
         assert GitOpsValidator().validate_or_raise(manifest) is True

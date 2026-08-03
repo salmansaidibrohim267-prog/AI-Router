@@ -1,12 +1,12 @@
 # CODEOWNERS
 
 # Default owners for everything in the repository
-* @anomalyco
+* @salmansaidibrohim267-prog
 
 # CI/CD pipeline changes
-/.github/workflows/ @anomalyco
+/.github/workflows/ @salmansaidibrohim267-prog
 
 # Documentation
-/docs/ @anomalyco
-README.md @anomalyco
-CHANGELOG.md @anomalyco
+/docs/ @salmansaidibrohim267-prog
+README.md @salmansaidibrohim267-prog
+CHANGELOG.md @salmansaidibrohim267-prog
