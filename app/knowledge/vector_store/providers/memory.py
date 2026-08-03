@@ -6,7 +6,6 @@ from typing import Any
 
 from app.knowledge.vector_store.exceptions import (
     CollectionAlreadyExistsError,
-    CollectionNotFoundError,
 )
 from app.knowledge.vector_store.models import (
     DistanceMetric,
@@ -91,7 +90,7 @@ class InMemoryVectorStore:
         record.id = record.id or uuid.uuid4().hex[:16]
         self._validator.validate_vector(record.vector)
         coll_name = self._default_collection
-        rc = await self.create_collection(coll_name) if coll_name not in self._collections else None
+        _ = await self.create_collection(coll_name) if coll_name not in self._collections else None
         ns_map = self._vectors.setdefault(coll_name, {})
         ns = self._validator.validate_namespace(record.namespace)
         records = ns_map.setdefault(ns, [])
@@ -165,10 +164,7 @@ class InMemoryVectorStore:
             result = [r for r in result if r.metadata.get(key) == value]
         return result
 
-    def _score_all(
-        self, query: list[float], records: list[VectorRecord]
-    ) -> list[tuple[float, VectorRecord]]:
-        import math
+    def _score_all(self, query: list[float], records: list[VectorRecord]) -> list[tuple[float, VectorRecord]]:
 
         results: list[tuple[float, VectorRecord]] = []
         for rec in records:
@@ -180,17 +176,17 @@ class InMemoryVectorStore:
         import math
 
         if self._distance == DistanceMetric.COSINE:
-            dot = sum(x * y for x, y in zip(a, b))
+            dot = sum(x * y for x, y in zip(a, b, strict=False))
             na = math.sqrt(sum(x * x for x in a))
             nb = math.sqrt(sum(y * y for y in b))
             if na == 0 or nb == 0:
                 return 0.0
             return (dot / (na * nb) + 1) / 2
         elif self._distance == DistanceMetric.EUCLIDEAN:
-            dist = math.sqrt(sum((x - y) ** 2 for x, y in zip(a, b)))
+            dist = math.sqrt(sum((x - y) ** 2 for x, y in zip(a, b, strict=False)))
             return 1.0 / (1.0 + dist)
         elif self._distance == DistanceMetric.DOT_PRODUCT:
-            return sum(x * y for x, y in zip(a, b))
+            return sum(x * y for x, y in zip(a, b, strict=False))
         return 0.0
 
     async def delete(
@@ -235,10 +231,7 @@ class InMemoryVectorStore:
 
     async def statistics(self) -> VectorStoreStats:
         stats = self._stats.snapshot()
-        stats.total_vectors = sum(
-            sum(len(v) for v in ns_map.values())
-            for ns_map in self._vectors.values()
-        )
+        stats.total_vectors = sum(sum(len(v) for v in ns_map.values()) for ns_map in self._vectors.values())
         stats.total_collections = len(self._collections)
         stats.provider = self.provider_name
         stats.dimensions = self._dimensions

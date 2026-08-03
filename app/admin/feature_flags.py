@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import threading
 import time
-from typing import Any, Callable
+from typing import Callable
 
 from .config import AdminConfig
 from .exceptions import FeatureFlagInvalidError, FeatureFlagNotFoundError
@@ -36,7 +36,9 @@ class FeatureFlagManager:
     def repository(self) -> FlagRepository:
         return self._repository
 
-    def register(self, name: str, enabled: bool = False, environment: str = "*", owner: str = "platform", description: str = "") -> FeatureFlag:
+    def register(
+        self, name: str, enabled: bool = False, environment: str = "*", owner: str = "platform", description: str = ""
+    ) -> FeatureFlag:  # noqa: E501
         flag = FeatureFlag(name=name, enabled=enabled, environment=environment, owner=owner, description=description)
         return self._repository.create(flag)
 

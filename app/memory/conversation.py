@@ -92,7 +92,9 @@ class ConversationMemory:
                 older = messages[:-4]
                 recent = messages[-4:]
                 newest_msg = messages[-1]
-                summary_text = f"{existing}\n{self._format_messages(older)}" if existing else self._format_messages(older)
+                summary_text = (
+                    f"{existing}\n{self._format_messages(older)}" if existing else self._format_messages(older)
+                )  # noqa: E501
                 summary_msg = {"role": "system", "content": f"Conversation summary: {summary_text}"}
                 result = [summary_msg] + recent
                 if self._estimate_tokens(result) <= budget:
@@ -129,9 +131,7 @@ class ConversationMemory:
         self._store.set(f"messages:{session_id}", messages, ttl=self._message_ttl)
 
     def _estimate_tokens(self, messages: list[dict[str, Any]]) -> int:
-        return ConversationSummarizer.estimate_tokens(
-            " ".join(m.get("content", "") for m in messages)
-        )
+        return ConversationSummarizer.estimate_tokens(" ".join(m.get("content", "") for m in messages))
 
     @staticmethod
     def _format_messages(messages: list[dict[str, Any]]) -> str:

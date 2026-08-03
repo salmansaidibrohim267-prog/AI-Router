@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from ..models import EvaluationSample, MetricScore
 from ..registry import BaseEvaluator
 from .rag import _sentences, _token_overlap
@@ -15,10 +13,7 @@ class CitationEvaluator(BaseEvaluator):
         citations = sample.actual.get("citations", [])
         sources = sample.actual.get("sources", [])
         source_ids = {str(s.get("id", s.get("source_id", ""))) for s in sources}
-        source_by_id = {
-            str(s.get("id", s.get("source_id", ""))): s.get("content", "")
-            for s in sources
-        }
+        source_by_id = {str(s.get("id", s.get("source_id", ""))): s.get("content", "") for s in sources}
         sentences = _sentences(text)
         if not sentences:
             return [
@@ -34,14 +29,10 @@ class CitationEvaluator(BaseEvaluator):
         for sentence in sentences:
             has_citation = False
             for citation in citations:
-                ref_id = str(
-                    citation.get("source_id", citation.get("id", citation.get("ref", "")))
-                )
+                ref_id = str(citation.get("source_id", citation.get("id", citation.get("ref", ""))))
                 marker = citation.get("index")
                 claim = str(citation.get("claim", citation.get("text", sentence)))
-                in_sentence = ref_id in sentence or (
-                    marker is not None and f"[{marker}]" in sentence
-                )
+                in_sentence = ref_id in sentence or (marker is not None and f"[{marker}]" in sentence)
                 if in_sentence:
                     has_citation = True
                     total_citations += 1

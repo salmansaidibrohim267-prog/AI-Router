@@ -84,7 +84,10 @@ class DiagnosticsService:
         return {
             "environment": report.environment["environment"],
             "version": report.environment["version"],
-            "integrations_ok": all(not self._config.integration_enabled(name) or True for name in ("prometheus", "otel", "loki", "alertmanager")),
+            "integrations_ok": all(
+                not self._config.integration_enabled(name) or True
+                for name in ("prometheus", "otel", "loki", "alertmanager")
+            ),  # noqa: E501
             "checks_total": len(report.checks),
             "checks_passed": len(report.checks) - len(failures),
             "checks_failed": len(failures),

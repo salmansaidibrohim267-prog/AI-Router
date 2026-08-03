@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import hashlib
-import re
 import threading
 import time
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
-
 
 CACHE_TTL = 300.0
 CACHE_MAX_SIZE = 10000
@@ -18,6 +16,7 @@ CACHE_MAX_SIZE = 10000
 @dataclass
 class TokenStats:
     """Per-model token statistics."""
+
     model: str = ""
     total_estimates: int = 0
     total_prompt_tokens: int = 0
@@ -86,6 +85,7 @@ class TokenIntelligence:
     def _init_tiktoken(self) -> None:
         try:
             import tiktoken
+
             self._tiktoken = tiktoken
             self._tiktoken_available = True
         except ImportError:
@@ -197,6 +197,7 @@ class TokenIntelligence:
     ) -> dict[str, Any]:
         """Estimate cost before routing using token counts and pricing."""
         from app.costs import MODEL_COST_OVERRIDES, PROVIDER_COST_PER_1K
+
         model_key = model.split("/")[-1] if "/" in model else model
         if model_key in MODEL_COST_OVERRIDES:
             pricing = MODEL_COST_OVERRIDES[model_key]
@@ -251,10 +252,7 @@ class TokenIntelligence:
                 if not s:
                     return {}
                 return s.to_dict()
-            return {
-                model: s.to_dict()
-                for model, s in sorted(self._stats.items())
-            }
+            return {model: s.to_dict() for model, s in sorted(self._stats.items())}
 
     def get_summary(self) -> dict[str, Any]:
         """Get aggregated summary across all models."""

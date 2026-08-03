@@ -36,7 +36,7 @@ from .exceptions import (
     TenantValidationError,
     ThreatError,
 )
-from .keys import HSMAdapter, KMSAdapter, KeyManager, SimulatedHSMAdapter, create_key_manager
+from .keys import HSMAdapter, KeyManager, KMSAdapter, SimulatedHSMAdapter, create_key_manager
 from .logging import SecurityLogger
 from .manager import SecurityManager, create_security_manager
 from .metrics import SecurityMetricsTracker

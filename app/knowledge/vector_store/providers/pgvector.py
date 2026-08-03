@@ -7,8 +7,6 @@ from typing import Any
 
 from app.knowledge.vector_store.exceptions import (
     CollectionAlreadyExistsError,
-    CollectionNotFoundError,
-    VectorStoreError,
 )
 from app.knowledge.vector_store.models import (
     DistanceMetric,
@@ -93,9 +91,7 @@ class PgVectorStore:
         pool = await self._get_pool()
         dims = dimensions or self._dimensions
         async with pool.acquire() as conn:
-            exists = await conn.fetchval(
-                "SELECT EXISTS(SELECT 1 FROM pg_tables WHERE tablename = $1)", name
-            )
+            exists = await conn.fetchval("SELECT EXISTS(SELECT 1 FROM pg_tables WHERE tablename = $1)", name)
             if exists:
                 raise CollectionAlreadyExistsError(name)
             await conn.execute(f"""
@@ -108,8 +104,11 @@ class PgVectorStore:
                 )
             """)
         return VectorCollection(
-            name=name, dimensions=dims, distance=distance or self._distance,
-            namespace=namespace, metadata=metadata or {},
+            name=name,
+            dimensions=dims,
+            distance=distance or self._distance,
+            namespace=namespace,
+            metadata=metadata or {},
         )
 
     async def delete_collection(self, name: str) -> bool:
@@ -134,9 +133,7 @@ class PgVectorStore:
     async def collection_exists(self, name: str) -> bool:
         pool = await self._get_pool()
         async with pool.acquire() as conn:
-            return await conn.fetchval(
-                "SELECT EXISTS(SELECT 1 FROM pg_tables WHERE tablename = $1)", name
-            )
+            return await conn.fetchval("SELECT EXISTS(SELECT 1 FROM pg_tables WHERE tablename = $1)", name)
 
     async def rename_collection(self, old_name: str, new_name: str) -> VectorCollection:
         pool = await self._get_pool()
@@ -152,14 +149,20 @@ class PgVectorStore:
         vec_str = f"[{','.join(str(x) for x in record.vector)}]"
         meta_json = json.dumps(record.metadata)
         async with pool.acquire() as conn:
-            await conn.execute(f"""
+            await conn.execute(
+                f"""
                 INSERT INTO {self._table} (id, embedding, metadata, namespace)
                 VALUES ($1, $2::vector, $3::jsonb, $4)
                 ON CONFLICT (id) DO UPDATE SET
                     embedding = $2::vector,
                     metadata = $3::jsonb,
                     namespace = $4
-            """, record.id, vec_str, meta_json, record.namespace)
+            """,
+                record.id,
+                vec_str,
+                meta_json,
+                record.namespace,
+            )
         self._stats.record_upsert(1)
         return record
 
@@ -171,14 +174,20 @@ class PgVectorStore:
                 self._validator.validate_vector(rec.vector)
                 vec_str = f"[{','.join(str(x) for x in rec.vector)}]"
                 meta_json = json.dumps(rec.metadata)
-                await conn.execute(f"""
+                await conn.execute(
+                    f"""
                     INSERT INTO {self._table} (id, embedding, metadata, namespace)
                     VALUES ($1, $2::vector, $3::jsonb, $4)
                     ON CONFLICT (id) DO UPDATE SET
                         embedding = $2::vector,
                         metadata = $3::jsonb,
                         namespace = $4
-                """, rec.id, vec_str, meta_json, rec.namespace)
+                """,
+                    rec.id,
+                    vec_str,
+                    meta_json,
+                    rec.namespace,
+                )
         self._stats.record_upsert(len(records))
         return records
 
@@ -210,13 +219,17 @@ class PgVectorStore:
         where_clause = " AND ".join(conditions) if conditions else "TRUE"
         select_vec = ", embedding" if include_vector else ""
         async with pool.acquire() as conn:
-            rows = await conn.fetch(f"""
+            rows = await conn.fetch(
+                f"""
                 SELECT id, {dist_fn} AS score, metadata{select_vec}
                 FROM {self._table}
                 WHERE {where_clause}
                 ORDER BY score ASC
                 LIMIT $1
-            """, top_k, *params[1:])
+            """,
+                top_k,
+                *params[1:],
+            )
         results: list[SearchResult] = []
         for row in rows:
             score = float(row["score"])
@@ -230,13 +243,15 @@ class PgVectorStore:
                 continue
             meta = dict(row["metadata"]) if include_metadata else {}
             vec = list(row["embedding"]) if include_vector else None
-            results.append(SearchResult(
-                id=row["id"],
-                score=score,
-                vector=vec,
-                metadata=meta,
-                namespace=meta.get("_namespace", "default"),
-            ))
+            results.append(
+                SearchResult(
+                    id=row["id"],
+                    score=score,
+                    vector=vec,
+                    metadata=meta,
+                    namespace=meta.get("_namespace", "default"),
+                )
+            )
         self._stats.record_search(time.time() - start)
         return results
 
@@ -250,7 +265,7 @@ class PgVectorStore:
         pool = await self._get_pool()
         async with pool.acquire() as conn:
             if ids:
-                placeholders = ", ".join(f"${i+1}" for i in range(len(ids)))
+                placeholders = ", ".join(f"${i + 1}" for i in range(len(ids)))
                 result = await conn.execute(f"DELETE FROM {self._table} WHERE id IN ({placeholders})", *ids)
                 count = len(ids)
             else:
@@ -274,9 +289,7 @@ class PgVectorStore:
         pool = await self._get_pool()
         async with pool.acquire() as conn:
             if namespace != "default":
-                result = await conn.execute(
-                    f"DELETE FROM {self._table} WHERE namespace = $1", namespace
-                )
+                result = await conn.execute(f"DELETE FROM {self._table} WHERE namespace = $1", namespace)
                 count = int(result.split()[-1]) if result else 0
             else:
                 result = await conn.execute(f"TRUNCATE {self._table}")

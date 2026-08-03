@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import threading
-from typing import Any
 
 from .exceptions import ExtensionAlreadyRegisteredError, ExtensionNotFoundError
 from .models import Extension, ExtensionKind
@@ -24,7 +23,9 @@ class ExtensionRegistry:
             bucket = self._extensions.setdefault(key, {})
             if extension.name in bucket:
                 raise ExtensionAlreadyRegisteredError(
-                    f"{extension.kind.value} {extension.name!r} already registered", kind=extension.kind.value, name=extension.name
+                    f"{extension.kind.value} {extension.name!r} already registered",
+                    kind=extension.kind.value,
+                    name=extension.name,  # noqa: E501
                 )
             bucket[extension.name] = extension
         return extension
@@ -73,7 +74,12 @@ class ExtensionRegistry:
 
     def list_by_plugin(self, plugin: str) -> list[Extension]:
         with self._lock:
-            return [extension for bucket in self._extensions.values() for extension in bucket.values() if extension.plugin == plugin]
+            return [
+                extension
+                for bucket in self._extensions.values()
+                for extension in bucket.values()
+                if extension.plugin == plugin
+            ]  # noqa: E501
 
     def count(self) -> int:
         with self._lock:

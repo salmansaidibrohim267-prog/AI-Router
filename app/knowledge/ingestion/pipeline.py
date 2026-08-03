@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import time
 from typing import Any
 
 from app.knowledge.ingestion.cleaner import TextCleaner
@@ -10,7 +9,7 @@ from app.knowledge.ingestion.deduplication import DuplicateDetector
 from app.knowledge.ingestion.language import HeuristicLanguageDetector, LanguageDetector
 from app.knowledge.ingestion.loaders import DocumentLoader, create_loader
 from app.knowledge.ingestion.metadata import MetadataExtractor
-from app.knowledge.ingestion.models import IngestionResult, IngestionStage, LoadedDocument
+from app.knowledge.ingestion.models import IngestionResult, IngestionStage
 from app.knowledge.ingestion.parsers import DocumentParser, create_parser
 from app.knowledge.ingestion.validation import DocumentValidator
 from app.knowledge.models import KnowledgeDocument
@@ -174,9 +173,7 @@ class IngestionPipeline:
             stages_completed=stages,
         )
 
-    async def _find_existing_by_checksum(
-        self, checksum: str
-    ) -> KnowledgeDocument | None:
+    async def _find_existing_by_checksum(self, checksum: str) -> KnowledgeDocument | None:
         all_docs = await self._svc.list_documents(limit=1000)
         for doc in all_docs:
             for meta in doc.metadata:

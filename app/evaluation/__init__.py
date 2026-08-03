@@ -20,8 +20,8 @@ from .exceptions import (
     BenchmarkRunError,
     ComparisonError,
     DatasetNotFoundError,
-    EvaluatorNotFoundError,
     EvaluationError,
+    EvaluatorNotFoundError,
     QualityGateError,
     ReportGenerationError,
 )

@@ -12,7 +12,7 @@ from app.prompting.exceptions import (
     PromptTemplateError,
     PromptValidationError,
 )
-from app.prompting.formatters import OutputFormatter, create_formatter
+from app.prompting.formatters import create_formatter
 from app.prompting.logging import PromptLogger
 from app.prompting.models import (
     ContextItem,
@@ -56,9 +56,7 @@ class PromptContextBuilder:
         result = PromptBuildResult()
         try:
             template = (
-                request.template
-                or self._template_engine.template
-                or self._template_engine.build_default_template()
+                request.template or self._template_engine.template or self._template_engine.build_default_template()
             )
             if not template.strip():
                 raise PromptTemplateError("Template must not be empty")
@@ -75,9 +73,7 @@ class PromptContextBuilder:
             all_sections = self._assemble_sections(request, context_items)
             engine = TemplateEngine(template)
             placeholders = engine.placeholders()
-            sections = {
-                name: all_sections[name] for name in placeholders if name in all_sections
-            }
+            sections = {name: all_sections[name] for name in placeholders if name in all_sections}
 
             plan = self._budget.plan(
                 total_estimate=0,
@@ -85,10 +81,7 @@ class PromptContextBuilder:
                 response_reservation=request.response_reservation,
             )
 
-            token_counts = {
-                name: self._budget.count_tokens(content)
-                for name, content in sections.items()
-            }
+            token_counts = {name: self._budget.count_tokens(content) for name, content in sections.items()}
             total = sum(token_counts.values())
 
             result.sections = sections
@@ -109,18 +102,11 @@ class PromptContextBuilder:
                 trimmed: dict[str, str] = {}
                 for name, content in sections.items():
                     budget = section_budgets.get(name, 0)
-                    trimmed[name] = (
-                        self._budget.trim_to_budget(content, budget) if budget > 0 else ""
-                    )
+                    trimmed[name] = self._budget.trim_to_budget(content, budget) if budget > 0 else ""
                 sections = trimmed
                 result.sections = sections
-                result.total_tokens = sum(
-                    self._budget.count_tokens(c) for c in sections.values()
-                )
-                result.section_tokens = {
-                    name: self._budget.count_tokens(content)
-                    for name, content in sections.items()
-                }
+                result.total_tokens = sum(self._budget.count_tokens(c) for c in sections.values())
+                result.section_tokens = {name: self._budget.count_tokens(content) for name, content in sections.items()}
 
             fmt = request.output_format or OutputFormat(self._config.formatter)
             if custom_formatter is not None:
@@ -178,11 +164,7 @@ class PromptContextBuilder:
         request: PromptBuildRequest,
         tokenizer: Callable | None = None,
     ) -> int:
-        template = (
-            request.template
-            or self._template_engine.template
-            or self._template_engine.build_default_template()
-        )
+        template = request.template or self._template_engine.template or self._template_engine.build_default_template()
         context_items = request.context_items
         if self._config.optimizer_enabled:
             context_items = self._optimizer.optimize(context_items)

@@ -37,7 +37,7 @@ class UsageMeter:
             try:
                 category = UsageCategory(category)
             except ValueError:
-                raise UsageRecordingError(f"Unknown usage category {category!r}", category=category)
+                raise UsageRecordingError(f"Unknown usage category {category!r}", category=category) from None
         if amount < 0:
             raise UsageRecordingError("Usage amount cannot be negative", amount=amount)
         record = UsageRecord(

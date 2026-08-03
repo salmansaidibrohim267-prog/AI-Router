@@ -132,7 +132,13 @@ class DeploymentManager:
         return [
             d
             for d in self.list()
-            if d.state in (DeploymentState.PENDING, DeploymentState.PREPARING, DeploymentState.DEPLOYING, DeploymentState.HEALTHY)
+            if d.state
+            in (
+                DeploymentState.PENDING,
+                DeploymentState.PREPARING,
+                DeploymentState.DEPLOYING,
+                DeploymentState.HEALTHY,
+            )  # noqa: E501
         ]
 
     def traffic_weights(self, name: str) -> dict[str, float]:
@@ -322,9 +328,7 @@ class DeploymentManager:
                 self._apply_version(deployment.spec.name, previous, "100%")
         deployment.state = DeploymentState.ROLLED_BACK
         self.metrics.record("deployments_rolled_back", component="deployments")
-        self.logger.log_event(
-            "deployment_rolled_back", id=deployment.spec.id, name=deployment.spec.name, error=error
-        )
+        self.logger.log_event("deployment_rolled_back", id=deployment.spec.id, name=deployment.spec.name, error=error)
 
     # -- management ------------------------------------------------------------------------
 

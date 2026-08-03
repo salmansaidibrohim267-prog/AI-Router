@@ -7,8 +7,8 @@ import json
 import threading
 import time
 from collections import OrderedDict
-from dataclasses import dataclass, field
-from typing import Any, Callable
+from dataclasses import dataclass
+from typing import Any
 
 from app.models import CacheEntry
 
@@ -16,6 +16,7 @@ from app.models import CacheEntry
 @dataclass
 class CacheStats:
     """Cache statistics."""
+
     name: str
     size: int = 0
     hits: int = 0
@@ -52,6 +53,7 @@ class TTLCache:
 
     def _start_cleanup(self) -> None:
         """Start periodic cleanup of expired entries."""
+
         def cleanup():
             self._cleanup_expired()
             self._cleanup_timer = threading.Timer(self.cleanup_interval, cleanup)
@@ -67,10 +69,7 @@ class TTLCache:
         now = time.time()
         removed = 0
         with self._lock:
-            keys_to_remove = [
-                key for key, entry in self._cache.items()
-                if entry.expires_at and entry.expires_at < now
-            ]
+            keys_to_remove = [key for key, entry in self._cache.items() if entry.expires_at and entry.expires_at < now]
             for key in keys_to_remove:
                 del self._cache[key]
                 removed += 1
@@ -83,9 +82,7 @@ class TTLCache:
         if isinstance(key, str):
             return key
         try:
-            return hashlib.sha256(
-                json.dumps(key, sort_keys=True, default=str).encode()
-            ).hexdigest()
+            return hashlib.sha256(json.dumps(key, sort_keys=True, default=str).encode()).hexdigest()
         except (TypeError, ValueError):
             return hashlib.sha256(str(key).encode()).hexdigest()
 
@@ -199,10 +196,7 @@ class CacheManager:
     def get_all_stats(self) -> dict[str, dict]:
         """Get stats for all caches."""
         with self._lock:
-            return {
-                name: cache.get_stats().__dict__
-                for name, cache in self._caches.items()
-            }
+            return {name: cache.get_stats().__dict__ for name, cache in self._caches.items()}
 
     def clear_all(self) -> None:
         """Clear all caches."""

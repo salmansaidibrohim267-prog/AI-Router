@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import copy
 import time
 from typing import Any
@@ -44,9 +43,7 @@ class MemoryRepository:
         self._items[item.id] = copy.copy(item)
         if self._vector_store is not None and item.embedding:
             try:
-                await self._vector_store.upsert(
-                    self._to_vector_record(item)
-                )
+                await self._vector_store.upsert(self._to_vector_record(item))
             except Exception:
                 pass
         return item
@@ -69,8 +66,7 @@ class MemoryRepository:
         memory_types: list[MemoryType] | None = None,
     ) -> list[MemoryItem]:
         items = [
-            item for item in self._items.values()
-            if not item.deleted and not item.archived and scope.is_isolated(item)
+            item for item in self._items.values() if not item.deleted and not item.archived and scope.is_isolated(item)
         ]
         if memory_types:
             types = set(memory_types)
@@ -83,10 +79,7 @@ class MemoryRepository:
     def count(self, scope: MemoryScope | None = None) -> int:
         if scope is None or not scope:
             return sum(1 for i in self._items.values() if not i.deleted)
-        return sum(
-            1 for i in self._items.values()
-            if not i.deleted and not i.archived and scope.is_isolated(i)
-        )
+        return sum(1 for i in self._items.values() if not i.deleted and not i.archived and scope.is_isolated(i))
 
     async def update(self, item: MemoryItem) -> MemoryItem:
         existing = self._items.get(item.id)
@@ -99,9 +92,7 @@ class MemoryRepository:
         self._items[item.id] = copy.copy(item)
         if self._vector_store is not None and item.embedding:
             try:
-                await self._vector_store.upsert(
-                    self._to_vector_record(item)
-                )
+                await self._vector_store.upsert(self._to_vector_record(item))
             except Exception:
                 pass
         return item
@@ -153,14 +144,11 @@ class MemoryRepository:
                 )
                 ids = {r.id for r in results}
                 candidates = [
-                    self._items[i] for i in ids
-                    if i in self._items
-                    and not self._items[i].deleted
-                    and not self._items[i].archived
+                    self._items[i]
+                    for i in ids
+                    if i in self._items and not self._items[i].deleted and not self._items[i].archived
                 ]
-                similarity_map = {
-                    r.id: r.score for r in results if r.id in self._items
-                }
+                similarity_map = {r.id: r.score for r in results if r.id in self._items}
             except Exception:
                 candidates = []
         if not candidates:
@@ -170,10 +158,7 @@ class MemoryRepository:
             types = set(memory_types)
             candidates = [c for c in candidates if c.memory_type in types]
 
-        scored = [
-            self._scorer.score(item, similarity_map.get(item.id, 0.0))
-            for item in candidates
-        ]
+        scored = [self._scorer.score(item, similarity_map.get(item.id, 0.0)) for item in candidates]
         scored.sort(key=lambda r: r.score, reverse=True)
         return scored[:top_k]
 

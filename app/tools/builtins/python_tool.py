@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import sys
 import traceback
-from typing import Any
 
 from app.tools.base import Tool, ToolCall, ToolResponse, ToolSpec
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import time
 from pathlib import Path
 
 from app.storage import ProviderStats, StorageBackend
@@ -11,6 +10,7 @@ from app.storage import ProviderStats, StorageBackend
 def _get_aiosqlite():
     """Lazy import aiosqlite to avoid hard dependency."""
     import aiosqlite
+
     return aiosqlite
 
 
@@ -55,9 +55,7 @@ class SQLiteStorage(StorageBackend):
 
     async def load_provider(self, name: str) -> ProviderStats | None:
         conn = await self._ensure_db()
-        cursor = await conn.execute(
-            "SELECT * FROM provider_stats WHERE name = ?", (name,)
-        )
+        cursor = await conn.execute("SELECT * FROM provider_stats WHERE name = ?", (name,))
         row = await cursor.fetchone()
         if row is None:
             return None
@@ -80,7 +78,8 @@ class SQLiteStorage(StorageBackend):
 
     async def save_provider(self, stats: ProviderStats) -> None:
         conn = await self._ensure_db()
-        await conn.execute("""
+        await conn.execute(
+            """
             INSERT INTO provider_stats (
                 name, total_requests, successful_requests, failed_requests,
                 total_latency, ewma_latency, total_cost,
@@ -102,14 +101,24 @@ class SQLiteStorage(StorageBackend):
                 last_seen = excluded.last_seen,
                 consecutive_failures = excluded.consecutive_failures,
                 consecutive_success = excluded.consecutive_success
-        """, (
-            stats.name, stats.total_requests, stats.successful_requests,
-            stats.failed_requests, stats.total_latency, stats.ewma_latency,
-            stats.total_cost, stats.total_prompt_tokens,
-            stats.total_completion_tokens, stats.uptime_seconds,
-            stats.first_seen, stats.last_seen,
-            stats.consecutive_failures, stats.consecutive_success,
-        ))
+        """,
+            (
+                stats.name,
+                stats.total_requests,
+                stats.successful_requests,
+                stats.failed_requests,
+                stats.total_latency,
+                stats.ewma_latency,
+                stats.total_cost,
+                stats.total_prompt_tokens,
+                stats.total_completion_tokens,
+                stats.uptime_seconds,
+                stats.first_seen,
+                stats.last_seen,
+                stats.consecutive_failures,
+                stats.consecutive_success,
+            ),
+        )
         await conn.commit()
 
     async def load_all_providers(self) -> list[ProviderStats]:
@@ -118,22 +127,24 @@ class SQLiteStorage(StorageBackend):
         rows = await cursor.fetchall()
         results = []
         for row in rows:
-            results.append(ProviderStats(
-                name=row["name"],
-                total_requests=row["total_requests"],
-                successful_requests=row["successful_requests"],
-                failed_requests=row["failed_requests"],
-                total_latency=row["total_latency"],
-                ewma_latency=row["ewma_latency"],
-                total_cost=row["total_cost"],
-                total_prompt_tokens=row["total_prompt_tokens"],
-                total_completion_tokens=row["total_completion_tokens"],
-                uptime_seconds=row["uptime_seconds"],
-                first_seen=row["first_seen"],
-                last_seen=row["last_seen"],
-                consecutive_failures=row["consecutive_failures"],
-                consecutive_success=row["consecutive_success"],
-            ))
+            results.append(
+                ProviderStats(
+                    name=row["name"],
+                    total_requests=row["total_requests"],
+                    successful_requests=row["successful_requests"],
+                    failed_requests=row["failed_requests"],
+                    total_latency=row["total_latency"],
+                    ewma_latency=row["ewma_latency"],
+                    total_cost=row["total_cost"],
+                    total_prompt_tokens=row["total_prompt_tokens"],
+                    total_completion_tokens=row["total_completion_tokens"],
+                    uptime_seconds=row["uptime_seconds"],
+                    first_seen=row["first_seen"],
+                    last_seen=row["last_seen"],
+                    consecutive_failures=row["consecutive_failures"],
+                    consecutive_success=row["consecutive_success"],
+                )
+            )
         return results
 
     async def delete_provider(self, name: str) -> None:

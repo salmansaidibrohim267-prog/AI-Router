@@ -8,8 +8,6 @@ from typing import Any
 
 from app.knowledge.vector_store.exceptions import (
     CollectionAlreadyExistsError,
-    CollectionNotFoundError,
-    VectorStoreError,
 )
 from app.knowledge.vector_store.models import (
     DistanceMetric,
@@ -63,11 +61,13 @@ class RedisVectorStore:
 
     async def _vec_to_bytes(self, vector: list[float]) -> bytes:
         import struct
+
         return struct.pack(f"{len(vector)}f", *vector)
 
     @staticmethod
     def _bytes_to_vec(data: bytes) -> list[float]:
         import struct
+
         n = len(data) // 4
         return list(struct.unpack(f"{n}f", data))
 
@@ -84,9 +84,11 @@ class RedisVectorStore:
             raise CollectionAlreadyExistsError(name)
         dims = dimensions or self._dimensions
         coll = VectorCollection(
-            name=name, dimensions=dims,
+            name=name,
+            dimensions=dims,
             distance=distance or self._distance,
-            namespace=namespace, metadata=metadata or {},
+            namespace=namespace,
+            metadata=metadata or {},
             created_at=time.time(),
         )
         self._collections[name] = coll
@@ -171,14 +173,16 @@ class RedisVectorStore:
         start = time.time()
         r = await self._get_redis()
         coll_name = collection or "default"
-        pattern = f"{self._prefix}{coll_name}:{namespace}:*" if namespace != "default" else f"{self._prefix}{coll_name}:*"
+        pattern = (
+            f"{self._prefix}{coll_name}:{namespace}:*" if namespace != "default" else f"{self._prefix}{coll_name}:*"
+        )  # noqa: E501
         cursor = 0
         all_records: list[tuple[str, list[float], dict[str, Any]]] = []
         while True:
             cursor, keys = await r.scan(cursor, match=pattern)
             if keys:
                 values = await r.mget(*keys)
-                for key, val in zip(keys, values):
+                for key, val in zip(keys, values, strict=False):
                     if val is None:
                         continue
                     parts = val.split(b"|", 1)
@@ -195,7 +199,6 @@ class RedisVectorStore:
                         if not matched:
                             continue
                     doc_id = meta.get("_id", key.decode().split(":")[-1])
-                    ns = meta.get("_namespace", namespace)
                     all_records.append((doc_id, vec, meta))
             if cursor == 0:
                 break
@@ -222,19 +225,18 @@ class RedisVectorStore:
         return results
 
     def _compute_similarity(self, a: list[float], b: list[float]) -> float:
-        import math
         if self._distance == DistanceMetric.COSINE:
-            dot = sum(x * y for x, y in zip(a, b))
+            dot = sum(x * y for x, y in zip(a, b, strict=False))
             na = math.sqrt(sum(x * x for x in a))
             nb = math.sqrt(sum(y * y for y in b))
             if na == 0 or nb == 0:
                 return 0.0
             return (dot / (na * nb) + 1) / 2
         elif self._distance == DistanceMetric.EUCLIDEAN:
-            dist = math.sqrt(sum((x - y) ** 2 for x, y in zip(a, b)))
+            dist = math.sqrt(sum((x - y) ** 2 for x, y in zip(a, b, strict=False)))
             return 1.0 / (1.0 + dist)
         elif self._distance == DistanceMetric.DOT_PRODUCT:
-            return sum(x * y for x, y in zip(a, b))
+            return sum(x * y for x, y in zip(a, b, strict=False))
         return 0.0
 
     async def delete(
@@ -253,10 +255,7 @@ class RedisVectorStore:
             cursor, keys = await r.scan(cursor, match=pattern)
             if keys:
                 if ids:
-                    keys_to_delete = [
-                        k for k in keys
-                        if k.decode().split(":")[-1] in ids
-                    ]
+                    keys_to_delete = [k for k in keys if k.decode().split(":")[-1] in ids]
                 else:
                     keys_to_delete = list(keys)
                 if keys_to_delete:
@@ -270,7 +269,9 @@ class RedisVectorStore:
     async def clear(self, collection: str = "", namespace: str = "default") -> int:
         r = await self._get_redis()
         coll_name = collection or "default"
-        pattern = f"{self._prefix}{coll_name}:{namespace}:*" if namespace != "default" else f"{self._prefix}{coll_name}:*"
+        pattern = (
+            f"{self._prefix}{coll_name}:{namespace}:*" if namespace != "default" else f"{self._prefix}{coll_name}:*"
+        )  # noqa: E501
         cursor = 0
         deleted = 0
         while True:

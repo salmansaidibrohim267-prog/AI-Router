@@ -1,9 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
-import math
-import time
 from typing import Any, Protocol
 
 import numpy as np
@@ -20,16 +17,13 @@ except ImportError:
 
 
 class EmbeddingProvider(Protocol):
-    async def embed(self, texts: list[str], **kwargs: Any) -> list[EmbeddingResult]:
-        ...
+    async def embed(self, texts: list[str], **kwargs: Any) -> list[EmbeddingResult]: ...
 
     @property
-    def provider_name(self) -> str:
-        ...
+    def provider_name(self) -> str: ...
 
     @property
-    def dimensions(self) -> int:
-        ...
+    def dimensions(self) -> int: ...
 
 
 class _BaseProvider:
@@ -88,13 +82,15 @@ class OpenAIEmbeddingAdapter(_BaseProvider):
         results: list[EmbeddingResult] = []
         for item in body.get("data", []):
             vector = item.get("embedding", [])
-            results.append(EmbeddingResult(
-                vector=vector,
-                model=self._model,
-                provider=self.provider_name,
-                dimensions=len(vector),
-                token_count=body.get("usage", {}).get("total_tokens", 0) // len(texts),
-            ))
+            results.append(
+                EmbeddingResult(
+                    vector=vector,
+                    model=self._model,
+                    provider=self.provider_name,
+                    dimensions=len(vector),
+                    token_count=body.get("usage", {}).get("total_tokens", 0) // len(texts),
+                )
+            )
         return results
 
 
@@ -130,12 +126,14 @@ class OllamaEmbeddingAdapter(_BaseProvider):
                 resp.raise_for_status()
                 body = resp.json()
                 vector = body.get("embedding", [])
-                results.append(EmbeddingResult(
-                    vector=vector,
-                    model=self._model,
-                    provider=self.provider_name,
-                    dimensions=len(vector),
-                ))
+                results.append(
+                    EmbeddingResult(
+                        vector=vector,
+                        model=self._model,
+                        provider=self.provider_name,
+                        dimensions=len(vector),
+                    )
+                )
         return results
 
 
@@ -157,13 +155,15 @@ class LocalEmbeddingAdapter(_BaseProvider):
         results: list[EmbeddingResult] = []
         for text in texts:
             vector = self._embed_text(text, self._config.dimensions)
-            results.append(EmbeddingResult(
-                vector=vector,
-                model="local",
-                provider=self.provider_name,
-                dimensions=self._config.dimensions,
-                token_count=len(text.split()),
-            ))
+            results.append(
+                EmbeddingResult(
+                    vector=vector,
+                    model="local",
+                    provider=self.provider_name,
+                    dimensions=self._config.dimensions,
+                    token_count=len(text.split()),
+                )
+            )
         return results
 
     def _embed_text(self, text: str, dims: int) -> list[float]:
@@ -204,9 +204,7 @@ class SentenceTransformersAdapter(_BaseProvider):
 
     async def embed(self, texts: list[str], **kwargs: Any) -> list[EmbeddingResult]:
         if not HAS_SENTENCE_TRANSFORMERS:
-            raise RuntimeError(
-                "sentence_transformers is required. Install with: pip install sentence-transformers"
-            )
+            raise RuntimeError("sentence_transformers is required. Install with: pip install sentence-transformers")
         if self._model is None:
             self._model = SentenceTransformer(self._model_name)
 
@@ -214,13 +212,15 @@ class SentenceTransformersAdapter(_BaseProvider):
         results: list[EmbeddingResult] = []
         for vec in embeddings:
             vector = vec.tolist()
-            results.append(EmbeddingResult(
-                vector=vector,
-                model=self._model_name,
-                provider=self.provider_name,
-                dimensions=len(vector),
-                token_count=len(texts[0].split()) if texts else 0,
-            ))
+            results.append(
+                EmbeddingResult(
+                    vector=vector,
+                    model=self._model_name,
+                    provider=self.provider_name,
+                    dimensions=len(vector),
+                    token_count=len(texts[0].split()) if texts else 0,
+                )
+            )
         return results
 
 

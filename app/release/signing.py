@@ -14,7 +14,7 @@ import json
 from dataclasses import dataclass
 from typing import Any
 
-from .exceptions import SigningError, SignatureVerificationError
+from .exceptions import SignatureVerificationError, SigningError
 
 
 def canonical_json(payload: dict[str, Any]) -> str:

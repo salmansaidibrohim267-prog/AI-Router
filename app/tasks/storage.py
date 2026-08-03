@@ -44,12 +44,15 @@ class TaskStorage:
             "graph": None,
         }
         self._store.set(f"task:{task_id}", task)
-        self._store.set(f"task_queue:{task_id}", {
-            "type": task_type,
-            "priority": priority,
-            "state": TaskState.QUEUED.value,
-            "created_at": now,
-        })
+        self._store.set(
+            f"task_queue:{task_id}",
+            {
+                "type": task_type,
+                "priority": priority,
+                "state": TaskState.QUEUED.value,
+                "created_at": now,
+            },
+        )
         return task
 
     def get(self, task_id: str) -> dict[str, Any] | None:
@@ -83,7 +86,7 @@ class TaskStorage:
         if task_type:
             all_tasks = [t for t in all_tasks if t.get("type") == task_type]
         all_tasks.sort(key=lambda t: (-t.get("priority", 0), t.get("created_at", 0)))
-        return all_tasks[offset:offset + limit]
+        return all_tasks[offset : offset + limit]
 
     def dequeue(self) -> dict[str, Any] | None:
         queue_keys = self._store.keys("task_queue:*")
@@ -103,12 +106,15 @@ class TaskStorage:
             task["state"] = TaskState.RUNNING.value
             task["started_at"] = time.time()
             self.update(task_id, {"state": TaskState.RUNNING.value, "started_at": task["started_at"]})
-            self._store.set(f"task_queue:{task_id}", {
-                "type": task.get("type", ""),
-                "priority": task.get("priority", 0),
-                "state": TaskState.RUNNING.value,
-                "created_at": task.get("created_at", 0),
-            })
+            self._store.set(
+                f"task_queue:{task_id}",
+                {
+                    "type": task.get("type", ""),
+                    "priority": task.get("priority", 0),
+                    "state": TaskState.RUNNING.value,
+                    "created_at": task.get("created_at", 0),
+                },
+            )
         return task
 
     def get_queue_depth(self) -> dict[str, int]:

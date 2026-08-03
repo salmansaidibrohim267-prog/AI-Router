@@ -15,7 +15,9 @@ class PricingStrategy(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def compute(self, plan: Plan, usage: dict[str, int] | None = None, seats: int = 1, interval: str = "monthly") -> float:
+    def compute(
+        self, plan: Plan, usage: dict[str, int] | None = None, seats: int = 1, interval: str = "monthly"
+    ) -> float:  # noqa: E501
         raise NotImplementedError
 
 
@@ -23,7 +25,9 @@ class FlatPricingStrategy(PricingStrategy):
     def name(self) -> str:
         return "flat"
 
-    def compute(self, plan: Plan, usage: dict[str, int] | None = None, seats: int = 1, interval: str = "monthly") -> float:
+    def compute(
+        self, plan: Plan, usage: dict[str, int] | None = None, seats: int = 1, interval: str = "monthly"
+    ) -> float:  # noqa: E501
         base = plan.price_for(interval)
         return base * max(1, seats)
 
@@ -32,7 +36,9 @@ class PerSeatPricingStrategy(PricingStrategy):
     def name(self) -> str:
         return "per_seat"
 
-    def compute(self, plan: Plan, usage: dict[str, int] | None = None, seats: int = 1, interval: str = "monthly") -> float:
+    def compute(
+        self, plan: Plan, usage: dict[str, int] | None = None, seats: int = 1, interval: str = "monthly"
+    ) -> float:  # noqa: E501
         return plan.price_for(interval) * max(1, seats)
 
 
@@ -42,7 +48,9 @@ class TieredPricingStrategy(PricingStrategy):
     def name(self) -> str:
         return "tiered"
 
-    def compute(self, plan: Plan, usage: dict[str, int] | None = None, seats: int = 1, interval: str = "monthly") -> float:
+    def compute(
+        self, plan: Plan, usage: dict[str, int] | None = None, seats: int = 1, interval: str = "monthly"
+    ) -> float:  # noqa: E501
         usage = usage or {}
         total = plan.price_for(interval) * max(1, seats)
         tiers = plan.limits.get("tiers", []) if isinstance(plan.limits.get("tiers"), list) else []
@@ -61,7 +69,9 @@ class UsageBasedPricingStrategy(PricingStrategy):
     def name(self) -> str:
         return "usage"
 
-    def compute(self, plan: Plan, usage: dict[str, int] | None = None, seats: int = 1, interval: str = "monthly") -> float:
+    def compute(
+        self, plan: Plan, usage: dict[str, int] | None = None, seats: int = 1, interval: str = "monthly"
+    ) -> float:  # noqa: E501
         usage = usage or {}
         total = plan.price_for(interval) * max(1, seats)
         overage = plan.limits
@@ -261,7 +271,9 @@ class PlanCatalog:
 class PricingEngine:
     """Combines catalog and pricing strategies to price plans."""
 
-    def __init__(self, catalog: PlanCatalog | None = None, factory: type[PricingStrategyFactory] = PricingStrategyFactory) -> None:
+    def __init__(
+        self, catalog: PlanCatalog | None = None, factory: type[PricingStrategyFactory] = PricingStrategyFactory
+    ) -> None:  # noqa: E501
         self._catalog = catalog or PlanCatalog()
         self._factory = factory
 

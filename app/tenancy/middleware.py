@@ -4,7 +4,6 @@ import time
 from typing import Any
 
 from fastapi import Request
-from fastapi.responses import JSONResponse
 
 from .config import TenancyConfig
 from .context import TenantContextManager
@@ -103,9 +102,7 @@ class TenantMiddleware:
             await self.app(scope, receive, wrapped_send)
         finally:
             latency_ms = round((time.perf_counter() - start) * 1000, 4)
-            self._metrics.record_request(
-                context.tenant_id, latency_ms, success=status_code[0] < 400
-            )
+            self._metrics.record_request(context.tenant_id, latency_ms, success=status_code[0] < 400)
             self._logger.log_event(
                 "request",
                 tenant_id=context.tenant_id,

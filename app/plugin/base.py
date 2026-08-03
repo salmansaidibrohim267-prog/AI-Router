@@ -55,24 +55,16 @@ class AIPlugin:
     ) -> HookResult:
         return HookResult()
 
-    async def before_response(
-        self, request: Any, response: Any, context: dict[str, Any]
-    ) -> HookResult:
+    async def before_response(self, request: Any, response: Any, context: dict[str, Any]) -> HookResult:
         return HookResult()
 
-    async def after_response(
-        self, request: Any, response: Any, context: dict[str, Any]
-    ) -> HookResult:
+    async def after_response(self, request: Any, response: Any, context: dict[str, Any]) -> HookResult:
         return HookResult()
 
-    async def on_error(
-        self, request: Any, error: Exception, context: dict[str, Any]
-    ) -> HookResult:
+    async def on_error(self, request: Any, error: Exception, context: dict[str, Any]) -> HookResult:
         return HookResult()
 
-    async def before_plan(
-        self, request: Any, context: dict[str, Any]
-    ) -> HookResult:
+    async def before_plan(self, request: Any, context: dict[str, Any]) -> HookResult:
         return HookResult()
 
     async def after_agent(
@@ -90,9 +82,7 @@ class AIPlugin:
     ) -> HookResult:
         return HookResult()
 
-    async def after_orchestrate(
-        self, response: Any, context: dict[str, Any]
-    ) -> HookResult:
+    async def after_orchestrate(self, response: Any, context: dict[str, Any]) -> HookResult:
         return HookResult()
 
     async def shutdown(self) -> None:

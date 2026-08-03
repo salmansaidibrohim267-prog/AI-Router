@@ -26,7 +26,9 @@ class GatewayMetricsTracker:
         self._protocols: dict[str, int] = defaultdict(int)
         self._started_at = time.time()
 
-    def record_request(self, method: str, path: str, status: int, duration: float, version: str = "", protocol: str = "http") -> None:
+    def record_request(
+        self, method: str, path: str, status: int, duration: float, version: str = "", protocol: str = "http"
+    ) -> None:  # noqa: E501
         if not self._enabled:
             return
         with self._lock:

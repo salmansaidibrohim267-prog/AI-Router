@@ -10,31 +10,22 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from .audit import AuditRepository, AuditService, create_audit_service
+from .audit import AuditService, create_audit_service
 from .compliance import ComplianceManager, create_compliance_manager
 from .config import SecurityConfig
 from .crypto import EncryptionService, FieldCipher, StorageEncryption, create_encryption_service
-from .exceptions import SecurityError
-from .keys import KeyManager, SimulatedHSMAdapter, create_key_manager
+from .keys import KeyManager, create_key_manager
 from .logging import SecurityLogger
 from .metrics import SecurityMetricsTracker
-from .monitoring import MonitoringService, create_monitoring_service
-from .privacy import PIIDetector, PrivacyService, create_privacy_service
-from .secrets import SecretManager, create_secret_manager
-from .threat import IncidentManager, ThreatDetector, create_incident_manager, create_threat_detector
-from .zero_trust import ZeroTrustEnforcer, create_zero_trust_enforcer
 from .models import (
     AuditEventType,
     AuditSeverity,
     AuthContext,
     AuthMethod,
     DataSubjectRequestType,
-    EncryptionAlgorithm,
     Incident,
     IncidentStatus,
-    KeyPurpose,
     Policy,
-    PolicyEffect,
     PolicyResult,
     SecretKind,
     Subject,
@@ -42,6 +33,11 @@ from .models import (
     ThreatSeverity,
     ThreatType,
 )
+from .monitoring import MonitoringService, create_monitoring_service
+from .privacy import PrivacyService, create_privacy_service
+from .secrets import SecretManager, create_secret_manager
+from .threat import IncidentManager, ThreatDetector, create_incident_manager, create_threat_detector
+from .zero_trust import ZeroTrustEnforcer, create_zero_trust_enforcer
 
 
 class SecurityManager:
@@ -67,23 +63,53 @@ class SecurityManager:
         self.logger = logger if logger is not None else SecurityLogger(self.config)
         self.metrics = metrics if metrics is not None else SecurityMetricsTracker(self.config)
 
-        self.secrets = secrets if secrets is not None else create_secret_manager(self.config, logger=self.logger, metrics=self.metrics)
-        self.keys = keys if keys is not None else create_key_manager(self.config, logger=self.logger, metrics=self.metrics)
+        self.secrets = (
+            secrets
+            if secrets is not None
+            else create_secret_manager(self.config, logger=self.logger, metrics=self.metrics)
+        )  # noqa: E501
+        self.keys = (
+            keys if keys is not None else create_key_manager(self.config, logger=self.logger, metrics=self.metrics)
+        )  # noqa: E501
         if encryption is None:
             self.encryption = create_encryption_service(
                 self.config, key_provider=self.keys.key_provider, logger=self.logger, metrics=self.metrics
             )
         else:
             self.encryption = encryption
-        self.zero_trust = zero_trust if zero_trust is not None else create_zero_trust_enforcer(self.config, logger=self.logger, metrics=self.metrics)
-        self.audit_service = audit if audit is not None else create_audit_service(self.config, logger=self.logger, metrics=self.metrics)
-        self.privacy = privacy if privacy is not None else create_privacy_service(self.config, logger=self.logger, metrics=self.metrics)
-        self.compliance = compliance if compliance is not None else create_compliance_manager(self.config, logger=self.logger, metrics=self.metrics)
-        self.threat = threat if threat is not None else create_threat_detector(self.config, logger=self.logger, metrics=self.metrics)
-        self.incidents = incidents if incidents is not None else create_incident_manager(
-            self.config, detector=self.threat, logger=self.logger, metrics=self.metrics
+        self.zero_trust = (
+            zero_trust
+            if zero_trust is not None
+            else create_zero_trust_enforcer(self.config, logger=self.logger, metrics=self.metrics)
+        )  # noqa: E501
+        self.audit_service = (
+            audit if audit is not None else create_audit_service(self.config, logger=self.logger, metrics=self.metrics)
+        )  # noqa: E501
+        self.privacy = (
+            privacy
+            if privacy is not None
+            else create_privacy_service(self.config, logger=self.logger, metrics=self.metrics)
+        )  # noqa: E501
+        self.compliance = (
+            compliance
+            if compliance is not None
+            else create_compliance_manager(self.config, logger=self.logger, metrics=self.metrics)
+        )  # noqa: E501
+        self.threat = (
+            threat
+            if threat is not None
+            else create_threat_detector(self.config, logger=self.logger, metrics=self.metrics)
+        )  # noqa: E501
+        self.incidents = (
+            incidents
+            if incidents is not None
+            else create_incident_manager(self.config, detector=self.threat, logger=self.logger, metrics=self.metrics)
         )
-        self.monitoring = monitoring if monitoring is not None else create_monitoring_service(self.config, logger=self.logger, metrics=self.metrics)
+        self.monitoring = (
+            monitoring
+            if monitoring is not None
+            else create_monitoring_service(self.config, logger=self.logger, metrics=self.metrics)
+        )  # noqa: E501
 
         self._started_at = 0.0
         self._initialized = False
@@ -158,7 +184,9 @@ class SecurityManager:
     def authorize(self, context: AuthContext, action: str, resource: str, tenant: str | None = None) -> PolicyResult:
         return self.zero_trust.authorize(context, action, resource, tenant)
 
-    def check(self, subject: Subject, action: str, resource: str, session: Any = None, tenant: str | None = None) -> PolicyResult:
+    def check(
+        self, subject: Subject, action: str, resource: str, session: Any = None, tenant: str | None = None
+    ) -> PolicyResult:  # noqa: E501
         return self.zero_trust.check(subject, action, resource, session, tenant)
 
     def add_policy(self, policy: Policy) -> None:
@@ -209,7 +237,9 @@ class SecurityManager:
 
     # -- threat + incidents ------------------------------------------------------------------
 
-    def report_threat(self, threat_type: ThreatType, source: str = "", target: str = "", details: dict[str, Any] | None = None) -> ThreatEvent:
+    def report_threat(
+        self, threat_type: ThreatType, source: str = "", target: str = "", details: dict[str, Any] | None = None
+    ) -> ThreatEvent:  # noqa: E501
         return self.threat.report(threat_type, source, target, details)
 
     def escalate_incident(self, signal: str) -> Incident:
@@ -220,7 +250,9 @@ class SecurityManager:
 
     # -- monitoring -------------------------------------------------------------------------
 
-    async def send_alert(self, message: str, severity: ThreatSeverity = ThreatSeverity.MEDIUM, source: str = "security") -> Any:
+    async def send_alert(
+        self, message: str, severity: ThreatSeverity = ThreatSeverity.MEDIUM, source: str = "security"
+    ) -> Any:  # noqa: E501
         return await self.monitoring.send_alert(message, severity, source)
 
     # -- status -------------------------------------------------------------------------------

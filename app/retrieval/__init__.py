@@ -1,12 +1,5 @@
+from app.retrieval.bm25 import BM25InvertedIndex, BM25Tokenizer
 from app.retrieval.config import RetrievalConfig
-from app.retrieval.models import (
-    MetadataFilter,
-    RetrievalStatistics,
-    SearchQuery,
-    SearchResponse,
-    SearchResultItem,
-    SimilarityMetric,
-)
 from app.retrieval.exceptions import (
     BM25Error,
     EmptyQueryError,
@@ -20,6 +13,37 @@ from app.retrieval.exceptions import (
     RetrievalError,
     VectorDimensionMismatchError,
 )
+from app.retrieval.filtering import MetadataFilterEngine
+from app.retrieval.fusion import (
+    CombMNZFusion,
+    CombSUMFusion,
+    FusionStrategy,
+    RRFusion,
+    WeightedSumFusion,
+    create_fusion_strategy,
+)
+from app.retrieval.hybrid import HybridSearch
+from app.retrieval.logging import RetrievalLogger
+from app.retrieval.models import (
+    MetadataFilter,
+    RetrievalStatistics,
+    SearchQuery,
+    SearchResponse,
+    SearchResultItem,
+    SimilarityMetric,
+)
+from app.retrieval.normalization import (
+    MinMaxNormalization,
+    NormalizationStrategy,
+    RankBasedNormalization,
+    SoftmaxNormalization,
+    ZScoreNormalization,
+    create_normalization_strategy,
+)
+from app.retrieval.pagination import Paginator
+from app.retrieval.query_expansion import QueryExpander
+from app.retrieval.ranking import Ranker
+from app.retrieval.service import SemanticSearch
 from app.retrieval.similarity import (
     CosineSimilarity,
     DotProductSimilarity,
@@ -27,31 +51,7 @@ from app.retrieval.similarity import (
     SimilarityStrategy,
     create_similarity_strategy,
 )
-from app.retrieval.filtering import MetadataFilterEngine
-from app.retrieval.ranking import Ranker
-from app.retrieval.pagination import Paginator
 from app.retrieval.statistics import RetrievalStatsTracker
-from app.retrieval.logging import RetrievalLogger
-from app.retrieval.service import SemanticSearch
-from app.retrieval.bm25 import BM25InvertedIndex, BM25Tokenizer
-from app.retrieval.normalization import (
-    MinMaxNormalization,
-    ZScoreNormalization,
-    SoftmaxNormalization,
-    RankBasedNormalization,
-    NormalizationStrategy,
-    create_normalization_strategy,
-)
-from app.retrieval.fusion import (
-    WeightedSumFusion,
-    RRFusion,
-    CombSUMFusion,
-    CombMNZFusion,
-    FusionStrategy,
-    create_fusion_strategy,
-)
-from app.retrieval.query_expansion import QueryExpander
-from app.retrieval.hybrid import HybridSearch
 
 __all__ = [
     "RetrievalConfig",

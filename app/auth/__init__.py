@@ -8,8 +8,8 @@ from .exceptions import (
     AccountInactiveError,
     AccountLockedError,
     APIKeyError,
-    AuthError,
     AuthenticationError,
+    AuthError,
     InvalidCredentialsError,
     InvalidTokenError,
     MFARequiredError,
@@ -24,7 +24,7 @@ from .exceptions import (
 )
 from .hashing import hash_password, is_strong_password, verify_password
 from .logging import AuthLogger
-from .manager import AuthenticationManager, _totp_code
+from .manager import AuthenticationManager
 from .middleware import AuthMiddleware, create_auth_middleware
 from .models import (
     APIKey,
@@ -45,8 +45,8 @@ from .repository import (
     SessionRepository,
     UserRepository,
 )
-from .sessions import SessionManager
 from .service_accounts import ServiceAccountManager
+from .sessions import SessionManager
 from .statistics import AuthMetricsTracker
 from .tokens import JWTManager, SigningKeyStore, TokenDenylist
 

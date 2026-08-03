@@ -11,7 +11,9 @@ class GatewayError(Exception):
     status_code: int = 500
     error_code: str = "gateway_error"
 
-    def __init__(self, message: str = "", *, status_code: int | None = None, error_code: str | None = None, **details: Any):
+    def __init__(
+        self, message: str = "", *, status_code: int | None = None, error_code: str | None = None, **details: Any
+    ):  # noqa: E501
         super().__init__(message or self.__class__.__name__)
         self.message = message or self.__class__.__name__
         self.details = details

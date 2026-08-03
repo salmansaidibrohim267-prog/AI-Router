@@ -5,7 +5,7 @@ import hmac
 import json
 import time
 import uuid
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Any
 
 from .exceptions import PaymentError, PaymentFailedError, ProviderConfigurationError
@@ -19,7 +19,7 @@ def _verify_hmac(secret: str, payload: str, signature: str) -> bool:
     return hmac.compare_digest(expected, signature)
 
 
-class PaymentProvider(ABC):
+class PaymentProvider(ABC):  # noqa: B024
     """Strategy: a pluggable payment provider integration."""
 
     name: str = ""
@@ -58,7 +58,9 @@ class PaymentProvider(ABC):
         import urllib.error
         import urllib.request
 
-        request = urllib.request.Request(url, data=json.dumps(data).encode(), headers={"Content-Type": "application/json"})
+        request = urllib.request.Request(
+            url, data=json.dumps(data).encode(), headers={"Content-Type": "application/json"}
+        )  # noqa: E501
         try:
             with urllib.request.urlopen(request, timeout=5) as response:
                 return {"status": response.status, "body": response.read().decode()}
@@ -72,7 +74,9 @@ class StripeProvider(PaymentProvider):
     name = PaymentProviderName.STRIPE.value
 
     def _charge(self, tenant_id: str, amount: float, reference: str, method: str) -> Payment:
-        result = self._post("https://api.stripe.com/v1/charges", {"amount": amount, "currency": "usd", "reference": reference})
+        result = self._post(
+            "https://api.stripe.com/v1/charges", {"amount": amount, "currency": "usd", "reference": reference}
+        )  # noqa: E501
         if result["status"] == 402:
             raise PaymentFailedError("Stripe declined the charge", provider=self.name, reference=reference)
         if result["status"] == 0:

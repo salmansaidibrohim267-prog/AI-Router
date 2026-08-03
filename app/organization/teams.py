@@ -53,9 +53,7 @@ class TeamManager:
             raise OrganizationNotFoundError(organization_id)
         return org
 
-    def create(
-        self, organization_id: str, name: str, tenant_id: str = "", description: str = ""
-    ) -> Team:
+    def create(self, organization_id: str, name: str, tenant_id: str = "", description: str = "") -> Team:
         org = self._get_org(organization_id, tenant_id)
         if len(name) > self._config.team_name_max_length:
             raise ValueError(f"Team name exceeds {self._config.team_name_max_length} characters")
@@ -70,7 +68,9 @@ class TeamManager:
         )
         self._teams.create(team)
         self._metrics.record("team_created", organization_id)
-        self._logger.log_event("team_created", tenant_id=org.tenant_id, organization_id=organization_id, team_id=team.id)
+        self._logger.log_event(
+            "team_created", tenant_id=org.tenant_id, organization_id=organization_id, team_id=team.id
+        )  # noqa: E501
         self._audit_event("org.team_created", org.tenant_id, "", team_id=team.id, name=name)
         return team
 

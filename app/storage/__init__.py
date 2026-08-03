@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any
 
 
 @dataclass
 class ProviderStats:
     """Persistent provider statistics snapshot."""
+
     name: str = ""
     total_requests: int = 0
     successful_requests: int = 0

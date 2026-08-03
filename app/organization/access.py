@@ -5,7 +5,7 @@ from typing import Iterable
 from app.auth.exceptions import PermissionDeniedError
 from app.auth.rbac import PermissionPolicy, Principal
 
-from .exceptions import IsolationError, MemberRoleError, OrganizationNotFoundError
+from .exceptions import IsolationError, MemberRoleError
 from .models import Member, MemberRole, Organization
 
 ORG_ROLE_PERMISSIONS: dict[str, set[str]] = {
@@ -61,9 +61,7 @@ class AccessGuard:
         role_permissions: dict[str, set[str]] | None = None,
     ):
         self._policy = policy or PermissionPolicy()
-        self._role_permissions = {
-            k: set(v) for k, v in (role_permissions or ORG_ROLE_PERMISSIONS).items()
-        }
+        self._role_permissions = {k: set(v) for k, v in (role_permissions or ORG_ROLE_PERMISSIONS).items()}
 
     @property
     def policy(self) -> PermissionPolicy:
@@ -105,9 +103,7 @@ class AccessGuard:
     @staticmethod
     def assert_tenant(entity_tenant_id: str, tenant_id: str) -> None:
         if entity_tenant_id and tenant_id and entity_tenant_id != tenant_id:
-            raise IsolationError(
-                f"Entity tenant {entity_tenant_id!r} does not match expected tenant {tenant_id!r}"
-            )
+            raise IsolationError(f"Entity tenant {entity_tenant_id!r} does not match expected tenant {tenant_id!r}")
 
     def require_org_owner(self, organization: Organization, user_id: str) -> None:
         if organization.owner_user_id != user_id:

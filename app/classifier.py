@@ -5,7 +5,6 @@ from __future__ import annotations
 import importlib.util
 import sys
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -35,8 +34,7 @@ class BaseClassifier(ABC):
     description: str = ""
 
     @abstractmethod
-    def classify(self, prompt: str) -> TaskType:
-        ...
+    def classify(self, prompt: str) -> TaskType: ...
 
     def classify_with_confidence(self, prompt: str) -> ClassificationResult:
         task = self.classify(prompt)
@@ -91,15 +89,12 @@ class ClassifierManager(BaseClassifier):
 
                     for attr_name in dir(module):
                         attr = getattr(module, attr_name)
-                        if (
-                            isinstance(attr, type)
-                            and issubclass(attr, BaseClassifier)
-                            and attr is not BaseClassifier
-                        ):
+                        if isinstance(attr, type) and issubclass(attr, BaseClassifier) and attr is not BaseClassifier:
                             classifier_name = getattr(attr, "name", entry.stem.lower())
                             classifiers[classifier_name] = attr
                 except Exception:
                     import traceback
+
                     traceback.print_exc()
 
         return classifiers
@@ -118,37 +113,156 @@ class TaskClassifier(BaseClassifier):
 
     DEFAULT_RULES = {
         TaskType.CODING: [
-            "code", "coding", "program", "function", "api", "fastapi", "docker",
-            "bug", "error", "debug", "javascript", "typescript", "python", "rust",
-            "go", "java", "c++", "sql", "database", "query", "script", "algorithm",
-            "implementation", "refactor", "optimize", "performance", "memory",
-            "async", "await", "thread", "concurrent", "parallel", "git", "github",
-            "ci/cd", "pipeline", "deploy", "kubernetes", "k8s", "terraform",
-            "ansible", "class", "interface", "module", "package", "library",
-            "framework", "react", "vue", "angular", "nextjs", "node", "express",
+            "code",
+            "coding",
+            "program",
+            "function",
+            "api",
+            "fastapi",
+            "docker",
+            "bug",
+            "error",
+            "debug",
+            "javascript",
+            "typescript",
+            "python",
+            "rust",
+            "go",
+            "java",
+            "c++",
+            "sql",
+            "database",
+            "query",
+            "script",
+            "algorithm",
+            "implementation",
+            "refactor",
+            "optimize",
+            "performance",
+            "memory",
+            "async",
+            "await",
+            "thread",
+            "concurrent",
+            "parallel",
+            "git",
+            "github",
+            "ci/cd",
+            "pipeline",
+            "deploy",
+            "kubernetes",
+            "k8s",
+            "terraform",
+            "ansible",
+            "class",
+            "interface",
+            "module",
+            "package",
+            "library",
+            "framework",
+            "react",
+            "vue",
+            "angular",
+            "nextjs",
+            "node",
+            "express",
         ],
         TaskType.ARCHITECTURE: [
-            "architecture", "design", "system", "infrastructure", "scaling",
-            "deployment", "server", "microservices", "monolith", "distributed",
-            "load balancing", "caching", "message queue", "event driven",
-            "service mesh", "api gateway", "database design", "schema", "orm",
-            "capacity planning", "high availability", "fault tolerance",
-            "disaster recovery", "backup", "monitoring", "observability",
-            "logging", "tracing", "metrics", "alerting", "sla", "slo", "sli",
+            "architecture",
+            "design",
+            "system",
+            "infrastructure",
+            "scaling",
+            "deployment",
+            "server",
+            "microservices",
+            "monolith",
+            "distributed",
+            "load balancing",
+            "caching",
+            "message queue",
+            "event driven",
+            "service mesh",
+            "api gateway",
+            "database design",
+            "schema",
+            "orm",
+            "capacity planning",
+            "high availability",
+            "fault tolerance",
+            "disaster recovery",
+            "backup",
+            "monitoring",
+            "observability",
+            "logging",
+            "tracing",
+            "metrics",
+            "alerting",
+            "sla",
+            "slo",
+            "sli",
         ],
         TaskType.ANALYSIS: [
-            "analyze", "analysis", "compare", "research", "explain", "evaluate",
-            "review", "assess", "investigate", "study", "examine", "explore",
-            "understand", "interpret", "summarize", "synthesize", "conclude",
-            "recommend", "pros and cons", "trade-offs", "benchmark", "profile",
-            "metrics", "kpi", "dashboard", "report", "insight", "pattern",
-            "trend", "anomaly", "correlation", "causation", "hypothesis",
+            "analyze",
+            "analysis",
+            "compare",
+            "research",
+            "explain",
+            "evaluate",
+            "review",
+            "assess",
+            "investigate",
+            "study",
+            "examine",
+            "explore",
+            "understand",
+            "interpret",
+            "summarize",
+            "synthesize",
+            "conclude",
+            "recommend",
+            "pros and cons",
+            "trade-offs",
+            "benchmark",
+            "profile",
+            "metrics",
+            "kpi",
+            "dashboard",
+            "report",
+            "insight",
+            "pattern",
+            "trend",
+            "anomaly",
+            "correlation",
+            "causation",
+            "hypothesis",
         ],
         TaskType.CHAT: [
-            "chat", "talk", "discuss", "conversation", "question", "help",
-            "how to", "what is", "why", "when", "where", "who", "tell me",
-            "show me", "give me", "list", "examples", "ideas", "suggestions",
-            "brainstorm", "creative", "write", "story", "poem", "joke",
+            "chat",
+            "talk",
+            "discuss",
+            "conversation",
+            "question",
+            "help",
+            "how to",
+            "what is",
+            "why",
+            "when",
+            "where",
+            "who",
+            "tell me",
+            "show me",
+            "give me",
+            "list",
+            "examples",
+            "ideas",
+            "suggestions",
+            "brainstorm",
+            "creative",
+            "write",
+            "story",
+            "poem",
+            "joke",
         ],
     }
 

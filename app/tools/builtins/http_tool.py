@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 import httpx
 
 from app.tools.base import Tool, ToolCall, ToolResponse, ToolSpec
@@ -15,7 +13,11 @@ class HTTPTool(Tool):
             "type": "object",
             "properties": {
                 "input": {"type": "string", "description": "URL to request"},
-                "method": {"type": "string", "description": "HTTP method (GET, POST, PUT, DELETE)", "enum": ["GET", "POST", "PUT", "DELETE"]},
+                "method": {
+                    "type": "string",
+                    "description": "HTTP method (GET, POST, PUT, DELETE)",
+                    "enum": ["GET", "POST", "PUT", "DELETE"],
+                },  # noqa: E501
                 "body": {"type": "string", "description": "Request body (for POST/PUT)"},
             },
             "required": ["input"],

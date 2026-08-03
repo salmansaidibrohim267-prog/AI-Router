@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 import re
 from typing import Any, Protocol
 
@@ -14,8 +13,7 @@ class ChunkStrategy(Protocol):
         self,
         document: KnowledgeDocument,
         **kwargs: Any,
-    ) -> list[ChunkPreview]:
-        ...
+    ) -> list[ChunkPreview]: ...
 
 
 _SENTENCE_PATTERN = re.compile(r"(?<=[.!?])\s+(?=[A-Z\"'(])")
@@ -185,12 +183,12 @@ class RecursiveChunkStrategy(_BaseStrategy):
     def _split_by_word(self, text: str) -> list[str]:
         parts: list[str] = []
         while len(text) > self._max:
-            chunk = text[:self._max]
+            chunk = text[: self._max]
             space = chunk.rfind(" ")
             if space > len(chunk) // 2:
                 chunk = chunk[:space]
             parts.append(chunk.strip())
-            text = text[len(chunk):].strip()
+            text = text[len(chunk) :].strip()
         if text:
             parts.append(text.strip())
         return parts
@@ -210,7 +208,7 @@ class RecursiveChunkStrategy(_BaseStrategy):
             if heading_match:
                 level = len(heading_match.group(1))
                 heading_text = heading_match.group(2).strip()
-                current_heading = current_heading[:level - 1] + [heading_text]
+                current_heading = current_heading[: level - 1] + [heading_text]
                 content = part
             else:
                 content = part
@@ -220,9 +218,7 @@ class RecursiveChunkStrategy(_BaseStrategy):
                 index += 1
             else:
                 next_hint = "paragraph" if level == "heading" else level
-                sub_chunks = self._split_recursive(
-                    content, index, current_heading.copy(), level_hint=next_hint
-                )
+                sub_chunks = self._split_recursive(content, index, current_heading.copy(), level_hint=next_hint)
                 chunks.extend(sub_chunks)
                 index += len(sub_chunks)
         return chunks
@@ -298,7 +294,7 @@ class SentenceChunkStrategy(_BaseStrategy):
 
         i = 0
         while i < len(sentences):
-            group = sentences[i:i + self._sentences]
+            group = sentences[i : i + self._sentences]
             content = " ".join(group)
             chunks.append(self._make_chunk(content, index, 0))
             index += 1

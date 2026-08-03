@@ -16,29 +16,15 @@ class MemoryEvaluator(BaseEvaluator):
         retrieved_set = set(retrieved_ids)
 
         hit = 1.0 if (relevant_ids & retrieved_set) else 0.0
-        precision = (
-            round(len(relevant_ids & retrieved_set) / len(retrieved_set), 4)
-            if retrieved_set
-            else 0.0
-        )
-        recall = (
-            round(len(relevant_ids & retrieved_set) / len(relevant_ids), 4)
-            if relevant_ids
-            else 0.0
-        )
+        precision = round(len(relevant_ids & retrieved_set) / len(retrieved_set), 4) if retrieved_set else 0.0
+        recall = round(len(relevant_ids & retrieved_set) / len(relevant_ids), 4) if relevant_ids else 0.0
         scores = [
             MetricScore("memory_hit_rate", hit),
             MetricScore("memory_precision", precision),
             MetricScore("memory_recall", recall),
         ]
-        relevance_values = [
-            float(_item_score(r)) for r in retrieved if _item_score(r) is not None
-        ]
-        relevance = (
-            round(sum(relevance_values) / len(relevance_values), 4)
-            if relevance_values
-            else 0.0
-        )
+        relevance_values = [float(_item_score(r)) for r in retrieved if _item_score(r) is not None]
+        relevance = round(sum(relevance_values) / len(relevance_values), 4) if relevance_values else 0.0
         scores.append(MetricScore("memory_relevance", relevance))
         return scores
 

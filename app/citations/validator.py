@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from app.citations.config import CitationConfig
 from app.citations.models import (
     CitationFormat,
@@ -29,9 +27,7 @@ class CitationValidator:
             errors.append(f"No supporting sources for sentence: {sentence[:80]!r}")
         for sid in source_ids:
             if sid not in known_ids:
-                errors.append(
-                    f"Citation references unknown source {sid!r} (sentence {sentence[:40]!r})"
-                )
+                errors.append(f"Citation references unknown source {sid!r} (sentence {sentence[:40]!r})")
         return errors
 
     def validate_result(
@@ -48,11 +44,7 @@ class CitationValidator:
             errors.append("No citations were generated")
 
         for citation in result.citations:
-            errors.extend(
-                self.validate_citation_source_ids(
-                    citation.source_ids, known, citation.sentence
-                )
-            )
+            errors.extend(self.validate_citation_source_ids(citation.source_ids, known, citation.sentence))
             if citation.confidence < self._config.confidence_threshold:
                 errors.append(
                     f"Citation {citation.citation_id} confidence "
@@ -60,22 +52,14 @@ class CitationValidator:
                     f"{self._config.confidence_threshold}"
                 )
 
-        unattributed = [
-            m for m in result.mappings if not m.source_ids
-        ]
+        unattributed = [m for m in result.mappings if not m.source_ids]
         low_attribution = [
-            m for m in result.mappings
-            if m.source_ids and m.attribution_score < self._config.attribution_threshold
+            m for m in result.mappings if m.source_ids and m.attribution_score < self._config.attribution_threshold
         ]
         if unattributed:
-            warnings.append(
-                f"{len(unattributed)} sentence(s) without supporting sources "
-                "(potential hallucination)"
-            )
+            warnings.append(f"{len(unattributed)} sentence(s) without supporting sources (potential hallucination)")
         if low_attribution:
-            warnings.append(
-                f"{len(low_attribution)} sentence(s) with weak attribution scores"
-            )
+            warnings.append(f"{len(low_attribution)} sentence(s) with weak attribution scores")
 
         if result.format != CitationFormat.JSON and result.citations and not result.rendered:
             warnings.append("Rendered text is empty")

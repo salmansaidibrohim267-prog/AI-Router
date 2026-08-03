@@ -20,21 +20,11 @@ class MCPToolUsageEvaluator(BaseEvaluator):
                 MetricScore("tool_precision", 0.0),
                 MetricScore("tool_correctness", 0.0),
             ]
-        successful = sum(
-            1 for c in calls if bool(c.get("success", True)) and not c.get("error")
-        )
+        successful = sum(1 for c in calls if bool(c.get("success", True)) and not c.get("error"))
         success_rate = round(successful / len(calls), 4)
         called_tools = {str(c.get("tool", "")) for c in calls}
-        completeness = (
-            round(len(expected_tools & called_tools) / len(expected_tools), 4)
-            if expected_tools
-            else 0.0
-        )
-        precision = (
-            round(len(expected_tools & called_tools) / len(called_tools), 4)
-            if called_tools
-            else 0.0
-        )
+        completeness = round(len(expected_tools & called_tools) / len(expected_tools), 4) if expected_tools else 0.0
+        precision = round(len(expected_tools & called_tools) / len(called_tools), 4) if called_tools else 0.0
         correct = sum(1 for c in calls if self._call_correct(c))
         correctness = round(correct / len(calls), 4)
         return [

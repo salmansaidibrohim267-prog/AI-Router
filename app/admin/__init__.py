@@ -85,10 +85,10 @@ from .monitoring import (
 )
 from .operations import OperationsService
 from .repositories import (
+    DEFAULT_SETTINGS,
     AdminRepositories,
     AlertRepository,
     AuditRepository,
-    DEFAULT_SETTINGS,
     FlagRepository,
     InMemoryAlertRepository,
     InMemoryAuditRepository,

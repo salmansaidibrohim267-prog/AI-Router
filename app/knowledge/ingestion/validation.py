@@ -1,20 +1,20 @@
 from __future__ import annotations
 
 import json
-import mimetypes
-import os
 
 from app.knowledge.ingestion.config import IngestionConfig
 from app.knowledge.ingestion.models import LoadedDocument
 
 try:
     from lxml import etree
+
     HAS_LXML = True
 except ImportError:
     HAS_LXML = False
 
 try:
-    import charset_normalizer
+    import charset_normalizer  # noqa: F401 - availability gate
+
     HAS_CHARSET = True
 except ImportError:
     HAS_CHARSET = False
@@ -36,9 +36,7 @@ class UnsupportedFormatError(IngestionValidationError):
         self.extension = extension
         self.mime_type = mime_type
         self.supported = supported
-        super().__init__(
-            f"Unsupported format: extension={extension}, mime_type={mime_type}"
-        )
+        super().__init__(f"Unsupported format: extension={extension}, mime_type={mime_type}")
 
 
 class CorruptedFileError(IngestionValidationError):
@@ -88,18 +86,17 @@ class DocumentValidator:
                 raw = document.content.decode(document.encoding, errors="replace")
                 json.loads(raw)
             except (UnicodeDecodeError, json.JSONDecodeError) as e:
-                raise CorruptedFileError(f"Invalid JSON: {e}")
+                raise CorruptedFileError(f"Invalid JSON: {e}") from e
 
         elif document.extension in (".html", ".htm"):
             if HAS_LXML:
                 try:
                     etree.fromstring(
-                        document.content.decode(document.encoding, errors="replace")
-                        .encode("utf-8"),
+                        document.content.decode(document.encoding, errors="replace").encode("utf-8"),
                         etree.HTMLParser(),
                     )
                 except Exception as e:
-                    raise CorruptedFileError(f"Invalid HTML: {e}")
+                    raise CorruptedFileError(f"Invalid HTML: {e}") from e
 
     @property
     def config(self) -> IngestionConfig:

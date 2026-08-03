@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import time
 from typing import Any
 
@@ -8,7 +7,7 @@ from app.distributed.distributed_queue import DistributedTaskQueue
 from app.distributed.distributed_scheduler import DistributedScheduler
 from app.distributed.event_bus import DistributedEventBus
 from app.distributed.lease import LeaseManager
-from app.distributed.models import WorkerInfo, WorkerStatus
+from app.distributed.models import WorkerStatus
 from app.distributed.redis_client import AsyncRedisClient
 from app.distributed.worker_registry import WorkerRegistry
 

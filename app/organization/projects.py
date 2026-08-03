@@ -82,7 +82,9 @@ class ProjectManager:
         if self._projects.get_by_name(workspace_id, name) is not None:
             raise ProjectAlreadyExistsError(name, workspace_id)
         if self._projects.count_for_workspace(workspace_id) >= self._config.max_projects_per_workspace:
-            raise ValueError(f"Project limit of {self._config.max_projects_per_workspace} reached for workspace {workspace_id!r}")
+            raise ValueError(
+                f"Project limit of {self._config.max_projects_per_workspace} reached for workspace {workspace_id!r}"
+            )  # noqa: E501
         project = Project(
             id=f"proj_{uuid.uuid4().hex[:16]}",
             workspace_id=workspace_id,
@@ -158,16 +160,28 @@ class ProjectManager:
             projects.extend(self._projects.list_for_workspace(workspace.id))
         return sorted(projects, key=lambda p: p.created_at)
 
-    async def create_async(self, organization_id: str, workspace_id: str, name: str, tenant_id: str = "", description: str = "", metadata: dict[str, Any] | None = None) -> Project:
+    async def create_async(
+        self,
+        organization_id: str,
+        workspace_id: str,
+        name: str,
+        tenant_id: str = "",
+        description: str = "",
+        metadata: dict[str, Any] | None = None,
+    ) -> Project:  # noqa: E501
         return self.create(organization_id, workspace_id, name, tenant_id, description, metadata)
 
-    async def update_async(self, organization_id: str, workspace_id: str, project_id: str, tenant_id: str = "", **fields: Any) -> Project:
+    async def update_async(
+        self, organization_id: str, workspace_id: str, project_id: str, tenant_id: str = "", **fields: Any
+    ) -> Project:  # noqa: E501
         return self.update(organization_id, workspace_id, project_id, tenant_id, **fields)
 
     async def delete_async(self, organization_id: str, workspace_id: str, project_id: str, tenant_id: str = "") -> bool:
         return self.delete(organization_id, workspace_id, project_id, tenant_id)
 
-    async def list_async(self, organization_id: str, workspace_id: str | None = None, tenant_id: str = "") -> list[Project]:
+    async def list_async(
+        self, organization_id: str, workspace_id: str | None = None, tenant_id: str = ""
+    ) -> list[Project]:  # noqa: E501
         if workspace_id is not None:
             return self.list_for_workspace(organization_id, workspace_id, tenant_id)
         return self.list_for_organization(organization_id, tenant_id)

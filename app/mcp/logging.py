@@ -16,10 +16,12 @@ class MCPLogger:
 
     def log_error(self, error: Exception, context: str = "") -> None:
         self._logger.error(
-            json.dumps({
-                "event": "mcp_error",
-                "error": str(error),
-                "error_type": error.__class__.__name__,
-                "context": context,
-            })
+            json.dumps(
+                {
+                    "event": "mcp_error",
+                    "error": str(error),
+                    "error_type": error.__class__.__name__,
+                    "context": context,
+                }
+            )
         )

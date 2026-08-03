@@ -4,7 +4,7 @@ import json
 import threading
 import time
 import uuid
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Any
 
 from .config import AdminConfig
@@ -13,7 +13,7 @@ from .logging import AdminLogger
 from .models import AlertRecord, AlertSeverity, AlertStatus, generate_id
 
 
-class MonitoringBackend(ABC):
+class MonitoringBackend(ABC):  # noqa: B024
     """Strategy: one observability integration backend."""
 
     name: str = ""
@@ -166,7 +166,10 @@ class LokiBackend(MonitoringBackend):
 
     def push_payload(self) -> dict[str, Any]:
         streams = [
-            {"stream": json.loads(key), "values": [[str(int(entry["ts"] * 1e9)), entry["message"]] for entry in entries]}
+            {
+                "stream": json.loads(key),
+                "values": [[str(int(entry["ts"] * 1e9)), entry["message"]] for entry in entries],
+            }  # noqa: E501
             for key, entries in self._streams.items()
         ]
         return {"streams": streams}
@@ -181,7 +184,13 @@ class AlertmanagerBackend(MonitoringBackend):
         super().__init__(config, logger)
         self._alerts: dict[str, AlertRecord] = {}
 
-    def fire(self, name: str, severity: str | AlertSeverity = "warning", message: str = "", labels: dict[str, str] | None = None) -> AlertRecord:
+    def fire(
+        self,
+        name: str,
+        severity: str | AlertSeverity = "warning",
+        message: str = "",
+        labels: dict[str, str] | None = None,
+    ) -> AlertRecord:  # noqa: E501
         if isinstance(severity, str):
             severity = AlertSeverity(severity)
         alert = AlertRecord(
@@ -267,7 +276,9 @@ class MonitoringService:
             raise MonitorError(f"Monitoring backend {name!r} is not enabled", name=name)
         return backend
 
-    def record_metric(self, metric: str, value: float = 1.0, labels: dict[str, str] | None = None, kind: str = "counter") -> None:
+    def record_metric(
+        self, metric: str, value: float = 1.0, labels: dict[str, str] | None = None, kind: str = "counter"
+    ) -> None:  # noqa: E501
         prometheus = self._backends.get(PrometheusBackend.name)
         if prometheus is None:
             return
@@ -290,7 +301,9 @@ class MonitoringService:
         if loki is not None:
             loki.ship(message, labels=labels, level=level)
 
-    def fire_alert(self, name: str, severity: str = "warning", message: str = "", labels: dict[str, str] | None = None) -> AlertRecord:
+    def fire_alert(
+        self, name: str, severity: str = "warning", message: str = "", labels: dict[str, str] | None = None
+    ) -> AlertRecord:  # noqa: E501
         alertmanager = self._backends.get(AlertmanagerBackend.name)
         if alertmanager is None:
             raise MonitorError("Alertmanager backend is not enabled")

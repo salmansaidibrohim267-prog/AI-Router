@@ -7,19 +7,17 @@ from app.retrieval.bm25 import BM25InvertedIndex
 from app.retrieval.config import RetrievalConfig
 from app.retrieval.exceptions import EmptyQueryError, InvalidQueryError, RetrievalError
 from app.retrieval.filtering import MetadataFilterEngine
-from app.retrieval.fusion import FusionStrategy, create_fusion_strategy
+from app.retrieval.fusion import create_fusion_strategy
 from app.retrieval.logging import RetrievalLogger
 from app.retrieval.models import (
     SearchQuery,
     SearchResponse,
     SearchResultItem,
-    SimilarityMetric,
 )
-from app.retrieval.normalization import NormalizationStrategy, create_normalization_strategy
+from app.retrieval.normalization import create_normalization_strategy
 from app.retrieval.pagination import Paginator
 from app.retrieval.query_expansion import QueryExpander
 from app.retrieval.ranking import Ranker
-from app.retrieval.similarity import SimilarityStrategy, create_similarity_strategy
 from app.retrieval.statistics import RetrievalStatsTracker
 
 
@@ -120,10 +118,10 @@ class HybridSearch:
         norm = create_normalization_strategy(norm_name)
         if semantic_scores:
             norm_sem = norm.normalize(list(semantic_scores.values()))
-            semantic_scores = dict(zip(semantic_scores.keys(), norm_sem))
+            semantic_scores = dict(zip(semantic_scores.keys(), norm_sem, strict=False))
         if keyword_scores:
             norm_kw = norm.normalize(list(keyword_scores.values()))
-            keyword_scores = dict(zip(keyword_scores.keys(), norm_kw))
+            keyword_scores = dict(zip(keyword_scores.keys(), norm_kw, strict=False))
 
         fusion = create_fusion_strategy(fusion_name)
         fused = fusion.fuse(semantic_scores, keyword_scores, semantic_weight, keyword_weight)
@@ -162,9 +160,7 @@ class HybridSearch:
         query: SearchQuery,
         text: str,
     ) -> list[SearchResultItem]:
-        has_semantic = (
-            self._embedding_service is not None or query.vector is not None
-        )
+        has_semantic = self._embedding_service is not None or query.vector is not None
         if not has_semantic:
             return []
 

@@ -47,9 +47,7 @@ class HeaderStrategy(TenantResolutionStrategy):
 
     def resolve(self, request: dict[str, Any]) -> TenantContext | None:
         headers = request.get("headers") or {}
-        tenant_id = headers.get(self._config.header_name) or headers.get(
-            self._config.header_name.lower()
-        )
+        tenant_id = headers.get(self._config.header_name) or headers.get(self._config.header_name.lower())
         if not tenant_id:
             return None
         return TenantContext(
@@ -105,9 +103,7 @@ class APIKeyStrategy(TenantResolutionStrategy):
         api_key = request.get("api_key")
         if not api_key:
             headers = request.get("headers") or {}
-            api_key = headers.get(self._config.api_key_header) or headers.get(
-                self._config.api_key_header.lower()
-            )
+            api_key = headers.get(self._config.api_key_header) or headers.get(self._config.api_key_header.lower())
         if not api_key:
             return None
         tenant_id = None
@@ -138,9 +134,7 @@ class SubdomainStrategy(TenantResolutionStrategy):
         host = request.get("host") or ""
         if not host:
             headers = request.get("headers") or {}
-            host = headers.get(self._config.subdomain_header) or headers.get(
-                self._config.subdomain_header.lower()
-            )
+            host = headers.get(self._config.subdomain_header) or headers.get(self._config.subdomain_header.lower())
         host = str(host or "")
         normalized = host.split(":")[0]
         suffix = self._config.subdomain_suffix
@@ -251,9 +245,7 @@ class TenantResolver:
             if request is not None:
                 merged = dict(request)
                 merged.setdefault("headers", {})
-                merged.update(
-                    {k: v for k, v in parts.items() if k not in ("headers",) or v}
-                )
+                merged.update({k: v for k, v in parts.items() if k not in ("headers",) or v})
                 parts = merged
             context = None
             for strategy in self._strategies:
@@ -266,9 +258,7 @@ class TenantResolver:
             if context is None and self._config.allow_anonymous:
                 context = TenantContext.anonymous(self._config.anonymous_tenant)
             if context is None:
-                raise TenantResolutionError(
-                    "Could not resolve a tenant from the request context"
-                )
+                raise TenantResolutionError("Could not resolve a tenant from the request context")
             if context.resolved_by:
                 self._metrics.record_resolution(context.tenant_id, context.resolved_by, success=True)
         return self._enrich(context)
@@ -279,9 +269,7 @@ class TenantResolver:
         try:
             tenant = self._manager.get(context.tenant_id)
         except Exception:
-            raise TenantResolutionError(
-                f"Resolved tenant {context.tenant_id!r} does not exist"
-            )
+            raise TenantResolutionError(f"Resolved tenant {context.tenant_id!r} does not exist") from None
         if tenant.is_deleted:
             raise TenantResolutionError(f"Tenant {context.tenant_id!r} is deleted")
         if tenant.is_suspended and self._config.enforce_active:

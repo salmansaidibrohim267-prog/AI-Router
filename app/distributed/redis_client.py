@@ -4,7 +4,7 @@ import asyncio
 import logging
 import os
 import time
-from typing import Any, Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -167,6 +167,7 @@ class AsyncRedisClient:
                 return
             try:
                 import redis.asyncio as aioredis
+
                 self._pool = aioredis.ConnectionPool.from_url(
                     self._url,
                     max_connections=self._max_connections,
@@ -179,7 +180,7 @@ class AsyncRedisClient:
                 safe_url = self._url.split("@")[-1] if "@" in self._url else self._url
                 logger.info(f"Connected to Redis at {safe_url}")
             except ImportError:
-                raise ImportError("redis package required. Install: pip install redis")
+                raise ImportError("redis package required. Install: pip install redis") from None
             except Exception as e:
                 logger.error(f"Redis connection failed: {e}")
                 raise
@@ -256,8 +257,7 @@ class AsyncRedisClient:
         result = await self._redis.brpop(key, timeout=timeout)
         if result:
             k, v = result
-            return (k.decode("utf-8") if isinstance(k, bytes) else k,
-                    v.decode("utf-8") if isinstance(v, bytes) else v)
+            return (k.decode("utf-8") if isinstance(k, bytes) else k, v.decode("utf-8") if isinstance(v, bytes) else v)
         return None
 
     async def zadd(self, key: str, score: float, member: str) -> None:
@@ -305,8 +305,7 @@ class AsyncRedisClient:
             return {}
         result = await self._redis.hgetall(key)
         return {
-            (k.decode("utf-8") if isinstance(k, bytes) else k):
-            (v.decode("utf-8") if isinstance(v, bytes) else v)
+            (k.decode("utf-8") if isinstance(k, bytes) else k): (v.decode("utf-8") if isinstance(v, bytes) else v)
             for k, v in result.items()
         }
 
@@ -324,7 +323,6 @@ class AsyncRedisClient:
         if self._redis is None:
             return
         if self._pubsub is None:
-            import redis.asyncio as aioredis
             self._pubsub = self._redis.pubsub()
         await self._pubsub.subscribe(channel)
 
@@ -351,8 +349,16 @@ class AsyncRedisClient:
             logger.error(f"Lua eval error: {e}")
             return None
 
-    async def atomic_dequeue(self, queue_key: str, task_prefix: str, lease_prefix: str,
-                             now: float, visibility_timeout: int, lease_ttl: int, task_ttl: int) -> str | None:
+    async def atomic_dequeue(
+        self,
+        queue_key: str,
+        task_prefix: str,
+        lease_prefix: str,
+        now: float,
+        visibility_timeout: int,
+        lease_ttl: int,
+        task_ttl: int,
+    ) -> str | None:
         result = await self.eval_script(
             ATOMIC_DEQUEUE_LUA,
             keys=[queue_key, task_prefix, lease_prefix],
@@ -362,8 +368,9 @@ class AsyncRedisClient:
             return result.decode("utf-8") if isinstance(result, bytes) else result
         return None
 
-    async def atomic_process_delayed(self, delayed_key: str, task_prefix: str, queue_prefix: str,
-                                     now: float, task_ttl: int) -> int:
+    async def atomic_process_delayed(
+        self, delayed_key: str, task_prefix: str, queue_prefix: str, now: float, task_ttl: int
+    ) -> int:
         result = await self.eval_script(
             ATOMIC_PROCESS_DELAYED_LUA,
             keys=[delayed_key, task_prefix, queue_prefix],

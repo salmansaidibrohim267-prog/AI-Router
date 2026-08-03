@@ -35,9 +35,7 @@ class ChunkStatistics:
         }
 
     @staticmethod
-    def overlap_percentage(
-        chunks: list[ChunkPreview], document_length: int
-    ) -> float:
+    def overlap_percentage(chunks: list[ChunkPreview], document_length: int) -> float:
         if not chunks or document_length == 0:
             return 0.0
         total_content = sum(len(c.content) for c in chunks)

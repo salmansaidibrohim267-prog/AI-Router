@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import time
 from typing import Any
 
 from .analytics import AnalyticsService
@@ -13,7 +12,7 @@ from .health import HealthCheckRegistry, create_default_registry
 from .logging import AdminLogger
 from .maintenance import MaintenanceManager
 from .metrics import AdminMetricsTracker
-from .models import DashboardReport, HealthStatus, MaintenanceStatus, SystemStatus
+from .models import DashboardReport, MaintenanceStatus, SystemStatus
 from .monitoring import MonitoringService
 from .operations import OperationsService
 from .settings import SystemSettingsManager
@@ -69,7 +68,12 @@ class TenantsModule(AdminModule):
     def _from_source(tenant: Any) -> dict[str, Any]:
         if isinstance(tenant, dict):
             return tenant
-        return {"id": getattr(tenant, "id", ""), "name": getattr(tenant, "name", ""), "plan": getattr(tenant, "plan", "free"), "status": getattr(tenant, "status", "active")}
+        return {
+            "id": getattr(tenant, "id", ""),
+            "name": getattr(tenant, "name", ""),
+            "plan": getattr(tenant, "plan", "free"),
+            "status": getattr(tenant, "status", "active"),
+        }  # noqa: E501
 
     def summary(self) -> dict[str, Any]:
         return {"name": self.name, "total": self.stats()["total"]}
@@ -107,7 +111,11 @@ class OrganizationsModule(AdminModule):
     def _from_source(org: Any) -> dict[str, Any]:
         if isinstance(org, dict):
             return org
-        return {"id": getattr(org, "id", ""), "name": getattr(org, "name", ""), "status": getattr(org, "status", "active")}
+        return {
+            "id": getattr(org, "id", ""),
+            "name": getattr(org, "name", ""),
+            "status": getattr(org, "status", "active"),
+        }  # noqa: E501
 
     def summary(self) -> dict[str, Any]:
         return {"name": self.name, "total": self.stats()["total"]}
@@ -150,7 +158,12 @@ class UsersModule(AdminModule):
     def _from_source(user: Any) -> dict[str, Any]:
         if isinstance(user, dict):
             return user
-        return {"id": getattr(user, "id", ""), "username": getattr(user, "username", ""), "role": getattr(user, "role", "user"), "status": getattr(user, "status", "active")}
+        return {
+            "id": getattr(user, "id", ""),
+            "username": getattr(user, "username", ""),
+            "role": getattr(user, "role", "user"),
+            "status": getattr(user, "status", "active"),
+        }  # noqa: E501
 
     def summary(self) -> dict[str, Any]:
         return {"name": self.name, "total": self.stats()["total"]}
@@ -163,10 +176,10 @@ class BillingModule(AdminModule):
         self._manager = manager
         self._subscriptions: list[dict[str, Any]] = []
 
-    def seed_subscription(self, subscription_id: str, plan_id: str = "free", status: str = "active", price: float = 0.0) -> None:
-        self._subscriptions.append(
-            {"id": subscription_id, "plan_id": plan_id, "status": status, "price": price}
-        )
+    def seed_subscription(
+        self, subscription_id: str, plan_id: str = "free", status: str = "active", price: float = 0.0
+    ) -> None:  # noqa: E501
+        self._subscriptions.append({"id": subscription_id, "plan_id": plan_id, "status": status, "price": price})
 
     def subscriptions(self) -> list[dict[str, Any]]:
         if self._manager is not None:
@@ -238,7 +251,11 @@ class ModelsModule(AdminModule):
     def _from_source(model: Any) -> dict[str, Any]:
         if isinstance(model, dict):
             return model
-        return {"id": getattr(model, "id", ""), "provider": getattr(model, "provider", "unknown"), "status": getattr(model, "status", "active")}
+        return {
+            "id": getattr(model, "id", ""),
+            "provider": getattr(model, "provider", "unknown"),
+            "status": getattr(model, "status", "active"),
+        }  # noqa: E501
 
     def summary(self) -> dict[str, Any]:
         return {"name": self.name, "total": self.stats()["total"]}
@@ -328,7 +345,10 @@ class PluginsModule(AdminModule):
 
     def plugins(self) -> list[dict[str, Any]]:
         if self._source is not None and hasattr(self._source, "get_enabled"):
-            enabled = [{"id": name, "name": name, "enabled": True} for name in (getattr(p, "name", "") for p in self._source.get_enabled())]
+            enabled = [
+                {"id": name, "name": name, "enabled": True}
+                for name in (getattr(p, "name", "") for p in self._source.get_enabled())
+            ]  # noqa: E501
             return enabled + [{"id": name, "name": name, "enabled": False} for name in self._source.disabled()]
         return list(self._plugins)
 
@@ -386,7 +406,9 @@ class AdminAPI:
         self._monitoring = monitoring or MonitoringService(self._config, self._logger)
         self._diagnostics = diagnostics or DiagnosticsService(self._config, self._logger)
         self._audit = audit or AuditService(self._config, logger=self._logger)
-        self._operations = operations or OperationsService(self._config, self._flags, self._settings, self._maintenance, self._monitoring, self._logger)
+        self._operations = operations or OperationsService(
+            self._config, self._flags, self._settings, self._maintenance, self._monitoring, self._logger
+        )  # noqa: E501
         self._tenants = tenants or TenantsModule()
         self._organizations = organizations or OrganizationsModule()
         self._users = users or UsersModule()
@@ -510,7 +532,9 @@ class AdminAPI:
     def toggle_feature(self, name: str, enabled: bool, actor: str = "admin") -> dict[str, Any]:
         return self._operations.toggle_feature(name, enabled, actor=actor)
 
-    def register_feature(self, name: str, enabled: bool = False, owner: str = "platform", description: str = "") -> dict[str, Any]:
+    def register_feature(
+        self, name: str, enabled: bool = False, owner: str = "platform", description: str = ""
+    ) -> dict[str, Any]:  # noqa: E501
         return self._operations.register_feature(name, enabled=enabled, owner=owner, description=description)
 
     def delete_feature(self, name: str) -> bool:
@@ -543,7 +567,9 @@ class AdminAPI:
     def maintenance_status(self) -> dict[str, Any]:
         return self._maintenance.status()
 
-    def fire_alert(self, name: str, severity: str = "warning", message: str = "", labels: dict[str, str] | None = None) -> dict[str, Any]:
+    def fire_alert(
+        self, name: str, severity: str = "warning", message: str = "", labels: dict[str, str] | None = None
+    ) -> dict[str, Any]:  # noqa: E501
         return self._operations.fire_alert(name, severity=severity, message=message, labels=labels)
 
     def acknowledge_alert(self, alert_id: str, actor: str = "admin") -> dict[str, Any]:
@@ -578,7 +604,9 @@ class AdminAPI:
     def audit_log(self, actor: str = "", action: str = "", limit: int = 50) -> list[dict[str, Any]]:
         return [record.to_dict() for record in self._audit.query(actor=actor, action=action, limit=limit)]
 
-    def record_audit(self, actor: str, action: str, resource: str = "", details: dict[str, Any] | None = None) -> dict[str, Any]:
+    def record_audit(
+        self, actor: str, action: str, resource: str = "", details: dict[str, Any] | None = None
+    ) -> dict[str, Any]:  # noqa: E501
         return self._audit.record(actor, action, resource=resource, details=details).to_dict()
 
     def diagnostics(self) -> dict[str, Any]:

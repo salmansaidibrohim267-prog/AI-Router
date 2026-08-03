@@ -34,9 +34,7 @@ class ToolSpec:
         self.description = description
         self.parameters = parameters or {
             "type": "object",
-            "properties": {
-                "input": {"type": "string", "description": "Input for the tool"}
-            },
+            "properties": {"input": {"type": "string", "description": "Input for the tool"}},
             "required": ["input"],
         }
         self.required_permissions = required_permissions or []
@@ -58,8 +56,7 @@ class Tool(ABC):
     spec: ToolSpec
 
     @abstractmethod
-    async def execute(self, call: ToolCall) -> ToolResponse:
-        ...
+    async def execute(self, call: ToolCall) -> ToolResponse: ...
 
     def get_spec(self) -> ToolSpec:
         return self.spec

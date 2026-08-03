@@ -82,11 +82,11 @@ class GoogleProvider(BaseProvider):
         client = await self._get_client()
         last_error = None
 
-        for attempt in range(self.max_retries):
+        for _ in range(self.max_retries):
             try:
                 response = await client.request(method, path, **kwargs)
                 return response
-            except httpx.TimeoutException as e:
+            except httpx.TimeoutException:
                 last_error = ProviderTimeoutError(
                     f"Request timeout after {self.timeout}s",
                     provider=self.name,
@@ -125,7 +125,9 @@ class GoogleProvider(BaseProvider):
                 "temperature": request.temperature,
                 "maxOutputTokens": request.max_tokens,
                 "topP": request.top_p,
-                "stopSequences": request.stop if isinstance(request.stop, list) else [request.stop] if request.stop else None,
+                "stopSequences": (
+                    request.stop if isinstance(request.stop, list) else [request.stop] if request.stop else None
+                ),  # noqa: E501
             },
         }
 
@@ -205,9 +207,7 @@ class GoogleProvider(BaseProvider):
             response = await self._request("POST", f"/models/{model_name}:embedContent", json=payload)
             response.raise_for_status()
             data = response.json()
-            all_embeddings.append(
-                EmbeddingData(embedding=data.get("embedding", {}).get("values", []), index=i)
-            )
+            all_embeddings.append(EmbeddingData(embedding=data.get("embedding", {}).get("values", []), index=i))
 
         return EmbeddingResponse(
             data=all_embeddings,

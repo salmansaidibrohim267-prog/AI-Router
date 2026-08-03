@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import json
 import time
 from typing import AsyncIterator
@@ -77,11 +76,11 @@ class OpenRouterProvider(BaseProvider):
         client = await self._get_client()
         last_error = None
 
-        for attempt in range(self.max_retries):
+        for _ in range(self.max_retries):
             try:
                 response = await client.request(method, path, **kwargs)
                 return response
-            except httpx.TimeoutException as e:
+            except httpx.TimeoutException:
                 last_error = ProviderTimeoutError(
                     f"Request timeout after {self.timeout}s",
                     provider=self.name,
@@ -179,10 +178,7 @@ class OpenRouterProvider(BaseProvider):
         response.raise_for_status()
         data = response.json()
 
-        embeddings = [
-            EmbeddingData(embedding=e["embedding"], index=e["index"])
-            for e in data.get("data", [])
-        ]
+        embeddings = [EmbeddingData(embedding=e["embedding"], index=e["index"]) for e in data.get("data", [])]
 
         return EmbeddingResponse(
             data=embeddings,

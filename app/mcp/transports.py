@@ -11,7 +11,7 @@ try:
 except ImportError:  # pragma: no cover
     websockets = None  # type: ignore[assignment]
 
-from app.mcp.auth import Authenticator, AuthFactory, NoAuth
+from app.mcp.auth import Authenticator, NoAuth
 from app.mcp.config import MCPConfig
 from app.mcp.exceptions import (
     MCPConnectionError,
@@ -20,7 +20,6 @@ from app.mcp.exceptions import (
     MCPTransportError,
 )
 from app.mcp.models import (
-    MCPAuthType,
     MCPStreamEvent,
     MCPTransportType,
 )
@@ -147,9 +146,7 @@ class StdioTransport(BaseTransport):
             raise MCPTransportError("Stdio transport closed by server")
         response = parse_message(raw)
         if response.id != request.id:
-            raise MCPProtocolError(
-                f"Response id {response.id} does not match request id {request.id}"
-            )
+            raise MCPProtocolError(f"Response id {response.id} does not match request id {request.id}")
         return response
 
     async def stream(self, request: JSONRPCRequest) -> AsyncIterator[MCPStreamEvent]:
@@ -339,9 +336,7 @@ class WebSocketTransport(BaseTransport):
             raise MCPTransportError(f"WebSocket send failed: {e}") from e
         response = parse_message(raw)
         if response.id != request.id:
-            raise MCPProtocolError(
-                f"Response id {response.id} does not match request id {request.id}"
-            )
+            raise MCPProtocolError(f"Response id {response.id} does not match request id {request.id}")
         return response
 
     async def stream(self, request: JSONRPCRequest) -> AsyncIterator[MCPStreamEvent]:
@@ -367,9 +362,7 @@ class WebSocketTransport(BaseTransport):
                         is_final=True,
                     )
                 else:
-                    yield MCPStreamEvent(
-                        event_type="error", data={"error": message.error}, is_final=True
-                    )
+                    yield MCPStreamEvent(event_type="error", data={"error": message.error}, is_final=True)
                 return
         except Exception as e:
             raise MCPTransportError(f"WebSocket stream failed: {e}") from e

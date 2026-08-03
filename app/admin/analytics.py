@@ -41,7 +41,9 @@ class AnalyticsService:
             raise AnalyticsUnavailableError(f"analytics source {name!r} is not configured")
         return source()
 
-    def record(self, metric: str, value: float = 1.0, ts: float | None = None, labels: dict[str, str] | None = None) -> None:
+    def record(
+        self, metric: str, value: float = 1.0, ts: float | None = None, labels: dict[str, str] | None = None
+    ) -> None:  # noqa: E501
         sample = {"ts": ts or time.time(), "value": value, "labels": labels or {}}
         with self._lock:
             self._series.setdefault(metric, []).append(sample)
@@ -105,7 +107,16 @@ class AnalyticsService:
     def usage_summary(self) -> dict[str, Any]:
         total = 0.0
         by_category: dict[str, float] = {}
-        for category in ("tokens", "api_requests", "vector_storage", "embeddings", "mcp_calls", "plugins", "uploads", "active_users"):
+        for category in (
+            "tokens",
+            "api_requests",
+            "vector_storage",
+            "embeddings",
+            "mcp_calls",
+            "plugins",
+            "uploads",
+            "active_users",
+        ):  # noqa: E501
             samples = self.series(category)
             value = sum(sample["value"] for sample in samples)
             by_category[category] = round(value, 4)

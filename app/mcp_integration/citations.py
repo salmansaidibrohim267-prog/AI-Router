@@ -24,25 +24,19 @@ class MCPCitationResolver:
         self._metrics = metrics or MCPIntegrationMetricsTracker(self._config)
         self._engine = engine
 
-    async def resolve_async(
-        self, sources: list[dict[str, Any]]
-    ) -> list[dict[str, Any]]:
+    async def resolve_async(self, sources: list[dict[str, Any]]) -> list[dict[str, Any]]:
         resolved: list[dict[str, Any]] = []
         for source in sources:
             uri = source.get("uri") or source.get("mcp_uri")
             if not uri:
                 continue
-            if self._config.citation_resource_prefix and not str(uri).startswith(
-                self._config.citation_resource_prefix
-            ):
+            if self._config.citation_resource_prefix and not str(uri).startswith(self._config.citation_resource_prefix):
                 continue
             try:
                 self._metrics.record_resource_read()
                 resource = await self._client.read_resource(uri)
             except Exception as exc:
-                raise MCPCitationResolverError(
-                    f"MCP citation source resolution failed for {uri}: {exc}"
-                ) from exc
+                raise MCPCitationResolverError(f"MCP citation source resolution failed for {uri}: {exc}") from exc
             text = getattr(resource, "text", None)
             if not isinstance(text, str):
                 text = ""
@@ -71,9 +65,7 @@ class MCPCitationResolver:
         include_resources: bool = True,
     ) -> dict[str, Any]:
         if self._engine is None:
-            raise MCPCitationResolverError(
-                "Citation engine is not configured; cannot generate citations"
-            )
+            raise MCPCitationResolverError("Citation engine is not configured; cannot generate citations")
         sources: list[dict[str, Any]] = []
         for chunk in chunks:
             sources.append(
@@ -104,9 +96,7 @@ class MCPCitationResolver:
             raise
         except Exception as exc:
             self._metrics.record_error()
-            raise MCPCitationResolverError(
-                f"MCP citation generation failed: {exc}"
-            ) from exc
+            raise MCPCitationResolverError(f"MCP citation generation failed: {exc}") from exc
         self._metrics.record_citation()
         rendered = getattr(result, "rendered", "")
         verified = bool(getattr(result, "verified", False))
@@ -123,5 +113,5 @@ class MCPCitationResolver:
             "format": getattr(result, "format", citation_format or self._config.citation_format),
             "verified": verified,
             "errors": errors,
-            "sources": [getattr(s, "to_dict", lambda: dict(s))() for s in getattr(result, "sources", [])],
+            "sources": [getattr(s, "to_dict", lambda: dict(s))() for s in getattr(result, "sources", [])],  # noqa: B023
         }

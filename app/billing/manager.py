@@ -31,7 +31,7 @@ from .models import (
 )
 from .plans import PlanCatalog, PricingEngine
 from .providers import PaymentProvider, PaymentProviderFactory
-from .repository import BillingRepositories, InvoiceRepository, PaymentRepository, SubscriptionRepository
+from .repository import BillingRepositories
 from .sync import BillingEventBus, QuotaSyncCoordinator
 from .taxation import TaxCalculator
 from .usage import UsageMeter
@@ -169,9 +169,7 @@ class BillingManager:
         interval = interval or self._config.default_interval
         provider = provider or self._config.default_provider
         existing = self._repositories.subscriptions.by_tenant(tenant_id)
-        if existing is not None and existing.status not in (
-            SubscriptionStatus.CANCELLED,
-        ):
+        if existing is not None and existing.status not in (SubscriptionStatus.CANCELLED,):
             raise SubscriptionAlreadyExistsError(tenant_id)
         price = self._pricing.price(plan_id, seats=seats, interval=interval)["amount"]
         now = time.time()
@@ -247,7 +245,9 @@ class BillingManager:
             self._build_proration_invoice(subscription, previous, plan, seats or subscription.seats)
         subscription.plan_id = plan_id
         subscription.seats = seats or subscription.seats
-        subscription.price = self._pricing.price(plan_id, seats=subscription.seats, interval=subscription.interval)["amount"]
+        subscription.price = self._pricing.price(plan_id, seats=subscription.seats, interval=subscription.interval)[
+            "amount"
+        ]  # noqa: E501
         subscription.updated_at = time.time()
         self._repositories.subscriptions.update(subscription)
         self._metrics.record_subscription(
@@ -325,7 +325,9 @@ class BillingManager:
         if plan_id:
             plan = self._catalog.get(plan_id)
             subscription.plan_id = plan_id
-            subscription.price = self._pricing.price(plan_id, seats=subscription.seats, interval=subscription.interval)["amount"]
+            subscription.price = self._pricing.price(plan_id, seats=subscription.seats, interval=subscription.interval)[
+                "amount"
+            ]  # noqa: E501
         else:
             plan = self._catalog.get(subscription.plan_id)
         now = time.time()
@@ -408,7 +410,11 @@ class BillingManager:
         return subscription
 
     def _enforce_grace(self, subscription: Subscription) -> None:
-        if subscription.status == SubscriptionStatus.PAST_DUE and subscription.grace_end and time.time() > subscription.grace_end:
+        if (
+            subscription.status == SubscriptionStatus.PAST_DUE
+            and subscription.grace_end
+            and time.time() > subscription.grace_end
+        ):  # noqa: E501
             self._lifecycle.transition(subscription, SubscriptionStatus.CANCELLED)
             subscription.updated_at = time.time()
             self._repositories.subscriptions.update(subscription)
@@ -515,8 +521,12 @@ class BillingManager:
     def _build_proration_invoice(self, subscription: Subscription, previous: Plan, target: Plan, seats: int) -> Invoice:
         if not self._config.prorate_changes:
             return None
-        remaining = max(0.0, (subscription.current_period_end - time.time()) / self._period_seconds(subscription.interval))
-        delta = (target.price_for(subscription.interval) - previous.price_for(subscription.interval)) * seats * remaining
+        remaining = max(
+            0.0, (subscription.current_period_end - time.time()) / self._period_seconds(subscription.interval)
+        )  # noqa: E501
+        delta = (
+            (target.price_for(subscription.interval) - previous.price_for(subscription.interval)) * seats * remaining
+        )  # noqa: E501
         invoice = self._invoices.create_draft(
             subscription.tenant_id,
             subscription,

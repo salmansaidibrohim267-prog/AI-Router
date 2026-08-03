@@ -79,16 +79,12 @@ class SAMLProvider(AuthProvider):
             if name and values:
                 attributes[name] = values[0]
         email = attributes.get(self._attribute_map.get("email", "email"), "")
-        username = attributes.get(
-            self._attribute_map.get("username", "username"), name_id
-        )
+        username = attributes.get(self._attribute_map.get("username", "username"), name_id)
         return ProviderUser(
             id=name_id,
             username=username,
             email=email,
-            display_name=attributes.get(
-                self._attribute_map.get("display_name", "displayName"), username
-            ),
+            display_name=attributes.get(self._attribute_map.get("display_name", "displayName"), username),
             roles=[r for r in attributes.get("roles", "").split(",") if r],
             attributes=attributes,
         )

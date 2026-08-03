@@ -70,7 +70,9 @@ class TeamLimitError(OrganizationError):
 
 class MemberNotFoundError(OrganizationError):
     def __init__(self, organization_id: str, user_id: str = ""):
-        super().__init__(f"Member not found in organization {organization_id!r}" + (f" for user {user_id!r}" if user_id else ""))
+        super().__init__(
+            f"Member not found in organization {organization_id!r}" + (f" for user {user_id!r}" if user_id else "")
+        )  # noqa: E501
         self.organization_id = organization_id
         self.user_id = user_id
 

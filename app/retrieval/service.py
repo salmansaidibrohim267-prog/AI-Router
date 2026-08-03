@@ -12,11 +12,10 @@ from app.retrieval.models import (
     SearchQuery,
     SearchResponse,
     SearchResultItem,
-    SimilarityMetric,
 )
 from app.retrieval.pagination import Paginator
 from app.retrieval.ranking import Ranker
-from app.retrieval.similarity import SimilarityStrategy, create_similarity_strategy
+from app.retrieval.similarity import create_similarity_strategy
 from app.retrieval.statistics import RetrievalStatsTracker
 
 

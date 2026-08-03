@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import json
-import os
 import time
-from typing import Any
 
 from .config import EvaluationConfig
 from .exceptions import DatasetNotFoundError
@@ -87,7 +85,9 @@ class BenchmarkRegistry:
     def names(self) -> list[str]:
         return sorted(self._datasets.keys())
 
-    def load_json(self, path: str, name: str | None = None, dataset_type: DatasetType = DatasetType.CUSTOM) -> BenchmarkDataset:
+    def load_json(
+        self, path: str, name: str | None = None, dataset_type: DatasetType = DatasetType.CUSTOM
+    ) -> BenchmarkDataset:  # noqa: E501
         with open(path, "r", encoding="utf-8") as handle:
             payload = json.load(handle)
         dataset = BenchmarkDataset.from_dict(payload)
@@ -142,9 +142,7 @@ class BenchmarkRunner:
                 if result.error:
                     error = error or result.error
             except Exception as exc:
-                self._logger.log_event(
-                    "benchmark_evaluator_error", evaluator=evaluator_name, error=str(exc)
-                )
+                self._logger.log_event("benchmark_evaluator_error", evaluator=evaluator_name, error=str(exc))
                 error = error or str(exc)
         gate_result = None
         if apply_gate and self._config.gate_enabled:

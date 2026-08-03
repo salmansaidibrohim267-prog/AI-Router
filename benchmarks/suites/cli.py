@@ -29,7 +29,12 @@ def main(argv: list[str] | None = None) -> int:
     runner = SuiteRunner(target=_noop_target, target_name=args.target_name)
     for name in names:
         if name == "latency":
-            runner.register("latency", __import__("benchmarks.suites.suites", fromlist=["LatencySuite"]).LatencySuite(iterations=args.iterations))
+            runner.register(
+                "latency",
+                __import__("benchmarks.suites.suites", fromlist=["LatencySuite"]).LatencySuite(
+                    iterations=args.iterations
+                ),
+            )  # noqa: E501
     report = runner.run(names)
     if args.json:
         print(json.dumps(report.to_dict(), indent=2))

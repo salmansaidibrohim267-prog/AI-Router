@@ -34,9 +34,9 @@ from .exceptions import (
     ValidationError,
     VersionDeprecatedError,
     VersionNotSupportedError,
-    WebSocketUpgradeError,
     WebhookDeliveryError,
     WebhookError,
+    WebSocketUpgradeError,
 )
 from .gateway import APIGateway
 from .logging import GatewayLogger

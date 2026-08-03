@@ -13,7 +13,6 @@ from typing import Any, AsyncIterator
 
 import httpx
 
-from .config import GatewayConfig
 from .exceptions import (
     GatewayTimeoutError,
     ServiceUnavailableError,
@@ -107,7 +106,9 @@ class HttpTransport(Transport):
         headers = {**service.headers, **request.headers}
         try:
             async with self._client() as client:
-                response = await client.request(request.method, url, headers=headers, params=request.query, content=request.body)
+                response = await client.request(
+                    request.method, url, headers=headers, params=request.query, content=request.body
+                )  # noqa: E501
         except httpx.TimeoutException as exc:
             raise GatewayTimeoutError(service.name, self._timeout) from exc
         except httpx.HTTPError as exc:
@@ -124,7 +125,9 @@ class HttpTransport(Transport):
         headers = {**service.headers, **request.headers}
         try:
             async with self._client() as client:
-                async with client.stream(request.method, url, headers=headers, params=request.query, content=request.body) as response:
+                async with client.stream(
+                    request.method, url, headers=headers, params=request.query, content=request.body
+                ) as response:  # noqa: E501
                     async for chunk in response.aiter_bytes():
                         yield chunk
         except httpx.TimeoutException as exc:
@@ -180,10 +183,14 @@ class ServiceDispatcher:
             events = await self._collect_stream(transport, service, request)
             return self._sse_response(events)
         if route.protocol == RouteProtocol.STREAM:
-            return GatewayResponse(status_code=200, body=transport.stream(service, request), content_type="application/octet-stream")
+            return GatewayResponse(
+                status_code=200, body=transport.stream(service, request), content_type="application/octet-stream"
+            )  # noqa: E501
         return await transport.request(service, request)
 
-    async def _collect_stream(self, transport: Transport, service: ServiceDescriptor, request: GatewayRequest) -> list[StreamEvent]:
+    async def _collect_stream(
+        self, transport: Transport, service: ServiceDescriptor, request: GatewayRequest
+    ) -> list[StreamEvent]:  # noqa: E501
         stream = transport.stream(service, request)
         events: list[StreamEvent] = []
         async for chunk in stream:

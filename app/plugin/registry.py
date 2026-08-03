@@ -38,10 +38,7 @@ class PluginRegistry:
         return dict(self._plugins)
 
     def get_enabled(self) -> list[AIPlugin]:
-        return [
-            p for name, p in self._plugins.items()
-            if name not in self._disabled
-        ]
+        return [p for name, p in self._plugins.items() if name not in self._disabled]
 
     def is_enabled(self, name: str) -> bool:
         return name in self._plugins and name not in self._disabled
@@ -70,9 +67,7 @@ class PluginRegistry:
 
     @property
     def manifest(self) -> dict[str, Any]:
-        return {
-            name: m.to_dict() for name, m in self._manifests.items()
-        }
+        return {name: m.to_dict() for name, m in self._manifests.items()}
 
     def get_report(self) -> dict[str, Any]:
         return {
@@ -96,8 +91,10 @@ class PluginRegistry:
         for plugin in self._plugins.values():
             try:
                 import asyncio
+
                 if asyncio.iscoroutinefunction(plugin.shutdown):
                     import asyncio
+
                     try:
                         loop = asyncio.get_event_loop()
                         if loop.is_running():

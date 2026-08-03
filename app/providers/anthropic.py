@@ -19,7 +19,6 @@ from app.models import (
     ChatChoice,
     ChatRequest,
     ChatResponse,
-    EmbeddingData,
     EmbeddingRequest,
     EmbeddingResponse,
     HealthCheckResponse,
@@ -75,11 +74,11 @@ class AnthropicProvider(BaseProvider):
         client = await self._get_client()
         last_error = None
 
-        for attempt in range(self.max_retries):
+        for _ in range(self.max_retries):
             try:
                 response = await client.request(method, path, **kwargs)
                 return response
-            except httpx.TimeoutException as e:
+            except httpx.TimeoutException:
                 last_error = ProviderTimeoutError(
                     f"Request timeout after {self.timeout}s",
                     provider=self.name,
@@ -131,7 +130,9 @@ class AnthropicProvider(BaseProvider):
             "max_tokens": request.max_tokens or 4096,
             "temperature": request.temperature,
             "top_p": request.top_p,
-            "stop_sequences": request.stop if isinstance(request.stop, list) else [request.stop] if request.stop else None,
+            "stop_sequences": (
+                request.stop if isinstance(request.stop, list) else [request.stop] if request.stop else None
+            ),  # noqa: E501
         }
         if system:
             payload["system"] = system

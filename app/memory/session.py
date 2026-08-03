@@ -44,7 +44,6 @@ class SessionManager:
     def list_sessions(self) -> list[dict[str, Any]]:
         sessions = []
         for key in self._store.keys("session:*"):
-            sid = key.split(":", 1)[1]
             data = self._store.get(key)
             if data:
                 sessions.append(data)

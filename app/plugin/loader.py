@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import importlib.util
-import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -82,17 +81,19 @@ class PluginLoader:
                     return instance
         except Exception:
             import traceback
+
             traceback.print_exc()
         return None
 
     def load_all(self) -> list[AIPlugin]:
         plugins: list[AIPlugin] = []
-        for name, path in self.discover():
+        for _, path in self.discover():
             try:
                 plugin = self.load_plugin(path)
                 if plugin:
                     plugins.append(plugin)
             except Exception:
                 import traceback
+
                 traceback.print_exc()
         return plugins

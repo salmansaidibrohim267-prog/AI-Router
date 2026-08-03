@@ -3,7 +3,6 @@
 import os
 import signal
 import sys
-import time
 
 import uvicorn
 
@@ -11,7 +10,6 @@ from app.api import app
 from app.config import config_manager
 from app.logger import logger
 from app.secrets import get_secret
-
 
 REQUIRED_ENV_VARS = {
     "config/models.yaml": "YAML configuration file with task definitions",
@@ -29,6 +27,7 @@ def _get_build_metadata():
     """Read build metadata from /app/.meta/build.json if available."""
     try:
         import json
+
         meta_file = os.path.join(os.path.dirname(__file__), ".meta", "build.json")
         if os.path.isfile(meta_file):
             with open(meta_file) as f:
@@ -75,7 +74,6 @@ def validate_environment():
     seen_providers = {}
     for p in provider_configs:
         if p.name.lower() in seen_providers:
-            prev_task = seen_providers[p.name.lower()]
             print(f"  WARNING: Provider '{p.name}' appears in multiple tasks (may cause conflicts)")
         else:
             seen_providers[p.name.lower()] = True

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.tasks.storage import TaskStorage
 from app.tasks.status import TaskState
+from app.tasks.storage import TaskStorage
 
 
 class TaskQueue:
@@ -48,9 +48,7 @@ class TaskQueue:
         limit: int = 50,
         offset: int = 0,
     ) -> list[dict[str, Any]]:
-        return self._storage.list_tasks(
-            state=state, task_type=task_type, limit=limit, offset=offset
-        )
+        return self._storage.list_tasks(state=state, task_type=task_type, limit=limit, offset=offset)
 
     def dequeue(self) -> dict[str, Any] | None:
         return self._storage.dequeue()
@@ -70,22 +68,31 @@ class TaskQueue:
             retry_count = task.get("retry_count", 0)
             max_retries = task.get("max_retries", 3)
             if retry_count < max_retries:
-                self._storage.update(task_id, {
-                    "state": TaskState.RETRYING.value,
-                    "retry_count": retry_count + 1,
-                    "error": error,
-                })
+                self._storage.update(
+                    task_id,
+                    {
+                        "state": TaskState.RETRYING.value,
+                        "retry_count": retry_count + 1,
+                        "error": error,
+                    },
+                )
             else:
-                self._storage.update(task_id, {
-                    "state": TaskState.FAILED.value,
-                    "completed_at": __import__("time").time(),
-                    "error": error,
-                })
+                self._storage.update(
+                    task_id,
+                    {
+                        "state": TaskState.FAILED.value,
+                        "completed_at": __import__("time").time(),
+                        "error": error,
+                    },
+                )
 
     def complete_task(self, task_id: str, result: Any = None) -> None:
-        self._storage.update(task_id, {
-            "state": TaskState.COMPLETED.value,
-            "completed_at": __import__("time").time(),
-            "result": result,
-            "progress": 1.0,
-        })
+        self._storage.update(
+            task_id,
+            {
+                "state": TaskState.COMPLETED.value,
+                "completed_at": __import__("time").time(),
+                "result": result,
+                "progress": 1.0,
+            },
+        )

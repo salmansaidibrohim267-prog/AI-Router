@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from .config import TenancyConfig
 from .exceptions import TenantContextMissingError, TenantIsolationError, TenantSuspendedError
 from .models import TenantContext
@@ -64,15 +62,11 @@ class TenantIsolation:
         if self._config.enforce_active and context.status == "suspended":
             raise TenantSuspendedError(context.tenant_id)
         if self._config.enforce_active and context.status == "deleted":
-            raise TenantIsolationError(
-                f"Tenant {context.tenant_id!r} is deleted and cannot be accessed"
-            )
+            raise TenantIsolationError(f"Tenant {context.tenant_id!r} is deleted and cannot be accessed")
         return context
 
     def assert_isolated(self, context: TenantContext | None, other: TenantContext | None) -> None:
         if context is None or other is None:
             return
         if context.tenant_id and other.tenant_id and context.tenant_id != other.tenant_id:
-            raise TenantIsolationError(
-                f"Cross-tenant access denied: {context.tenant_id} != {other.tenant_id}"
-            )
+            raise TenantIsolationError(f"Cross-tenant access denied: {context.tenant_id} != {other.tenant_id}")

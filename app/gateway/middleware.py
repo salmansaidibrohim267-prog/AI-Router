@@ -8,7 +8,7 @@ quotas, caching, correlation ids, logging, and error conversion.
 from __future__ import annotations
 
 import time
-from typing import Any, Awaitable, Callable
+from typing import Awaitable, Callable
 
 from ..auth import AuthenticationManager, PermissionDeniedError
 from ..organization import OrganizationService
@@ -128,13 +128,20 @@ class LoggingMiddleware(Middleware):
         response = await next_handler(request)
         duration = time.time() - started
         self._logger.request(
-            request.method, request.path, response.status_code, duration,
-            version=request.version, correlation_id=request.correlation_id,
+            request.method,
+            request.path,
+            response.status_code,
+            duration,
+            version=request.version,
+            correlation_id=request.correlation_id,
             client_id=request.client_id,
         )
         if self._metrics is not None:
             self._metrics.record_request(
-                request.method, request.path, response.status_code, duration,
+                request.method,
+                request.path,
+                response.status_code,
+                duration,
                 version=request.version,
             )
         return response
@@ -260,8 +267,10 @@ class RateLimitMiddleware(Middleware):
             if self._metrics is not None:
                 self._metrics.record_rate_limit_hit(decision.strategy)
             raise RateLimitExceededError(
-                key=key, strategy=decision.strategy,
-                retry_after=decision.retry_after, limit=decision.limit,
+                key=key,
+                strategy=decision.strategy,
+                retry_after=decision.retry_after,
+                limit=decision.limit,
             )
         response = await next_handler(request)
         response.headers["X-RateLimit-Limit"] = str(decision.limit)
@@ -284,7 +293,11 @@ class QuotaMiddleware(Middleware):
 
     async def handle(self, request: GatewayRequest, next_handler: NextHandler) -> GatewayResponse:
         route: Route | None = request.metadata.get("route")
-        bucket = (route.quota_bucket if route is not None and route.quota_bucket else "requests") if route is not None else "requests"
+        bucket = (
+            (route.quota_bucket if route is not None and route.quota_bucket else "requests")
+            if route is not None
+            else "requests"
+        )  # noqa: E501
         scope = f"{request.tenant_id}:{request.client_id}"
         amount = int(request.metadata.get("quota_amount", 1))
         try:
@@ -317,12 +330,7 @@ class CacheMiddleware(Middleware):
 
     async def handle(self, request: GatewayRequest, next_handler: NextHandler) -> GatewayResponse:
         route: Route | None = request.metadata.get("route")
-        cacheable = (
-            route is not None
-            and route.cacheable
-            and self._cache.enabled
-            and request.method in ("GET", "HEAD")
-        )
+        cacheable = route is not None and route.cacheable and self._cache.enabled and request.method in ("GET", "HEAD")
         if not cacheable:
             return await next_handler(request)
 

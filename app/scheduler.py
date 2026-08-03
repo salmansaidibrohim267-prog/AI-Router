@@ -7,8 +7,6 @@ import asyncio
 import logging
 import os
 import signal
-import sys
-import time
 
 from app.distributed.distributed_scheduler import DistributedScheduler
 from app.distributed.redis_client import AsyncRedisClient

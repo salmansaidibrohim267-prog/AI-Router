@@ -6,7 +6,6 @@ import json
 import logging
 import sys
 import threading
-import time
 from collections import deque
 from datetime import datetime, timezone
 from pathlib import Path
@@ -14,9 +13,18 @@ from typing import Any
 
 from app.models import LogEntry
 
-
-SENSITIVE_FIELDS = {"api_key", "api-key", "apikey", "secret", "password", "token", "authorization",
-                    "x-api-key", "cookie", "set-cookie"}
+SENSITIVE_FIELDS = {
+    "api_key",
+    "api-key",
+    "apikey",
+    "secret",
+    "password",
+    "token",
+    "authorization",
+    "x-api-key",
+    "cookie",
+    "set-cookie",
+}
 
 
 def _mask_sensitive(value: str) -> str:
@@ -51,10 +59,28 @@ class JSONFormatter(logging.Formatter):
 
         # Add extra fields (sanitized)
         for key, value in record.__dict__.items():
-            if key not in ["name", "msg", "args", "levelname", "levelno", "pathname",
-                           "filename", "module", "lineno", "funcName", "created",
-                           "msecs", "relativeCreated", "thread", "threadName",
-                           "processName", "process", "exc_info", "exc_text", "stack_info"]:
+            if key not in [
+                "name",
+                "msg",
+                "args",
+                "levelname",
+                "levelno",
+                "pathname",
+                "filename",
+                "module",
+                "lineno",
+                "funcName",
+                "created",
+                "msecs",
+                "relativeCreated",
+                "thread",
+                "threadName",
+                "processName",
+                "process",
+                "exc_info",
+                "exc_text",
+                "stack_info",
+            ]:
                 log_data[key] = _sanitize_value(key, value)
 
         return json.dumps(log_data, default=str)
@@ -182,26 +208,17 @@ class StructuredLogger:
     def get_logs_by_provider(self, provider: str, limit: int = 100) -> list[LogEntry]:
         """Get logs filtered by provider."""
         with self._lock:
-            return [
-                log for log in reversed(self._memory_logs)
-                if log.provider == provider
-            ][:limit]
+            return [log for log in reversed(self._memory_logs) if log.provider == provider][:limit]
 
     def get_logs_by_task(self, task: str, limit: int = 100) -> list[LogEntry]:
         """Get logs filtered by task."""
         with self._lock:
-            return [
-                log for log in reversed(self._memory_logs)
-                if log.task == task
-            ][:limit]
+            return [log for log in reversed(self._memory_logs) if log.task == task][:limit]
 
     def get_error_logs(self, limit: int = 100) -> list[LogEntry]:
         """Get failed request logs."""
         with self._lock:
-            return [
-                log for log in reversed(self._memory_logs)
-                if not log.success
-            ][:limit]
+            return [log for log in reversed(self._memory_logs) if not log.success][:limit]
 
     def clear_memory_logs(self) -> None:
         """Clear memory log buffer."""

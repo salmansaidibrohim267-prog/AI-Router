@@ -62,9 +62,7 @@ class InMemoryUserRepository(UserRepository):
     def get_by_username(self, username: str, tenant_id: str = "") -> User:
         with self._lock:
             for user in self._users.values():
-                if user.username == username and (
-                    not tenant_id or user.tenant_id == tenant_id
-                ):
+                if user.username == username and (not tenant_id or user.tenant_id == tenant_id):
                     return user
         raise InvalidCredentialsError("User not found")
 
@@ -104,10 +102,7 @@ class SessionRepository:
 
     def list_for_user(self, user_id: str) -> list[Session]:
         with self._lock:
-            return [
-                s for s in self._sessions.values()
-                if s.user_id == user_id and not s.revoked
-            ]
+            return [s for s in self._sessions.values() if s.user_id == user_id and not s.revoked]
 
     def list_all(self) -> list[Session]:
         with self._lock:

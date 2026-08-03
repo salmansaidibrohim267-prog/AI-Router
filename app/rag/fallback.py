@@ -5,7 +5,6 @@ from typing import Any, Callable, Coroutine
 
 from app.rag.config import RAGConfig
 from app.rag.exceptions import RAGFallbackTriggered
-from app.rag.models import RAGResponse
 
 
 class FallbackStrategy:
@@ -51,7 +50,9 @@ class FallbackHandler:
             raise RAGFallbackTriggered("LLM timeout and fallback strategy is 'raise'")
         if strategy == FallbackStrategy.STATIC:
             return "I apologize, but the request timed out. Please try again."
-        return "I encountered a delay. Based on the information available, I cannot provide a complete answer right now."
+        # fmt: off
+        return "I encountered a delay. Based on the information available, I cannot provide a complete answer right now."  # noqa: E501
+        # fmt: on
 
     def with_retry(
         self,
@@ -67,7 +68,7 @@ class FallbackHandler:
                 except Exception as e:
                     last_exc = e
                     if attempt < max_retries:
-                        await asyncio.sleep(retry_delay * (2 ** attempt))
+                        await asyncio.sleep(retry_delay * (2**attempt))
             raise last_exc  # type: ignore[misc]
 
         return wrapper

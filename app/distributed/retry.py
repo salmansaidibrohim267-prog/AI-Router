@@ -18,7 +18,7 @@ class ExponentialBackoff:
         self.jitter = jitter
 
     def get_delay(self, attempt: int) -> float:
-        delay = min(self.base_delay * (self.multiplier ** attempt), self.max_delay)
+        delay = min(self.base_delay * (self.multiplier**attempt), self.max_delay)
         jitter_amount = delay * self.jitter
         return delay + random.uniform(-jitter_amount, jitter_amount)
 

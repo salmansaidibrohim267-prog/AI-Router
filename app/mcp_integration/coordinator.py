@@ -141,9 +141,7 @@ class MCPIntegrationCoordinator:
             citation_result: dict[str, Any] | None = None
             if self._config.citation_enabled and chunks:
                 try:
-                    citation_result = await self._citations.cite_async(
-                        answer, chunks, self._config.citation_format
-                    )
+                    citation_result = await self._citations.cite_async(answer, chunks, self._config.citation_format)
                 except MCPCitationResolverError as exc:
                     self._logger.log_event(
                         "citation_skipped",
@@ -196,9 +194,7 @@ class MCPIntegrationCoordinator:
         memory_type: str = "short_term",
         category: str = "general",
     ) -> dict[str, Any]:
-        return await self._memory.store(
-            content, scope=scope, memory_type=memory_type, category=category
-        )
+        return await self._memory.store(content, scope=scope, memory_type=memory_type, category=category)
 
     async def retrieve_memories(
         self, query: str = "", scope: dict[str, str] | None = None, top_k: int = 5

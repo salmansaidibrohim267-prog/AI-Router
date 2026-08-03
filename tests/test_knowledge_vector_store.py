@@ -31,7 +31,7 @@ from app.knowledge.vector_store.providers import InMemoryVectorStore
 from app.knowledge.vector_store.providers.qdrant import HAS_QDRANT
 from app.knowledge.vector_store.providers.chroma import HAS_CHROMA
 from app.knowledge.vector_store.providers.pgvector import HAS_PGVECTOR
-from app.knowledge.vector_store.providers.redis_vector import HAS_REDIS
+from app.knowledge.vector_store.providers.redis_vector import HAS_REDIS, RedisVectorStore
 from app.knowledge.vector_store import create_vector_store
 
 # ---------------------------------------------------------------------------

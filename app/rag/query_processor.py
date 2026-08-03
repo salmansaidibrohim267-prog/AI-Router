@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-from typing import Any
 
 from app.rag.config import RAGConfig
 from app.rag.models import (
@@ -43,8 +42,39 @@ class QueryProcessor:
     def _detect_language(self, text: str) -> LanguageType:
         if not text:
             return LanguageType.UNKNOWN
-        en_stopwords = {"the", "is", "are", "was", "were", "a", "an", "and", "or", "of", "to", "in", "it", "that", "this"}
-        fr_stopwords = {"le", "la", "les", "est", "sont", "un", "une", "des", "pour", "dans", "ce", "ces", "avec", "sur"}
+        en_stopwords = {
+            "the",
+            "is",
+            "are",
+            "was",
+            "were",
+            "a",
+            "an",
+            "and",
+            "or",
+            "of",
+            "to",
+            "in",
+            "it",
+            "that",
+            "this",
+        }  # noqa: E501
+        fr_stopwords = {
+            "le",
+            "la",
+            "les",
+            "est",
+            "sont",
+            "un",
+            "une",
+            "des",
+            "pour",
+            "dans",
+            "ce",
+            "ces",
+            "avec",
+            "sur",
+        }  # noqa: E501
         de_stopwords = {"der", "die", "das", "ist", "sind", "ein", "eine", "und", "oder", "von", "zu", "mit", "auf"}
         es_stopwords = {"el", "la", "los", "las", "es", "son", "un", "una", "y", "o", "de", "en", "por", "para"}
         words = set(re.findall(r"\w+", text.lower()))

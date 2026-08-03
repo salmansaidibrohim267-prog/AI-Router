@@ -35,12 +35,11 @@ class EmbeddingService:
         self._svc = knowledge_service
         self._config = config or EmbeddingConfig.from_env()
         self._provider = provider or create_embedding_provider(
-            self._config.provider, config=self._config,
+            self._config.provider,
+            config=self._config,
         )
         self._cache = cache or (
-            InMemoryEmbeddingCache(ttl=self._config.cache_ttl)
-            if self._config.cache_enabled
-            else None
+            InMemoryEmbeddingCache(ttl=self._config.cache_ttl) if self._config.cache_enabled else None
         )
         self._validator = validator or EmbeddingValidator()
         self._stats = statistics or EmbeddingStatistics()
@@ -124,15 +123,13 @@ class EmbeddingService:
 
         if uncached_texts:
             try:
-                batch_results = await self._batch.process(
-                    uncached_texts, **kwargs
-                )
-                for idx, result in zip(uncached_indices, batch_results):
+                batch_results = await self._batch.process(uncached_texts, **kwargs)
+                for idx, result in zip(uncached_indices, batch_results, strict=False):
                     results[idx] = result
                     if self._cache:
                         key = _cache_key(texts[idx], self._config.model)
                         await self._cache.set(key, result.vector)
-            except Exception as e:
+            except Exception:
                 self._stats.record_error()
                 raise
 

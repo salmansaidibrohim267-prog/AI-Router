@@ -50,9 +50,7 @@ class EvaluationConfig:
     )
     log_events: bool = True
     track_metrics: bool = True
-    thresholds: dict[str, dict[str, float]] = field(
-        default_factory=lambda: copy.deepcopy(DEFAULT_THRESHOLDS)
-    )
+    thresholds: dict[str, dict[str, float]] = field(default_factory=lambda: copy.deepcopy(DEFAULT_THRESHOLDS))
 
     def set_threshold(self, metric: str, min: float | None = None, max: float | None = None) -> None:
         self.thresholds[metric] = {
@@ -71,9 +69,7 @@ class EvaluationConfig:
             gate_enabled=os.getenv("EVAL_GATE_ENABLED", "1") == "1",
             regression_tolerance=float(os.getenv("EVAL_REGRESSION_TOLERANCE", "0.05")),
             report_dir=os.getenv("EVAL_REPORT_DIR", "reports/evaluation"),
-            report_formats=tuple(
-                os.getenv("EVAL_REPORT_FORMATS", "json,markdown,html,csv").split(",")
-            ),
+            report_formats=tuple(os.getenv("EVAL_REPORT_FORMATS", "json,markdown,html,csv").split(",")),
             log_events=os.getenv("EVAL_LOG_EVENTS", "1") == "1",
             track_metrics=os.getenv("EVAL_TRACK_METRICS", "1") == "1",
         )

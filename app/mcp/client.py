@@ -23,8 +23,8 @@ from app.mcp.models import (
     MCPPrompt,
     MCPRenderedPrompt,
     MCPResource,
-    MCPStreamEvent,
     MCPServerInfo,
+    MCPStreamEvent,
     MCPTool,
 )
 from app.mcp.protocol import JSONRPCRequest
@@ -61,12 +61,8 @@ class MCPClient:
         self._logger = logger or MCPLogger()
         self._metrics = metrics or MCPMetricsTracker()
         self._on_event = self._handle_session_event
-        self._session = session or MCPSession(
-            self._transport, self._config, on_event=self._on_event
-        )
-        self._discovery = discovery or ServerDiscovery(
-            self._session.request, self._config
-        )
+        self._session = session or MCPSession(self._transport, self._config, on_event=self._on_event)
+        self._discovery = discovery or ServerDiscovery(self._session.request, self._config)
         self._notification_task: asyncio.Task | None = None
         self._watchers: dict[str, list[Callable[[str, dict[str, Any]], Any]]] = {}
         self._connected = False
@@ -126,14 +122,13 @@ class MCPClient:
 
     async def initialize(self) -> MCPServerInfo:
         info = await self._discovery.initialize()
-        self._logger.log_event("initialized", server=info.server_name,
-                               protocol=info.protocol_version)
+        self._logger.log_event("initialized", server=info.server_name, protocol=info.protocol_version)
         return info
 
     async def ping(self, timeout: float | None = None) -> float:
         try:
             latency = await self._session.ping(timeout)
-        except Exception as e:
+        except Exception:
             self._metrics.record_error()
             raise
         self._metrics.record_ping(latency)
@@ -184,7 +179,9 @@ class MCPClient:
             latency = (time.perf_counter() - t0) * 1000
             self._metrics.record_tool_call(latency)
             self._logger.log_event(
-                "tool_called", tool=name, is_error=call_result.is_error,
+                "tool_called",
+                tool=name,
+                is_error=call_result.is_error,
                 latency_ms=round(latency, 4),
             )
             if call_result.is_error:
@@ -208,11 +205,13 @@ class MCPClient:
         try:
             for chunk in self._chunk(calls, self._config.max_batch_size):
                 batch = [
-                    asyncio.create_task(self.call_tool(
-                        str(c.get("name", "")),
-                        dict(c.get("arguments", {})),
-                        timeout,
-                    ))
+                    asyncio.create_task(
+                        self.call_tool(
+                            str(c.get("name", "")),
+                            dict(c.get("arguments", {})),
+                            timeout,
+                        )
+                    )
                     for c in chunk
                 ]
                 results.extend(await asyncio.gather(*batch))

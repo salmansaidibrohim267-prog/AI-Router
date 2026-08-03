@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from typing import Any
-
-from .retrieval import RetrievalEvaluator
-from .rag import RAGEvaluator
 from .citation import CitationEvaluator
-from .memory import MemoryEvaluator
 from .mcp_tools import MCPToolUsageEvaluator
+from .memory import MemoryEvaluator
+from .rag import RAGEvaluator
+from .retrieval import RetrievalEvaluator
 
 __all__ = [
     "RetrievalEvaluator",

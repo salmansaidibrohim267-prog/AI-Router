@@ -5,17 +5,11 @@ from __future__ import annotations
 import asyncio
 import statistics
 import time
-import uuid
 from dataclasses import dataclass, field
 from typing import Any
 
 from app.cache import cache_manager
-from app.config import config_manager
-from app.costs import token_accounting
-from app.logger import logger
-from app.metrics import get_metrics
 from app.models import ChatRequest, Message, MessageRole
-from app.providers.manager import provider_manager
 from app.router import router
 from app.stats import stats
 
@@ -106,13 +100,12 @@ async def _run_single_request(
         start = time.perf_counter()
         try:
             if stream:
-                last_chunk = None
-                async for chunk in router.stream_chat(req):
-                    last_chunk = chunk
+                async for _chunk in router.stream_chat(req):
+                    pass
                 latency = (time.perf_counter() - start) * 1000
                 result.latencies_ms.append(latency)
             else:
-                response = await router.chat(req)
+                _ = await router.chat(req)
                 latency = (time.perf_counter() - start) * 1000
                 result.latencies_ms.append(latency)
         except Exception:
@@ -121,11 +114,15 @@ async def _run_single_request(
             result.errors += 1
 
 
-async def _run_single_streaming(model: str, messages: list[Message], result: BenchmarkResult, semaphore: asyncio.Semaphore) -> None:
+async def _run_single_streaming(
+    model: str, messages: list[Message], result: BenchmarkResult, semaphore: asyncio.Semaphore
+) -> None:  # noqa: E501
     await _run_single_request(model, messages, True, semaphore, result, 0)
 
 
-async def _run_single_non_streaming(model: str, messages: list[Message], result: BenchmarkResult, semaphore: asyncio.Semaphore) -> None:
+async def _run_single_non_streaming(
+    model: str, messages: list[Message], result: BenchmarkResult, semaphore: asyncio.Semaphore
+) -> None:  # noqa: E501
     await _run_single_request(model, messages, False, semaphore, result, 0)
 
 
@@ -165,10 +162,7 @@ async def run_benchmark(
 
     result.end_time = time.time()
 
-    fallback_metrics = [
-        m for name, m in router.metrics.items()
-        if m.total_requests > m.successful_requests
-    ]
+    fallback_metrics = [m for name, m in router.metrics.items() if m.total_requests > m.successful_requests]
     result.fallback_count = len(fallback_metrics)
 
     for name, m in router.metrics.items():
@@ -190,12 +184,10 @@ async def get_system_metrics() -> dict[str, Any]:
                 "success_rate": round(m.success_rate, 4),
             }
 
-    provider_stats = router.get_provider_stats()
+    _ = router.get_provider_stats()
     s = stats.summary()
 
-    fallback_count = sum(
-        1 for m in router.metrics.values() if m.total_requests > m.successful_requests
-    )
+    fallback_count = sum(1 for m in router.metrics.values() if m.total_requests > m.successful_requests)
 
     cache_stats = cache_manager.get_all_stats()
     total_hits = sum(cs.get("hits", 0) for cs in cache_stats.values())

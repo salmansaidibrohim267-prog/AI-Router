@@ -162,7 +162,8 @@ class RetryPolicy:
 
     def get_delay(self, attempt: int) -> float:
         import random
-        delay = min(self.base_delay * (self.multiplier ** attempt), self.max_delay)
+
+        delay = min(self.base_delay * (self.multiplier**attempt), self.max_delay)
         jitter_amount = delay * self.jitter
         return delay + random.uniform(-jitter_amount, jitter_amount)
 

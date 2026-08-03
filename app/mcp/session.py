@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import Any, Awaitable, Callable
+from typing import Any, Callable
 
 from app.mcp.config import MCPConfig
 from app.mcp.exceptions import (
@@ -11,7 +11,7 @@ from app.mcp.exceptions import (
     MCPTransportError,
 )
 from app.mcp.models import MCPConnectionState
-from app.mcp.protocol import JSONRPCRequest, JSONRPCResponse, IDGenerator
+from app.mcp.protocol import IDGenerator, JSONRPCRequest
 
 
 class MCPSession:
@@ -129,9 +129,7 @@ class MCPSession:
                     and self._is_retryable(e)
                 ):
                     attempt += 1
-                    await asyncio.sleep(
-                        self._config.retry_base_delay * (2 ** (attempt - 1))
-                    )
+                    await asyncio.sleep(self._config.retry_base_delay * (2 ** (attempt - 1)))
                     continue
                 raise
 

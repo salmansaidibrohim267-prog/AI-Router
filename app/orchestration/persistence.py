@@ -37,6 +37,7 @@ class PersistenceManager:
 
     def get_stats(self) -> dict[str, Any]:
         import time
+
         keys = self._store.keys()
         return {
             "backend": self._store.__class__.__name__,

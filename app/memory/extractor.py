@@ -67,18 +67,67 @@ class MemoryExtractor:
         return memories
 
     PATTERNS: list[tuple[str, MemoryCategory]] = [
-        (r"(?:I like|I prefer|I love|I hate|I enjoy|I don'?t like|my favorite|my favourite|I am fond of)[^.!?\n]*", MemoryCategory.PREFERENCE),
-        (r"(?:I want to|I would like to|I hope to|I aim to|my goal is|I am working towards|I plan to|I wish to)[^.!?\n]*", MemoryCategory.GOAL),
-        (r"(?:I am|I'?m|she is|he is|it is|we are|they are|my name is|the fact is|it costs|it takes|it has)[^.!?\n]*", MemoryCategory.FACT),
-        (r"(?:I decided|I have decided|I choose|I chose|I will go with|we decided|decision:|I picked)[^.!?\n]*", MemoryCategory.DECISION),
-        (r"(?:I can'?t|I cannot|I must|I have to|I need to avoid|I am not allowed|I don'?t want to|constraint:|I am unable to)[^.!?\n]*", MemoryCategory.CONSTRAINT),
-        (r"(?:I need to|I have to remember|remind me|my task is|I should|I will do|todo:|I must remember)[^.!?\n]*", MemoryCategory.TASK),
+        (
+            r"(?:I like|I prefer|I love|I hate|I enjoy|I don'?t like|my favorite|my favourite|I am fond of)[^.!?\n]*",  # noqa: E501
+            MemoryCategory.PREFERENCE,
+        ),
+        (
+            r"(?:I want to|I would like to|I hope to|I aim to|my goal is|I am working towards|I plan to|I wish to)[^.!?\n]*",  # noqa: E501
+            MemoryCategory.GOAL,
+        ),
+        (
+            r"(?:I am|I'?m|she is|he is|it is|we are|they are|my name is|the fact is|it costs|it takes|it has)[^.!?\n]*",  # noqa: E501
+            MemoryCategory.FACT,
+        ),
+        (
+            r"(?:I decided|I have decided|I choose|I chose|I will go with|we decided|decision:|I picked)[^.!?\n]*",
+            MemoryCategory.DECISION,
+        ),  # noqa: E501
+        (
+            r"(?:I can'?t|I cannot|I must|I have to|I need to avoid|I am not allowed|I don'?t want to|constraint:|I am unable to)[^.!?\n]*",  # noqa: E501
+            MemoryCategory.CONSTRAINT,
+        ),
+        (
+            r"(?:I need to|I have to remember|remind me|my task is|I should|I will do|todo:|I must remember)[^.!?\n]*",
+            MemoryCategory.TASK,
+        ),  # noqa: E501
         (r"(?:remember that|note that|important:|for future reference)[^.!?\n]*", MemoryCategory.GENERAL),
     ]
 
     def _extract_entities(self, text: str) -> list[str]:
         candidates = re.findall(r"\b[A-Z][a-z]+\b", text)
-        stopwords = {"I", "The", "A", "An", "And", "Or", "But", "For", "With", "From", "To", "My", "It", "She", "He", "They", "We", "You", "This", "That", "Today", "Tomorrow", "Yes", "No", "Now", "Also", "One", "Two", "First", "Last"}
+        stopwords = {
+            "I",
+            "The",
+            "A",
+            "An",
+            "And",
+            "Or",
+            "But",
+            "For",
+            "With",
+            "From",
+            "To",
+            "My",
+            "It",
+            "She",
+            "He",
+            "They",
+            "We",
+            "You",
+            "This",
+            "That",
+            "Today",
+            "Tomorrow",
+            "Yes",
+            "No",
+            "Now",
+            "Also",
+            "One",
+            "Two",
+            "First",
+            "Last",
+        }  # noqa: E501
         return list(dict.fromkeys(c for c in candidates if c not in stopwords))
 
     def _clean(self, text: str) -> str:

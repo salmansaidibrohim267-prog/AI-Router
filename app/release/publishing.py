@@ -7,7 +7,6 @@ local filesystem publisher are provided. A registry maps names to factories.
 
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import shutil
@@ -16,7 +15,6 @@ from typing import Any, Callable
 
 from .config import ReleaseConfig
 from .exceptions import PublishError
-from .signing import ReleaseSigner, Signature
 
 Transport = Callable[[str, str, dict[str, Any], dict[str, Any]], dict[str, Any]]
 """transport(method, url, headers, body) -> response dict (injectable)."""
@@ -156,7 +154,9 @@ class PublisherRegistry:
     def __init__(self) -> None:
         self._factories: dict[str, Any] = {
             "github": lambda config, **kw: GitHubPublisher(config, kw.get("transport"), kw.get("token", "")),
-            "registry": lambda config, **kw: ContainerRegistryPublisher(config, kw.get("transport"), kw.get("token", "")),
+            "registry": lambda config, **kw: ContainerRegistryPublisher(
+                config, kw.get("transport"), kw.get("token", "")
+            ),  # noqa: E501
             "local": lambda config, **kw: LocalPublisher(config, kw.get("output_dir")),
         }
 

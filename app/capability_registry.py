@@ -5,12 +5,11 @@ from __future__ import annotations
 import os
 import threading
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import yaml
-
 
 REGISTRY_PATH = Path(__file__).resolve().parent.parent / "config" / "models_registry.yaml"
 
@@ -52,8 +51,15 @@ class ModelCapability:
 
 
 CAPABILITY_FIELDS = {
-    "streaming", "tools", "vision", "json_mode", "embeddings",
-    "reasoning", "thinking", "image_generation", "function_calling",
+    "streaming",
+    "tools",
+    "vision",
+    "json_mode",
+    "embeddings",
+    "reasoning",
+    "thinking",
+    "image_generation",
+    "function_calling",
 }
 
 

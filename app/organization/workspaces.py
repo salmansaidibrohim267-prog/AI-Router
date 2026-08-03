@@ -12,7 +12,6 @@ from .exceptions import (
     OrganizationArchivedError,
     OrganizationNotFoundError,
     WorkspaceAlreadyExistsError,
-    WorkspaceArchivedError,
     WorkspaceLimitError,
     WorkspaceNotFoundError,
 )
@@ -149,7 +148,7 @@ class WorkspaceManager:
         return workspace
 
     def restore(self, organization_id: str, workspace_id: str, tenant_id: str = "") -> Workspace:
-        org = self._get_org(organization_id, tenant_id)
+        _ = self._get_org(organization_id, tenant_id)
         workspace = self._workspaces.get(workspace_id)
         if workspace is None or workspace.organization_id != organization_id or workspace.tenant_id != tenant_id:
             raise WorkspaceNotFoundError(workspace_id)
@@ -218,7 +217,13 @@ class WorkspaceManager:
         workspace.updated_at = time.time()
         self._workspaces.update(workspace)
         self._metrics.record("workspace_transferred", organization_id)
-        self._audit_event("org.workspace_transferred", org.tenant_id, actor.user_id if actor else "", workspace_id=workspace_id, new_owner=new_owner_user_id)
+        self._audit_event(
+            "org.workspace_transferred",
+            org.tenant_id,
+            actor.user_id if actor else "",
+            workspace_id=workspace_id,
+            new_owner=new_owner_user_id,
+        )  # noqa: E501
         return workspace
 
     def get(self, organization_id: str, workspace_id: str, tenant_id: str = "") -> Workspace:
@@ -234,10 +239,21 @@ class WorkspaceManager:
             return self._workspaces.list_for_organization(organization_id)
         return self._workspaces.list_for_tenant(tenant_id)
 
-    async def create_async(self, organization_id: str, name: str, owner_user_id: str, tenant_id: str = "", description: str = "", slug: str | None = None, metadata: dict[str, Any] | None = None) -> Workspace:
+    async def create_async(
+        self,
+        organization_id: str,
+        name: str,
+        owner_user_id: str,
+        tenant_id: str = "",
+        description: str = "",
+        slug: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> Workspace:  # noqa: E501
         return self.create(organization_id, name, owner_user_id, tenant_id, description, slug, metadata)
 
-    async def update_async(self, organization_id: str, workspace_id: str, tenant_id: str = "", **fields: Any) -> Workspace:
+    async def update_async(
+        self, organization_id: str, workspace_id: str, tenant_id: str = "", **fields: Any
+    ) -> Workspace:  # noqa: E501
         return self.update(organization_id, workspace_id, tenant_id, **fields)
 
     async def delete_async(self, organization_id: str, workspace_id: str, tenant_id: str = "") -> bool:
@@ -246,10 +262,24 @@ class WorkspaceManager:
     async def archive_async(self, organization_id: str, workspace_id: str, tenant_id: str = "") -> Workspace:
         return self.archive(organization_id, workspace_id, tenant_id)
 
-    async def clone_async(self, organization_id: str, workspace_id: str, tenant_id: str = "", name: str | None = None, include_projects: bool = True) -> Workspace:
+    async def clone_async(
+        self,
+        organization_id: str,
+        workspace_id: str,
+        tenant_id: str = "",
+        name: str | None = None,
+        include_projects: bool = True,
+    ) -> Workspace:  # noqa: E501
         return self.clone(organization_id, workspace_id, tenant_id, name, include_projects)
 
-    async def transfer_async(self, organization_id: str, workspace_id: str, new_owner_user_id: str, tenant_id: str = "", actor: Principal | None = None) -> Workspace:
+    async def transfer_async(
+        self,
+        organization_id: str,
+        workspace_id: str,
+        new_owner_user_id: str,
+        tenant_id: str = "",
+        actor: Principal | None = None,
+    ) -> Workspace:  # noqa: E501
         return self.transfer(organization_id, workspace_id, new_owner_user_id, tenant_id, actor)
 
     async def list_async(self, organization_id: str | None = None, tenant_id: str = "") -> list[Workspace]:

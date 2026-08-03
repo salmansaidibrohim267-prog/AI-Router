@@ -10,7 +10,6 @@ from app.knowledge.vector_store.exceptions import (
     InvalidScoreError,
     VectorDimensionError,
 )
-from app.knowledge.vector_store.models import DistanceMetric
 
 
 class VectorStoreValidator:
@@ -22,9 +21,7 @@ class VectorStoreValidator:
         if not name:
             raise InvalidNamespaceError("Collection name cannot be empty")
         if not all(c.isalnum() or c in "-_" for c in name):
-            raise InvalidNamespaceError(
-                "Collection name must be alphanumeric with dashes/underscores"
-            )
+            raise InvalidNamespaceError("Collection name must be alphanumeric with dashes/underscores")
         return name
 
     def validate_namespace(self, namespace: str) -> str:

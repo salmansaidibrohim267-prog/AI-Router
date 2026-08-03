@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 from typing import Any
 
 from app.memory.exceptions import MemorySummarizationError
@@ -20,7 +19,7 @@ class MemorySummarizer:
             return ""
         try:
             if self._summarizer_func is not None:
-                if hasattr(self._summarizer_func, "__call__"):
+                if callable(self._summarizer_func):
                     result = self._summarizer_func(items, style=style)
                     if hasattr(result, "__await__"):
                         return str(await result)

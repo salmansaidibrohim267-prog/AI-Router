@@ -175,4 +175,6 @@ class GracePeriodExceededError(BillingError):
     error_code = "grace_period_exceeded"
 
     def __init__(self, subscription_id: str) -> None:
-        super().__init__(f"Grace period for subscription {subscription_id!r} has ended", subscription_id=subscription_id)
+        super().__init__(
+            f"Grace period for subscription {subscription_id!r} has ended", subscription_id=subscription_id
+        )  # noqa: E501

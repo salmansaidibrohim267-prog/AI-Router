@@ -134,11 +134,46 @@ class ClusterConfig:
                 continue
             if key == "discovery_peers":
                 params["discovery_config"] = {"peers": [p.strip() for p in raw.split(",") if p.strip()]}
-            elif key in ("CL_NODE_PORT", "CL_SCHEDULER_MAX_CONCURRENT", "CL_MIN_REPLICAS", "CL_MAX_REPLICAS", "CL_REPLICA_COUNT", "CL_DEPLOYMENT_BATCH_SIZE", "CL_BACKUP_PRUNE_MAX") or key in ("min_replicas", "max_replicas", "replica_count", "deployment_batch_size", "backup_prune_max", "node_port", "scheduler_max_concurrent"):
+            elif key in (
+                "CL_NODE_PORT",
+                "CL_SCHEDULER_MAX_CONCURRENT",
+                "CL_MIN_REPLICAS",
+                "CL_MAX_REPLICAS",
+                "CL_REPLICA_COUNT",
+                "CL_DEPLOYMENT_BATCH_SIZE",
+                "CL_BACKUP_PRUNE_MAX",
+            ) or key in (
+                "min_replicas",
+                "max_replicas",
+                "replica_count",
+                "deployment_batch_size",
+                "backup_prune_max",
+                "node_port",
+                "scheduler_max_concurrent",
+            ):  # noqa: E501
                 params[key] = int(raw)
             elif key in ("autoscale_enabled", "replication_enabled", "log_events", "track_metrics"):
                 params[key] = raw.strip().lower() in ("1", "true", "yes", "on")
-            elif key in ("election_retry_interval", "lease_ttl", "lease_renew_interval", "heartbeat_interval", "heartbeat_timeout", "scheduler_interval", "job_timeout", "autoscale_interval", "autoscale_cooldown", "autoscale_factor", "scale_down_factor", "cpu_threshold", "memory_threshold", "queue_threshold", "request_rate_threshold", "token_throughput_threshold", "canary_percentage", "deployment_timeout"):
+            elif key in (
+                "election_retry_interval",
+                "lease_ttl",
+                "lease_renew_interval",
+                "heartbeat_interval",
+                "heartbeat_timeout",
+                "scheduler_interval",
+                "job_timeout",
+                "autoscale_interval",
+                "autoscale_cooldown",
+                "autoscale_factor",
+                "scale_down_factor",
+                "cpu_threshold",
+                "memory_threshold",
+                "queue_threshold",
+                "request_rate_threshold",
+                "token_throughput_threshold",
+                "canary_percentage",
+                "deployment_timeout",
+            ):  # noqa: E501
                 params[key] = float(raw)
             else:
                 params[key] = raw

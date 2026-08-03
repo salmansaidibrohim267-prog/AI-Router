@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import Any
 
 from .config import AdminConfig
-from .exceptions import FeatureFlagNotFoundError, MaintenanceActiveError
+from .exceptions import FeatureFlagNotFoundError
 from .feature_flags import FeatureFlagManager
 from .logging import AdminLogger
 from .maintenance import MaintenanceManager
-from .monitoring import AlertRecord, AlertSeverity, MonitoringService
+from .monitoring import AlertSeverity, MonitoringService
 from .settings import SystemSettingsManager
 
 
@@ -57,7 +57,9 @@ class OperationsService:
         self._logger.log_event("operation.feature_flag", name=name, enabled=enabled, actor=actor)
         return flag.to_dict()
 
-    def register_feature(self, name: str, enabled: bool = False, owner: str = "platform", description: str = "") -> dict[str, Any]:
+    def register_feature(
+        self, name: str, enabled: bool = False, owner: str = "platform", description: str = ""
+    ) -> dict[str, Any]:  # noqa: E501
         flag = self._flags.register(name, enabled=enabled, owner=owner, description=description)
         return flag.to_dict()
 
@@ -107,7 +109,9 @@ class OperationsService:
         if isinstance(severity, str):
             severity = AlertSeverity(severity)
         alert = self._monitoring.fire_alert(name, severity=severity, message=message, labels=labels)
-        self._logger.log_event("operation.alert_fired", alert_id=alert.id, name=name, severity=severity.value, actor=actor)
+        self._logger.log_event(
+            "operation.alert_fired", alert_id=alert.id, name=name, severity=severity.value, actor=actor
+        )  # noqa: E501
         return alert.to_dict()
 
     def acknowledge_alert(self, alert_id: str, actor: str = "admin") -> dict[str, Any]:

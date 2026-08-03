@@ -55,9 +55,7 @@ class MCPRetriever:
                         MCPRetrievalResult(
                             id=block.get("id", block.get("chunk_id", "")),
                             content=text,
-                            score=float(
-                                block.get("score", block.get("rerank_score", 0.5))
-                            ),
+                            score=float(block.get("score", block.get("rerank_score", 0.5))),
                             metadata=block.get("metadata", {}),
                         )
                     )
@@ -65,9 +63,7 @@ class MCPRetriever:
                 parsed.append(MCPRetrievalResult(id="", content=block, score=0.5))
         return parsed
 
-    def _parse_structured_items(
-        self, items: list[Any]
-    ) -> list[MCPRetrievalResult]:
+    def _parse_structured_items(self, items: list[Any]) -> list[MCPRetrievalResult]:
         parsed: list[MCPRetrievalResult] = []
         for item in items:
             if not isinstance(item, dict):
@@ -105,9 +101,7 @@ class MCPRetriever:
             raise MCPRetrieverError(f"MCP retrieval failed: {exc}") from exc
         if getattr(result, "is_error", False):
             self._metrics.record_error()
-            raise MCPRetrieverError(
-                f"Retriever tool {self._config.retriever_tool!r} returned an error"
-            )
+            raise MCPRetrieverError(f"Retriever tool {self._config.retriever_tool!r} returned an error")
         results = self._parse_content(result)[:top_k]
         self._metrics.record_retrieval(self._metrics.elapsed(start))
         self._logger.log_event(
@@ -119,9 +113,7 @@ class MCPRetriever:
         )
         return results
 
-    async def search_resources_async(
-        self, query: str, top_k: int = 10
-    ) -> list[MCPRetrievalResult]:
+    async def search_resources_async(self, query: str, top_k: int = 10) -> list[MCPRetrievalResult]:
         start = time.perf_counter()
         try:
             await self._ensure_connected()
@@ -177,9 +169,7 @@ class MCPRetriever:
 
     def search(self, query: str, top_k: int = 10) -> list[MCPRetrievalResult]:
         if not self._cached_resources:
-            raise MCPRetrieverError(
-                "Sync search requires cached resources; call cache_resources first"
-            )
+            raise MCPRetrieverError("Sync search requires cached resources; call cache_resources first")
         scored: list[MCPRetrievalResult] = []
         for resource in self._cached_resources:
             text = resource.get("content", "")
