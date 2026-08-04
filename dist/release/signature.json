@@ -1,0 +1,15 @@
+{
+  "payload": {
+    "version": "1.0.0-rc.1",
+    "artifacts": [
+      {
+        "name": "ai-router-1.0.0-rc.1.tar.gz",
+        "path": "dist/release/ai-router-1.0.0-rc.1.tar.gz",
+        "digest": "ce1c38d93768dca5a0761d566442b0269724a523356933a9eb5ab3c79ee8aae1",
+        "size": 2073712
+      }
+    ]
+  },
+  "signature": "d5a53a14164afec2979998ce750051e327a662fa7d9b8be716a17246e3a17cac",
+  "algorithm": "hmac-sha256"
+}
