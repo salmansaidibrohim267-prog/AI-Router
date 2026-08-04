@@ -6,9 +6,14 @@ Copy the JSON files into Postman, Insomnia, or any HTTP client.
 | File | Endpoint | Purpose |
 | --- | --- | --- |
 | `chat.json` | `POST /v1/chat/completions` | Standard chat completion |
+| `openai.json` | `POST /v1/chat/completions` | OpenAI-routed request |
+| `anthropic.json` | `POST /v1/chat/completions` | Anthropic-routed request |
+| `ollama.json` | `POST /v1/chat/completions` | Local Ollama-routed request |
 | `stream.json` | `POST /v1/chat/completions` | SSE streaming chat |
 | `rag-upload.sh` | `POST /knowledge/documents/upload` | Ingest a document (multipart) |
-| `vector-search.json` | `POST /vector/search` | Vector search |
+| `vector-search.json` | `POST /vector/search` | Vector search (RAG retrieval) |
+| `mcp.json` | MCP streamable-HTTP transport | JSON-RPC `tools/call` (MCP SDK) |
+| `plugin.json` | `POST /plugins/enable` | Enable a plugin by name (`name=` param) |
 | `plugin-toggle.json` | `POST /plugins/enable` | Toggle a plugin |
 | `responses.md` | — | Expected response shapes |
 

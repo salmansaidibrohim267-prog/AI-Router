@@ -1,0 +1,8 @@
+{
+  "model": "anthropic/claude-3.5-sonnet",
+  "messages": [
+    {"role": "user", "content": "Explain the difference between routing and load balancing in an AI gateway."}
+  ],
+  "max_tokens": 512,
+  "temperature": 0.4
+}

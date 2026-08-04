@@ -19,6 +19,16 @@
 3. Include context in your report: version, deployment method, provider,
    and the request ID from the logs.
 
+## Resources
+
+- [Documentation index](docs/INDEX.md) — every guide in one place
+- [Quick start](docs/QUICK_START.md) and [FAQ](docs/FAQ.md)
+- [Demo](demo/README.md) — run the project locally in minutes
+- [Examples](examples/README.md) — copy-paste request and SDK examples
+- [Postman collection](postman/collection.json) / [Insomnia workspace](insomnia/workspace.json)
+- [Changelog](CHANGELOG.md) — what changed in each release
+- [License](LICENSE) — MIT, free to use and modify
+
 ## Commercial support
 
 For priority support, SLAs, or custom deployments, contact the maintainers

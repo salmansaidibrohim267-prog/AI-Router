@@ -16,7 +16,8 @@ only** — no image assets are committed to the repository.
 | --- | --- |
 | `logo-guidelines.md` | Logo design rules, clear space, minimum sizes, variants |
 | `colors.md` | Official color palette with hex/OKLCH values and usage |
-| `typography.md` | Type system: families, scales, weights, code fonts |
+| `fonts.md` | Type system: families, scales, weights, code fonts |
+| `typography.md` | Legacy alias — see `fonts.md` |
 | `social-preview.md` | Social preview image specification |
 
 ## Quick reference
