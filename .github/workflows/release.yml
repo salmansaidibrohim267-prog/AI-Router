@@ -74,7 +74,6 @@ jobs:
           PYTHONPATH=. python -c "
           from app.release import ReleaseManager, ReleaseConfig
           manager = ReleaseManager(ReleaseConfig(), history_file='dist/release/history.json')
-          manager.create_release('${{ steps.release.outputs.version }}')
           manager.build_artifact_manifest('${{ steps.release.outputs.version }}', {
               'ai-router-${{ steps.release.outputs.version }}.tar.gz': 'dist/release/app',
           })
