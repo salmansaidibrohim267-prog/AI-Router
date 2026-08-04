@@ -35,8 +35,20 @@ jobs:
         run: |
           PYTHONPATH=. python -c "
           from benchmarks.suites import SuiteRunner
-          from benchmarks.suites.suites import RagQualitySuite
-          runner = SuiteRunner(target=lambda: None, target_name='rag')
+          from benchmarks.suites.suites import RagDoc, RagQualitySuite
+
+          EXPECTED = {
+              'how does routing choose a provider': 'd1',
+              'how are tenants billed': 'd2',
+              'how are releases signed': 'd3',
+              'what is an error budget': 'd4',
+          }
+
+          def retriever(query):
+              doc_id = EXPECTED.get(query)
+              return [RagDoc(doc_id, f'doc {doc_id}')] if doc_id else []
+
+          runner = SuiteRunner(target=retriever, target_name='rag')
           runner.register('rag', RagQualitySuite())
           report = runner.run(['rag'])
           assert report.overall_passed(), report.to_dict()
