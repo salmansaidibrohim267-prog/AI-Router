@@ -63,11 +63,12 @@ jobs:
 
       - name: Build release artifacts
         run: |
-          mkdir -p dist/release
-          cp -r app dist/release/app
-          cp requirements.txt pyproject.toml README.md dist/release/
-          cp deployment/Dockerfile.prod dist/release/Dockerfile
-          cp CHANGELOG.md dist/release/
+          VERSION=${{ steps.release.outputs.version }}
+          mkdir -p dist/release/$VERSION
+          cp -r app dist/release/$VERSION/app
+          cp requirements.txt pyproject.toml README.md CHANGELOG.md dist/release/$VERSION/
+          cp deployment/Dockerfile.prod dist/release/$VERSION/Dockerfile
+          tar -czf dist/release/ai-router-${VERSION}.tar.gz -C dist/release $VERSION
 
       - name: Stage artifact manifest and sign
         run: |
@@ -75,7 +76,7 @@ jobs:
           from app.release import ReleaseManager, ReleaseConfig
           manager = ReleaseManager(ReleaseConfig(), history_file='dist/release/history.json')
           manager.build_artifact_manifest('${{ steps.release.outputs.version }}', {
-              'ai-router-${{ steps.release.outputs.version }}.tar.gz': 'dist/release/app',
+              'ai-router-${{ steps.release.outputs.version }}.tar.gz': 'dist/release/ai-router-${{ steps.release.outputs.version }}.tar.gz',
           })
           signature = manager.sign_manifest('${{ steps.release.outputs.version }}')
           import json
@@ -98,6 +99,7 @@ jobs:
           name: ${{ steps.release.outputs.version }}
           body_path: CHANGELOG.md
           files: |
+            dist/release/ai-router-${{ steps.release.outputs.version }}.tar.gz
             dist/release/signature.json
             dist/release/history.json
             dist/release/sbom.spdx.json
