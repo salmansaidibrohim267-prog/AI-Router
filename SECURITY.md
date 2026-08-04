@@ -41,3 +41,29 @@ API-key auth with RBAC, secrets management with AES-256-GCM envelope
 encryption, an HMAC-chained tamper-evident audit log, PII masking, and a
 zero-trust mode (`SEC_ZERO_TRUST_ENFORCE=1`). Report anything that deviates
 from that model as a vulnerability.
+
+## Automated security testing
+
+The CI pipeline runs security checks on every push and PR:
+
+| Check | Tool | Scope |
+| --- | --- | --- |
+| Static analysis | Bandit | `app/` |
+| Dependency audit | pip-audit | `requirements.txt` |
+| Image scan | Trivy | container image (HIGH/CRITICAL) |
+| SBOM | syft (anchore/sbom-action) | container image + source |
+| Lint/mypy | ruff, black, flake8, mypy | code quality gates |
+
+Findings are non-blocking where marked; genuine vulnerabilities should be
+reported through the private flow above.
+
+## Contributing security improvements
+
+Security fixes and hardening PRs are always welcome — see
+[CONTRIBUTING.md](CONTRIBUTING.md). If the change affects the security
+model, mention `security:` in the commit type so it lands in the changelog
+Security section.
+
+This project is licensed under the [MIT License](LICENSE); the security
+tooling and practices described here apply to the current supported
+versions listed above.

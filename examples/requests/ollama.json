@@ -1,0 +1,9 @@
+{
+  "model": "ollama/llama3.1:8b",
+  "messages": [
+    {"role": "system", "content": "You are a concise technical assistant."},
+    {"role": "user", "content": "Write a one-line joke about HTTP status codes."}
+  ],
+  "temperature": 0.8,
+  "max_tokens": 128
+}

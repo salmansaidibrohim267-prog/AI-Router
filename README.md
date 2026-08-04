@@ -18,7 +18,7 @@ scaling, and operations for you.
 ![Version](https://img.shields.io/badge/version-v1.0.0--rc.1-8A2BE2)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-4477%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-4482%20passed-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-98%25-28A745)
 ![Docker](https://img.shields.io/badge/docker-ghcr.io%2Fsalmansaidibrohim267-prog%2FAI-Router-2496ED?logo=docker&logoColor=white)
 ![CI](https://img.shields.io/github/actions/workflow/status/salmansaidibrohim267-prog/AI-Router/ci.yml?branch=main&label=CI&logo=github)
@@ -3454,13 +3454,28 @@ Beyond the 1.0 release candidate:
 
 ---
 
+## 🛟 Support
+
+Need help beyond the docs?
+
+- **Documentation** — start at [`docs/INDEX.md`](docs/INDEX.md), then the
+  [FAQ](docs/FAQ.md) and [troubleshooting guide](docs/troubleshooting.md).
+- **Report a bug or request a feature** — open an
+  [issue](https://github.com/anomalyco/opencode/issues) (bug reports are
+  most actionable with the request ID, version and config excerpt).
+- **Run it locally** — see the [demo](demo/README.md).
+- **Security issue** — report privately; see [`SECURITY.md`](SECURITY.md).
+- **Community** — see [SUPPORT.md](SUPPORT.md) for the full support tiers.
+
+---
+
 ## 🤝 Contributing
 
 Contributions are welcome. Start with [`docs/contributing.md`](docs/contributing.md),
 which covers:
 
 - **Development setup** — clone, install, `PYTHONPATH=. pytest tests/ -q`
-  (suite is `4477 passed, 21 skipped` at the time of writing).
+  (suite is `4482 passed` at the time of writing).
 - **Conventions** — plain pytest classes, one test module per subsystem,
   config classes with `_reject_unknown` + `from_env()`, injectable
   side effects, per-subsystem exception modules.

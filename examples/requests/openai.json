@@ -1,0 +1,10 @@
+{
+  "model": "openai/gpt-4o-mini",
+  "messages": [
+    {"role": "system", "content": "You are a helpful assistant. Answer concisely."},
+    {"role": "user", "content": "Summarize the key benefits of an AI gateway in three bullet points."}
+  ],
+  "temperature": 0.3,
+  "max_tokens": 256,
+  "stream": false
+}
