@@ -68,7 +68,10 @@ class SimulatedHSMAdapter(HSMAdapter):
         return self._xor(material) + b"\x00" + mac
 
     def unwrap(self, key_id: str, wrapped: bytes) -> bytes:
-        payload, _sep, mac = wrapped.rpartition(b"\x00")
+        if len(wrapped) < 33:
+            raise KeyManagementError("HSM unwrap integrity check failed")
+        payload = wrapped[:-33]
+        mac = wrapped[-32:]
         material = self._xor(payload)
         expected = hmac.new(self._secret, key_id.encode() + material, hashlib.sha256).digest()
         if not hmac.compare_digest(mac, expected):

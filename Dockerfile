@@ -38,16 +38,22 @@ RUN groupadd -r ai-router && \
 
 WORKDIR /app
 
-# Copy only installed packages from builder
-COPY --from=builder /root/.local /root/.local
-ENV PATH=/root/.local/bin:$PATH
+# Copy installed packages into the global site-packages so the non-root
+# runtime user (ai-router) can import them (/root/.local is mode 700)
+COPY --from=builder /root/.local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages/
+COPY --from=builder /root/.local/bin /usr/local/bin/
 
 # Copy application code
 COPY app/ ./app/
+COPY config/ ./config/
 
-# Write build metadata for /version endpoint
-RUN mkdir -p /app/.meta && \
-    echo "{\"version\": \"${VERSION}\", \"build_date\": \"${BUILD_DATE:-unknown}\", \"git_commit\": \"${GIT_COMMIT:-unknown}\", \"python_version\": \"${PYTHON_VERSION}\"}" > /app/.meta/build.json
+# Write build metadata for /version endpoint (read from app/.meta at runtime)
+RUN mkdir -p /app/app/.meta && \
+    echo "{\"version\": \"${VERSION}\", \"build_date\": \"${BUILD_DATE:-unknown}\", \"git_commit\": \"${GIT_COMMIT:-unknown}\", \"python_version\": \"${PYTHON_VERSION}\"}" > /app/app/.meta/build.json && \
+    chown -R ai-router:ai-router /app/app/.meta
+
+# Make runtime-writable paths belong to the app user
+RUN mkdir -p /app/logs && chown -R ai-router:ai-router /app/logs
 
 # Port and health check
 EXPOSE 8000
